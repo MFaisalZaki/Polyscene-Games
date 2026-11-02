@@ -113,10 +113,60 @@ The UI echoes the world because the player never leaves the document (Hook §1).
 
 ## 4. Color System
 
-[To be designed] — a primary palette of 5–7 colours with their meaning in this
-world, semantic colour usage, per-area colour temperature rules, the UI palette
-and where it diverges, and colourblind safety: which semantic colours need a
-shape, icon or sound backup.
+### 4.1 Primary palette
+
+Seven colours; everything else is a tint of one of them. Plate midtones sit in the 20–60% value band (the concept's rule, read as a rule for plate midtones); bone reaches its full value only under a lamp and in the UI; soot only in true darkness.
+
+| Colour | Hex | Role and meaning |
+|---|---|---|
+| **Bone** | `#D8CDB2` | Paper; lamp-lit interior surfaces; UI base. The page everything is written on. |
+| **Wet-concrete grey** | `#585A57` | Street, facade, the state's exterior, night base. The city as cabinet. |
+| **Nicotine ochre** | `#8F7748` | Private interiors: varnish, smoke-stained wallpaper, the bar. Lived-in space. |
+| **Grey-green** | `#6B7664` | State interiors (archive, ministry, corridor paint) and the archivist's ink. Institutional — she writes in the state's colour. |
+| **Carbon blue/violet** | `#434C7C` | The copy: anything the state has a duplicate of. Traceable. |
+| **Stamp red** | `#B5241C` | The state's attention. The only saturated red (Principle A). |
+| **Soot black** | `#1B1917` | Ink, darkness, the dissident's ink. The unfiled; the only privacy. |
+
+Secondary (light and ink): **incandescent amber** `#DDB065` (private light), **sodium orange** `#D4862A` (state light), **conscript khaki** `#8A7C4A` (orders ink). Forbidden: any other saturated hue, blue sky, golden-hour, any gradient that is not lamp falloff.
+
+### 4.2 Semantic usage
+
+- **Stamp red = the state is looking now.** Never on skin or clothing, never in people's paper, never decorative. Its reach follows the phase (§2.2); red on a document means the state is reading it at this moment.
+- **Carbon blue = filed.** A fact turns blue when filed; a copied document carries a blue double-strike ghost. The archivist's dossier view is blue-dominant.
+- **Three inks, three letterforms.** Archivist grey-green *cursive annotation*; dissident soot *hand-set block*; conscript khaki *stencil capitals*. A cross-chapter consequence is that chapter's ink, in its letterform, overprinted on this chapter's page (Principle B, Pillar 4).
+- **Neutrals locate space.** Bone = paper and lamp-lit rooms; ochre = private; grey-green = state interior; concrete = outside.
+- **Light.** Amber = private; sodium = state; soot = privacy.
+
+### 4.3 Temperature by area
+
+- **Interiors** are neutral; warmth comes only from lamp pools; windows are bone (day) or soot (night), never blue.
+- **State spaces** are cool: grey-green walls, bone paper, carbon blue, even overhead light. **Private spaces** are warm: ochre, amber, pooled.
+- **Exteriors** default to night or dusk: concrete base, sodium cones, amber window rectangles. Overcast day is allowed sparingly — flat bone-grey, no pools, no shadows: everyone visible, no one lit.
+- **Phase budgets** (red as share of frame, checkable on any plate; technical-artist to confirm they can be measured on export): Confident ≤2%, margin and stamps only; Paranoid ≤5%, on props, blue rising; Panicking ≤15%, tinting state key light, hard light; Collapsing ≤1%, sodium off, amber loose in the street, soot above 40% of frame.
+
+### 4.4 UI palette and where it diverges
+
+UI base is full-value bone `#EDE4CC` with soot text; carbon blue for interactive and linkable facts (clicking a fact files it, so world meaning and UI meaning converge); stamp red only for state attention — timer margin, surveillance indicator — never as a generic error or danger colour; protagonist inks for annotation. The divergence is **value, not hue**: UI runs at full bone and pure soot (about 13:1 contrast), higher than any plate; it never takes lamp or sodium tint; it contains no ochre or concrete. Per view: archivist bone + blue; dissident bone + soot with torn edges; conscript bone + khaki.
+
+### 4.5 Colourblind safety
+
+No semantic colour carries meaning alone; each has a shape backup, and the two attention states have an audio backup (audio-director to specify).
+
+| Pair | Who it fails | Backup |
+|---|---|---|
+| Stamp red vs grey-green (ink or wall) | Protan, deutan: red reads brown, green reads grey, they merge. | Red is always a geometric stamp or bar with a bordered edge and hatching; grey-green ink is always cursive. Never red text on a grey-green field. |
+| Stamp red vs ochre / khaki | Protan: red darkens to brown. | Red stamps sit on a bone field; khaki is stencil. Timer = margin fill + portrait crop tightening + audio cue. |
+| Sodium vs amber | Everyone (near hues), worst for deutan. | Shape of pool: state = cone from a pole onto the ground; private = rectangle on a wall from a window. No exceptions. |
+| Carbon blue vs soot | Tritan, low vision. | Filed = double-struck ghost plus a "cc" mark; unfiled = single strike. |
+| Grey-green vs khaki inks | Deutan. | Letterform (cursive vs stencil) plus the chapter tab on the page. |
+
+Text contrast: soot on bone ≥ 7:1; carbon blue on UI bone ≈ 7.6:1. An accessibility toggle that renders stamp red as hatching only is a ux-designer item, supplementary to these defaults.
+
+### 4.6 Alternatives considered
+
+- **A hue per protagonist.** Rejected in §1.3; inks on shared paper keep cross-chapter overprints legible on one page.
+- **Colourblind palette swap as the primary fix.** Rejected: shape backups make the default mode safe; a swap is a supplement, not the answer.
+- **Semantic green for "safe".** Rejected: nowhere is safe (Pillar 3), and it would collide with grey-green ink.
 
 ## 5. Character Design Direction
 
