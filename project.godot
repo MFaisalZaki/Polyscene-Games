@@ -1,0 +1,14 @@
+; Engine configuration file.
+; Written by /setup-engine. run/main_scene is left unset: /dev-story or the
+; developer sets it once a scene exists.
+
+config_version=5
+
+[application]
+
+config/name="Polyscene-Games"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
