@@ -47,7 +47,9 @@ branches; nothing else can answer it.
 
 ## Result
 
-Run of `run.py 8` (saved in `branches-h8.txt`):
+Revision 2, `run.py 10` and `run.py 12` (`branches-h10.txt`, `branches-h12.txt`): 23 behaviours on five end-state axes, exhaustive in 0.4 s, identical at both horizons; every value of every axis covered; "Vera files and nothing happens to Jan" is forbidden by the topic's `paid_silence` law; "Vera warns and pays nothing" and "Tomas stands down before the regime wavers" are forbidden by the physics. Witness chains include: burn → Rybar queries → Vera gives in → Kastan paid → Kastan reports Jan → raid → Rybar turns Jan → Jan informs on Vera.
+
+Revision 1, `run.py 8` (saved in `branches-h8.txt`):
 
 - Six cheapest tellings in 0.1 s, assumption-free first: Vera reads; Vera leaks; Jan prints and distributes; the crowd and the order; the gate opens.
 - Nine behaviours on (fate, vera_choice, jan_fate), exhaustive, 0.1 s. Coverage: fate 3/3, Vera 5/5, Jan 2/2.
@@ -61,7 +63,7 @@ Run of `run.py 8` (saved in `branches-h8.txt`):
 | Metric | Value |
 |--------|-------|
 | Path used | polyscene (Python) |
-| Iterations to playable | 3 (vocabulary spelling; assumption layer; fate from state) |
+| Iterations to playable | 5 (vocabulary spelling; assumption layer; fate from state; connected-law reads for the regime phases; Rybar's motive to turn a prisoner) |
 | Prototype duration | about 2 hours |
 | Playtesters | N/A (technical question) |
 | Feel assessment | N/A |

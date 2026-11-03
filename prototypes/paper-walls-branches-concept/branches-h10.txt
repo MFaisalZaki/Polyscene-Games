@@ -1,0 +1,248 @@
+[compiled and grounded in 1.0s, horizon 10]
+
+=== 1. cheapest tellings (k=6) ===
+[6 tellings in 0.2s; pool dry: False]
+Friday 6 October 1989. Vera Halm has report 4471 on her desk. Jan has a press and no leaflets. Tomas is at the border. Rybar is waiting for the ledger.
+
+────── scenario 1 of 6 ──────
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+────── scenario 2 of 6 ──────
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.
+   2. Kastan reports Jan to the Records Office.
+   3. Rybar raids the print shop; Jan is taken.
+  — end state: fate=held, vera_choice=filed, vera_fate=unwatched, jan_fate=arrested, tomas_choice=none
+
+────── scenario 3 of 6 ──────
+   1. Jan runs the press all night.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+────── scenario 4 of 6 ──────
+   1. Vera slips the report to Jan.
+  — end state: fate=held, vera_choice=leaked, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+────── scenario 5 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Orders arrive by the hour and contradict each other. The regime is panicking.  [world]
+   6. Rybar orders Tomas's unit to hold the line with live rounds.
+   7. Tomas obeys Rybar. The unit fires on the crowd.
+  — end state: fate=fell_bloody, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=fired
+
+────── scenario 6 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+=== 2. the branch space on ['fate', 'vera_choice', 'vera_fate', 'jan_fate', 'tomas_choice'] ===
+[23 behaviours in 0.4s; exhausted: True]
+#   fate         vera_choice  vera_fate  jan_fate  tomas_choice
+--  -----------  -----------  ---------  --------  ------------
+1   held         silent       unwatched  free      none
+2   held_bloody  leaked       unwatched  free      fired
+3   held_bloody  silent       unwatched  free      fired
+4   fell_bloody  leaked       unwatched  free      fired
+5   fell_bloody  silent       unwatched  free      fired
+6   held         filed        unwatched  free      none
+7   held         filed        unwatched  turned    none
+8   held         silent       unwatched  recanted  none
+9   held         filed        unwatched  recanted  none
+10  held         filed        watched    recanted  none
+11  held         filed        watched    free      none
+12  held         silent       unwatched  turned    none
+13  held         filed        watched    turned    none
+14  held         burned       unwatched  free      none
+15  held         burned       watched    free      none
+16  held         leaked       unwatched  free      none
+17  held         silent       unwatched  arrested  none
+18  held         filed        unwatched  arrested  none
+19  held         filed        watched    arrested  none
+20  fell_quiet   leaked       unwatched  free      stood_down
+21  fell_quiet   silent       unwatched  free      stood_down
+22  held         warned       unwatched  free      none
+23  held         warned       watched    free      none
+{'fate': {'fell_bloody': 'covered', 'fell_quiet': 'covered', 'held': 'covered', 'held_bloody': 'covered'}, 'vera_choice': {'burned': 'covered', 'filed': 'covered', 'leaked': 'covered', 'silent': 'covered', 'warned': 'covered'}, 'vera_fate': {'unwatched': 'covered', 'watched': 'covered'}, 'jan_fate': {'arrested': 'covered', 'free': 'covered', 'recanted': 'covered', 'turned': 'covered'}, 'tomas_choice': {'fired': 'covered', 'none': 'covered', 'stood_down': 'covered'}}
+
+--- behaviour 1: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'held'}
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+--- behaviour 2: {'tomas_choice': 'fired', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'leaked', 'fate': 'held_bloody'}
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Vera slips the report to Jan.
+   2. Jan prints the name of the informer: Kastan.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Rybar orders Tomas's unit to hold the line with live rounds.
+   6. Tomas obeys Rybar. The unit fires on the crowd.
+  — end state: fate=held_bloody, vera_choice=leaked, vera_fate=unwatched, jan_fate=free, tomas_choice=fired
+
+--- behaviour 3: {'tomas_choice': 'fired', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'held_bloody'}
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Rybar orders Tomas's unit to hold the line with live rounds.
+   6. Tomas obeys Rybar. The unit fires on the crowd.
+  — end state: fate=held_bloody, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=fired
+
+--- behaviour 4: {'tomas_choice': 'fired', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'leaked', 'fate': 'fell_bloody'}
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Vera slips the report to Jan.
+   2. Jan prints the name of the informer: Kastan.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Orders arrive by the hour and contradict each other. The regime is panicking.  [world]
+   6. Rybar orders Tomas's unit to hold the line with live rounds.
+   7. Tomas obeys Rybar. The unit fires on the crowd.
+  — end state: fate=fell_bloody, vera_choice=leaked, vera_fate=unwatched, jan_fate=free, tomas_choice=fired
+
+--- behaviour 5: {'tomas_choice': 'fired', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'fell_bloody'}
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Orders arrive by the hour and contradict each other. The regime is panicking.  [world]
+   6. Rybar orders Tomas's unit to hold the line with live rounds.
+   7. Tomas obeys Rybar. The unit fires on the crowd.
+  — end state: fate=fell_bloody, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=fired
+
+--- behaviour 6: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'filed', 'fate': 'held'}
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.
+   2. Kastan reports Jan to the Records Office.
+  — end state: fate=held, vera_choice=filed, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+--- behaviour 7: {'tomas_choice': 'none', 'jan_fate': 'turned', 'vera_fate': 'unwatched', 'vera_choice': 'filed', 'fate': 'held'}
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.
+   2. Kastan reports Jan to the Records Office.
+   3. Rybar raids the print shop; Jan is taken.
+   4. Rybar offers Jan a way out of the cell. Jan takes it.
+   5. Jan signs the statement. The watch on him is lifted; the press goes quiet.
+  — end state: fate=held, vera_choice=filed, vera_fate=unwatched, jan_fate=turned, tomas_choice=none
+
+--- behaviour 8: {'tomas_choice': 'none', 'jan_fate': 'recanted', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Kastan reports Jan to the Records Office.
+   2. Jan signs the statement. The watch on him is lifted; the press goes quiet.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=recanted, tomas_choice=none
+
+--- behaviour 9: {'tomas_choice': 'none', 'jan_fate': 'recanted', 'vera_fate': 'unwatched', 'vera_choice': 'filed', 'fate': 'held'}
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.
+   2. Kastan reports Jan to the Records Office.
+   3. Jan signs the statement. The watch on him is lifted; the press goes quiet.
+  — end state: fate=held, vera_choice=filed, vera_fate=unwatched, jan_fate=recanted, tomas_choice=none
+
+--- behaviour 10: {'tomas_choice': 'none', 'jan_fate': 'recanted', 'vera_fate': 'watched', 'vera_choice': 'filed', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+   2. Rybar telephones Vera: report 4471, where is it?
+   3. Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.
+   4. Kastan reports Jan to the Records Office.
+   5. Jan signs the statement. The watch on him is lifted; the press goes quiet.
+  — end state: fate=held, vera_choice=filed, vera_fate=watched, jan_fate=recanted, tomas_choice=none
+
+--- behaviour 11: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'watched', 'vera_choice': 'filed', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+   2. Rybar telephones Vera: report 4471, where is it?
+   3. Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.
+   4. Kastan reports Jan to the Records Office.
+  — end state: fate=held, vera_choice=filed, vera_fate=watched, jan_fate=free, tomas_choice=none
+
+--- behaviour 12: {'tomas_choice': 'none', 'jan_fate': 'turned', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Kastan reports Jan to the Records Office.
+   2. Rybar raids the print shop; Jan is taken.
+   3. Rybar offers Jan a way out of the cell. Jan takes it.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=turned, tomas_choice=none
+
+--- behaviour 13: {'tomas_choice': 'none', 'jan_fate': 'turned', 'vera_fate': 'watched', 'vera_choice': 'filed', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+   2. Rybar telephones Vera: report 4471, where is it?
+   3. Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.
+   4. Kastan reports Jan to the Records Office.
+   5. Rybar raids the print shop; Jan is taken.
+   6. Rybar offers Jan a way out of the cell. Jan takes it.
+  — end state: fate=held, vera_choice=filed, vera_fate=watched, jan_fate=turned, tomas_choice=none
+
+--- behaviour 14: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'burned', 'fate': 'held'}
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+  — end state: fate=held, vera_choice=burned, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+--- behaviour 15: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'watched', 'vera_choice': 'burned', 'fate': 'held'}
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+   2. Rybar telephones Vera: report 4471, where is it?
+  — end state: fate=held, vera_choice=burned, vera_fate=watched, jan_fate=free, tomas_choice=none
+
+--- behaviour 16: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'leaked', 'fate': 'held'}
+   1. Vera slips the report to Jan.
+  — end state: fate=held, vera_choice=leaked, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+--- behaviour 17: {'tomas_choice': 'none', 'jan_fate': 'arrested', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Kastan reports Jan to the Records Office.
+   2. Rybar raids the print shop; Jan is taken.
+  — end state: fate=held, vera_choice=silent, vera_fate=unwatched, jan_fate=arrested, tomas_choice=none
+
+--- behaviour 18: {'tomas_choice': 'none', 'jan_fate': 'arrested', 'vera_fate': 'unwatched', 'vera_choice': 'filed', 'fate': 'held'}
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.
+   2. Kastan reports Jan to the Records Office.
+   3. Rybar raids the print shop; Jan is taken.
+  — end state: fate=held, vera_choice=filed, vera_fate=unwatched, jan_fate=arrested, tomas_choice=none
+
+--- behaviour 19: {'tomas_choice': 'none', 'jan_fate': 'arrested', 'vera_fate': 'watched', 'vera_choice': 'filed', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+   2. Rybar telephones Vera: report 4471, where is it?
+   3. Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.
+   4. Kastan reports Jan to the Records Office.
+   5. Rybar raids the print shop; Jan is taken.
+  — end state: fate=held, vera_choice=filed, vera_fate=watched, jan_fate=arrested, tomas_choice=none
+
+--- behaviour 20: {'tomas_choice': 'stood_down', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'leaked', 'fate': 'fell_quiet'}
+  assuming variable(("garrison_wavers",constant("border"))) = true
+  assuming variable(("rybar_vindictive",constant("rybar"))) = true
+   1. Vera slips the report to Jan.
+   2. Jan prints the name of the informer: Kastan.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Rybar orders Tomas's unit to hold the line with live rounds.
+   6. Tomas lowers the rifle. The gate stays open.
+  — end state: fate=fell_quiet, vera_choice=leaked, vera_fate=unwatched, jan_fate=free, tomas_choice=stood_down
+
+--- behaviour 21: {'tomas_choice': 'stood_down', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'silent', 'fate': 'fell_quiet'}
+  assuming variable(("garrison_wavers",constant("border"))) = true
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. The ministry stops answering its telephones. The regime is wavering.  [world]
+   5. Tomas lowers the rifle. The gate stays open.
+  — end state: fate=fell_quiet, vera_choice=silent, vera_fate=unwatched, jan_fate=free, tomas_choice=stood_down
+
+--- behaviour 22: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'unwatched', 'vera_choice': 'warned', 'fate': 'held'}
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+   2. Vera knocks on Marta's door after dark and says: not on Tuesdays. Not any Tuesday.
+  — end state: fate=held, vera_choice=warned, vera_fate=unwatched, jan_fate=free, tomas_choice=none
+
+--- behaviour 23: {'tomas_choice': 'none', 'jan_fate': 'free', 'vera_fate': 'watched', 'vera_choice': 'warned', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+   2. Vera knocks on Marta's door after dark and says: not on Tuesdays. Not any Tuesday.
+   3. Kastan reports that Vera was seen at Marta's door after dark.
+  — end state: fate=held, vera_choice=warned, vera_fate=watched, jan_fate=free, tomas_choice=none
+
+=== 3. diagnoses ===
+Vera files, and nothing ever happens to Jan -> ['paid_silence']
+Jan is turned -> []
+The regime panics and the unit fires -> []
+Vera warns Marta and pays nothing -> None
+Tomas stands down at step 4 -> None

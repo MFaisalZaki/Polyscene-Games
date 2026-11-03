@@ -29,11 +29,16 @@ how each action reads, the world's own move, the three unknowns and the axes.
 ## What is in it
 
 Five agents (archivist Vera, dissident Jan, conscript Tomas, officer Rybar,
-informer Kastan), one person (Marta), one place (the border). Fifteen agent
-actions and one world move (the crowd). Three unknowns a telling may assume:
-Kastan loyal, the garrison wavering, Rybar vindictive. Three axes: fate
-(fell quietly / fell in blood / held), Vera's choice (filed / burned / warned /
-leaked / silent), Jan's fate (free / arrested).
+informer Kastan), one person (Marta), one place (the border). Twenty agent
+actions and three world moves (the crowd; the regime wavers; the regime panics),
+with the world's own drift (unrest climbs while leaflets are out, stability
+drains while a crowd stands at the gate). Three unknowns a telling may assume:
+Kastan loyal, the garrison wavering, Rybar vindictive. Three topic laws: a
+courage beat must cost its actor, a cowardice beat must protect something its
+actor wants (Pillar 3), and a paid informer may not stay silent. Five axes read
+off the end state: fate (fell quietly / fell in blood / held / held in blood),
+Vera's choice, Vera's fate (watched / unwatched), Jan's fate (free / arrested /
+recanted / turned), Tomas's choice (none / fired / stood down).
 
 ## Status
 
@@ -43,13 +48,18 @@ assumption layer is stated in the topic file because the engine commit in use
 
 ## Findings
 
-- Compile and ground: 0.8 s. Six cheapest tellings: 0.1 s. Nine behaviours on
-  three axes, exhaustive: 0.1 s. Diagnosis: instant.
-- Every axis value is covered. Branches rest on named assumptions.
-- The space shows the Pillar 4 gap: Vera's choice and the fall are independent
-  in this first topic. The real topic must make the filing feed the dossier
-  flags the other storylines read (the leak → expose → crowd → gate chain is the
-  one cross-life consequence present).
+- Revision 2 (cross-life flags, Pillar 3 laws, regime phase, reversals): ground
+  1.0 s; 23 behaviours on five axes, exhaustive, 0.4 s at horizon 10 and the same
+  23 at horizon 12, so the first act saturates by ten beats. Every axis value is
+  covered (`branches-h10.txt`, `branches-h12.txt`).
+- Vera's choice now reaches the other lives through the dossier: filing pays
+  Kastan, a paid Kastan reports Jan, Jan is raided, recants or is turned, and a
+  turned Jan can hand Vera's leak back to the state. Diagnosis of "Vera files and
+  nothing ever happens to Jan" now names the law that forbids it (`paid_silence`).
+- Courage costs: "Vera warns Marta and pays nothing" is forbidden by the physics
+  itself (no law to waive). The regime falls only after it wavers and panics.
+- Revision 1 (for the record): nine behaviours, Vera's choice independent of the
+  fall (`branches-h8.txt`).
 - Polyscene at commit 0a0e8cb: the toy world and 39 tests fail against its own
   latest encodings (the fixtures still write `stake/3`, the no-gap pulse refuses
   the toy's scheduled shock at step 3, the assumption rules are absent). The

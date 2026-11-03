@@ -9,7 +9,7 @@
             marta - person
             border - place)
   (:init (report-received vera marta)
-         (= (unrest border) 2)
+         (= (unrest border) 2) (= (stability border) 9)
          (= (attention vera) 0) (= (attention jan) 1) (= (attention tomas) 0)
          (= (attention rybar) 0) (= (attention kastan) 0) (= (attention marta) 1)
          (= (attention border) 0))

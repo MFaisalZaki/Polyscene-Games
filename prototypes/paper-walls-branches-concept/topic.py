@@ -16,7 +16,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # how each action class reads as a beat; {0} {1} {2} are the action's arguments
 PROSE = {
     'read-file':            '{0} reads report 4471 to the end: the parcel was medicine.',
-    'file-report':          '{0} enters 4471 in the ledger. {1} is now under observation; the household file is complete.',
+    'file-report':          '{0} enters 4471 in the ledger. {1} is now under observation; the household file is complete, and {2} is paid.',
+    'recover-report':       '{0} gives in: 4471 is re-entered from the carbon. {1} is watched; the household file is complete.',
+    'recant':               '{0} signs the statement. The watch on him is lifted; the press goes quiet.',
+    'inform-on-archivist':  '{0}, released, tells them where the file came from: {1}.',
+    'report-neighbour':     '{0} reports that {1} was seen at {2}\'s door after dark.',
+    'turn-informer':        '{0} offers {1} a way out of the cell. {1} takes it.',
+    'regime-wavers':        'The ministry stops answering its telephones. The regime is wavering.',
+    'regime-panics':        'Orders arrive by the hour and contradict each other. The regime is panicking.',
     'burn-report':          '{0} burns 4471. The ledger now has a gap with her name beside it.',
     'warn':                 '{0} knocks on {1}\'s door after dark and says: not on Tuesdays. Not any Tuesday.',
     'leak-file':            '{0} slips the report to {1}.',
@@ -62,8 +69,8 @@ class PaperWallsScenario(Scenario):
                 pass
             mark = '  [world]' if is_world else ''
             lines.append(f'  {t:>2}. {text}{mark}')
-        if self.features.get('fate'):
-            lines.append(f'  — fate: {self.features["fate"]}')
+        end = {k: self.features.get(k) for k in ('fate', 'vera_choice', 'vera_fate', 'jan_fate', 'tomas_choice')}
+        lines.append('  — end state: ' + ', '.join(f'{k}={v}' for k, v in end.items() if v is not None))
         return '\n'.join(lines)
 
 
@@ -82,6 +89,6 @@ class PaperWallsTopic(Topic):
         return ''
 
 
-def engine(horizon=9, assume_min=None):
+def engine(horizon=10, assume_min=None):
     args = ['-c', 'min_len=1'] + ([] if assume_min is None else ['-c', f'assume_min={assume_min}'])
     return ScenarioEngine(PaperWallsTopic(), horizon=horizon, solver_args=args)
