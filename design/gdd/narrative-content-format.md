@@ -10,9 +10,9 @@
 
 ## Summary
 
-[To be designed]
+Narrative Content Format & Strings is the shape every piece of Paper Walls' story is written in and the service that hands it out: documents, dialogue, scene and chapter graphs, decisions, the prose beats keyed to the story engine's action classes, the epilogues keyed to its ending classes, and the sign, order and file forms through which the dossier reaches each protagonist. Writers author in plain text, a build tool compiles it to id-only data plus per-locale string tables, and a validator refuses anything that names a field the dossier schema does not declare, exceeds a chapter's flag budget, gates a line on history instead of state, or leaves a class without a beat. It exists because the branches are generated, not hand-written, so the writing has to attach to state and classes through a format strict enough to check and loose enough to write a chapter in without touching JSON.
 
-> **Quick reference** — Layer: `Foundation` · Priority: `MVP` · Key deps: `[To be designed]`
+> **Quick reference** — Layer: `Foundation` · Priority: `MVP` · Key deps: `Dossier State Model` (build-time schema only); read by Investigation & Fact, Reactive Event Rules, Dialogue & Interrogation, Filing & Decision, Chapter & Story Structure, Scene Flow, Paper UI, Audio
 
 ## Overview
 
@@ -255,11 +255,226 @@ Backward from `string_frozen` is a structural rework, allowed only through a rec
 
 ## Formulas
 
-[To be designed]
+*Proposed by the systems designer. All constants named here live in `assets/content-src/tuning.yaml` and compile to `assets/data/content/tuning.json`, so the Python lint and the GDScript validator read one copy. Every length is counted in NFC code points, markup excluded, placeholders at declared worst-case (Core Rule 4). Two proposed constants were challenged and one added (`TARGET_LABEL_HARD`); the challenges are recorded in place.*
+
+### 1. String id validity
+
+The id validity formula is defined as:
+
+`id_ok(id) = match(id, ID_RE) ∧ cp(id) ≤ ID_MAX_LEN ∧ dom(id) ∈ DOMAINS ∧ ∀ i < last: ¬all_digits(seg_i)` with `ID_RE = ^[a-z][a-z0-9_]{0,SEG_MAX_LEN−1}(\.[a-z0-9][a-z0-9_]{0,SEG_MAX_LEN−1}){2,4}$`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `id` | string | ASCII | data file (lock, sources) | Candidate string or content id |
+| `SEG_MAX_LEN` | int | 16–32 | constant (24) | Longest segment |
+| `ID_MAX_LEN` | int | 48–96 | constant (64) | Longest whole id |
+| `DOMAINS` | set | 17 names | constant (Core Rule 4) | Closed first-segment list |
+| `seg_i` | string | — | calculated | i-th dot-separated segment; only the last may be all digits (the ordinal) |
+| `id_ok` | bool | — | calculated | V02 passes |
+
+**Output Range:** boolean. Five full segments would be 124 characters, so `ID_MAX_LEN` binds before the segment rule does; the lint reports length first.
+**Example:** `dlg.a1_vera_s2.query_ledger.rybar.1` is 35 code points, five segments, domain `dlg`, last segment digits only: pass. `beat.read_file.1` (16) passes; `Beat.read_file.1` fails the charset; `beat.3.1` fails the ordinal rule (segment 2 all digits). *Rejected:* `ID_MAX_LEN` 128 (PO and CSV keys would cope, but the budget footer, the lint's `file:line` output and the translator sheet wrap, and nothing needs it: the longest act-one id is 41).
+
+### 2. Effective length and source cap per kind
+
+The effective length formula is defined as:
+
+`len_eff(s) = cp(strip_markup(s)) − Σ_p cp("{" + p + "}") + Σ_p worst(p)` (for a plural message, the maximum over its categories), and the source cap check is `cap_ok(s) = len_eff(s) ≤ min(CAP[kind(s)], [hand(s) ∉ typewriter]·ANNOTATION_CAP)`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `s` | string | — | data file | Source (`en`) text |
+| `p` | placeholder | 0–4 per string | data file (string metadata) | Named placeholder with declared `worst(p)` |
+| `worst(p)` | int | 1–48 | data file | Worst-case rendered length; cast names use the longest `cast.name` (act one: 14), `{n}` 2, `{gap}` the line's `gap_width` |
+| `LINE_CAP` | int | 100–140 | constant (120) | `line` kind, error |
+| `LABEL_CAP` | int | 32–64 | constant (48) | `label` kind, warning |
+| `PROSE_WARN` | int | 500–1,000 | constant (800) | `prose` kind, warning |
+| `PROSE_CAP` | int | 1,000–1,600 | constant (1,200) | `prose` kind, error |
+| `ANNOTATION_CAP` | int | 60–100 | constant (80) | Any line in a non-typewriter hand (Core Rule 16), error |
+| `len_eff` | int | 0–unbounded | calculated | Length as the widest rendering would be |
+| `cap_ok` | bool | — | calculated | V09 passes |
+
+**Output Range:** `len_eff ≥ 0`, unbounded above; zero is itself an error (an empty string would render as a blank, Core Rule 8). `invariant` strings have no cap; V10 checks them for equality across locales.
+**Example:** `order.let_pass.courier` = "Pass {courier_name}. Papers in order." is 37 code points; minus 14 for the token, plus 14 worst-case gives `len_eff = 37 ≤ 120`. A `record` text "Declined to state." is 18. A marginal note in Berta's hand of 84 code points fails on `ANNOTATION_CAP` although it passes `LINE_CAP`. *Rejected:* counting UTF-8 bytes (Cyrillic doubles, so `ru` would trip caps `en` never could); grapheme clusters (no sourced engine API; code points are also what the font-matrix check V40 counts, so one unit serves both).
+
+### 3. Target fit check
+
+The target hard-cap check is defined as:
+
+`fit_hard(s, L) = len_eff(s_L) ≤ min(hard(kind(s)), max_chars(s))` with `hard = {line: TARGET_LINE_HARD, label: TARGET_LABEL_HARD, prose: ⌈PROSE_CAP × 1.3⌉}`; the band budget is `budget(L, n) = max(⌈b(L, n) × n⌉, [n > 20]·⌈b₁(L) × 20⌉, [n > 60]·⌈b₂(L) × 60⌉)` where `b(L, n) = b₁ if n ≤ 20, b₂ if n ≤ 60, b₃ otherwise`; and `expansion_ok(L, len_en, len_L) = len_L ≤ budget(L, len_en)`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `L` | locale | shipped ∪ partial | data file (manifest) | Target locale; an unlisted locale uses `de`'s bands (the widest) |
+| `len_en`, `len_L` | int | 0–`PROSE_CAP`, 0–unbounded | calculated (§2) | Effective lengths of source and target |
+| `max_chars(s)` | int/absent | 8–1,560 | data file (string metadata, derived from the container fit caps `DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `STAMP_FIT` × `max_lines`) | Container cap; absent → `hard` alone |
+| `TARGET_LINE_HARD` | int | 140–200 | constant (160) | Hard cap for `line` targets, error |
+| `TARGET_LABEL_HARD` | int | 48–80 | constant (64, added) | Hard cap for `label` targets, error |
+| `b₁, b₂, b₃` | float | 0.5–2.5 | data file (`expansion_band_<L>`) | de 1.9/1.5/1.30, ru 1.6/1.3/1.20, fr 1.6/1.3/1.20, ja 1.0/0.8/0.70 (post-MVP, needs line-height 1.15) |
+| `fit_hard` | bool | — | calculated | V38 error |
+| `expansion_ok` | bool | — | calculated | V38 warning |
+
+**Output Range:** `budget` runs from 0 (empty source) to 156 for `de` at a 120-code-point line, which is below `TARGET_LINE_HARD`: a full-cap `en` line translated within band can never trip the hard cap, so the hard cap only fires on `max_chars` or an over-band translation. That ordering is deliberate: the band is advisory, the container is law. The raw band table is non-monotone at its boundaries (`de`: 20 allows 38, 21 allows 32), which is why the formula takes the envelope: `budget(de, 21) = max(32, 38) = 38`, `budget(de, 61) = max(80, 38, 90) = 90`. *Challenge adopted:* a 160 hard cap on a `label` is meaningless (a 48-code-point tab translated to 160 fits the rule and breaks the tab), hence `TARGET_LABEL_HARD`. `max_lines ≤ 3` is Paper UI's headless layout test, not this formula: code points cannot see wrapping.
+**Example:** `sign.car_in_street` = "A car in the street that was not there yesterday." (48) → `de` "Ein Wagen auf der Straße, der gestern nicht da war." (51; ß is one code point); `budget(de, 48) = max(72, 38) = 72`; `51 ≤ 72`, pass; `51 ≤ min(160, max_chars = 96)`, pass. *Rejected:* the raw bands without the envelope (a writer who lengthens a 20-point source by one character shrinks the translator's room by six); a single 1.3 factor for all lengths (short strings expand far more).
+
+### 4. Pseudo-locale expansion
+
+The pseudo length formula is defined as:
+
+`len_pseudo(s) = max(⌈(1 + PSEUDO_EXPANSION) × len_en⌉, budget(de, len_en))`; the pseudo text is `"[" + accent(en) + pad("~", len_pseudo − len_en) + "]"` with placeholders, protected spans and `{gap}` untouched.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `PSEUDO_EXPANSION` | float | 0.2–0.6 | constant (0.35) | Floor expansion fraction |
+| `budget(de, ·)` | int | §3 | calculated | Band budget of the widest candidate locale |
+| `len_pseudo` | int | `len_en`–unbounded | calculated | Padded length, brackets excluded (they are the overflow marker, +2) |
+
+**Output Range:** `len_pseudo ≥ len_en`; the brackets push every string two code points past its budget on purpose, so the pseudo locale is exempt from V38 (it would fail by construction) and is judged only by the headless layout test and by eye. *Challenge adopted:* a flat 0.35 never catches label overflow, where `de` runs to 1.9; taking the maximum of the floor and the `de` band makes pseudo the worst shipped-candidate locale rather than an average one.
+**Example:** `ui.dossier.tab.files` = "Files" (5): flat → 7, band → `⌈1.9 × 5⌉ = 10`; pseudo `[Fïlés~~~~~]`, 12 wide with brackets. *Rejected:* a flat 1.3 pseudo (matches the UI design rule, misses exactly the strings that overflow first).
+
+### 5. Object-level locale completeness and coverage
+
+The object completeness predicate is defined as:
+
+`object_complete(obj, L) = ∀ s ∈ strings(obj): defined(L, s) ∧ placeholders(L, s) = placeholders(en, s) ∧ fit_hard(s, L)`; lookup resolves `text(s, L) = L[s] if object_complete(owner(s), L) else en[s] if defined(en, s) else ⟦s⟧`; coverage is `locale_coverage(L) = |{obj : object_complete(obj, L)}| / |objects|`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `obj` | content object | — | data file | Beat, epilogue, document, dialogue, decision, chapter opening; for `ui` the object is the screen (second segment); each form table is one object |
+| `strings(obj)` | set | 1–~60 | calculated | Every string id the object references, including `says`, `record`, `paper`, overprint and the derived struck form |
+| `owner(s)` | object | — | data file (lock `owner`) | The object a string belongs to |
+| `locale_coverage` | float | 0.0–1.0 | calculated | Fraction of objects wholly translated (INFO) |
+
+**Output Range:** 0.0 (`absent`) through `partial` to 1.0 (`complete`); `shipped` additionally requires locale state `reviewed`. A `stale` string is still `defined`, so a stale object stays complete and ships its old translation (Core Rule 12b).
+**Example:** the MVP `de` sample of 200 strings spans 31 objects; 27 are whole → `locale_coverage(de) = 27/31 = 0.871` (`partial`); string coverage 200/2,900 = 0.069 is reported beside it as INFO so nobody mistakes the object figure for progress. *Rejected:* string-weighted coverage as the headline figure (one missing `record` leaves a whole dialogue in English, so the object count is the honest number); string-level fallback (half a sheet in one language, Core Rule 11).
+
+### 6. Content coverage
+
+The content coverage formulas are defined as:
+
+`beat_coverage = |{c ∈ W_action ∪ W_event : beat(c) ≠ null ∧ paper(beat(c)) ≠ null}| / |W_action ∪ W_event|`, `epilogue_coverage = |{e ∈ W_ending ∪ {act_fallback} : epilogue(e) ≠ null}| / (|W_ending| + 1)`, `orphan_beats = {b : class(b) ∉ W}`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `W_action`, `W_event`, `W_ending` | set | act one: ~41, ~9, 9 | data file (`world_classes.json`) | Snapshot of the polyscene world |
+| `beat(c)`, `epilogue(e)` | object/null | — | calculated (`ContentStore`) | Lookup by class |
+| `beat_coverage`, `epilogue_coverage` | float | 0.0–1.0 | calculated | Must equal 1.0 (V22, V23) |
+| `orphan_beats` | set | — | calculated | Must be empty (V22) |
+
+**Output Range:** both ratios are in [0, 1] and anything under 1.0 is an error, naming the classes.
+**Example:** act one's world has 50 action and event classes; the beats file carries 49 with `paper` lines → 0.98, error "beat missing: `burn_report`". Endings: nine plus `act_fallback` = 10/10. *Rejected:* a threshold below 1.0 ("90% is fine for a prototype"): a missing beat is a scene the narrator shows as nothing, and the simulator cannot tell silence from a bug.
+
+### 7. Budget contribution per chapter
+
+The content contribution to GDD 1 §6's sets is defined as:
+
+`R_c = ⋃_{k ∈ conds(c)} fields_in(k) ∪ {f : line ∈ docs(c), line.bind.field = f} ∪ {f : line.bind.at_least = (f, K)} ∪ R_c^rules` and `W_c = {(t, f) : e ∈ effects(actions(c) ∪ decisions(c) ∪ answers(c))} ∪ W_c^rules`, where `fields_in` maps `is_true | is_false | is_unknown | at_least | at_most | was_assumed` on `F` to `{F}`, `has_fact` to `∅`, `phase_at_least` to `{regime.phase}`, and `all | any | not` to the union of their children.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `conds(c)` | set | — | calculated | Every `when` in `c`: action, exit, dialogue item, answer, decision option |
+| `docs(c)` | set | — | data file | Documents listed on any scene of `c` |
+| `R_c^rules`, `W_c^rules` | set | — | data file (Rules export) **(PROV)** | Fields the Rules system reads/writes at `c`'s boundaries; empty when the export is absent |
+| `sheet.*` | fields | — | data file (chapter `sheet`) | Count as distinct reads/writes, GDD 1 §6 |
+| `R_c`, `W_c` | set | 0–schema size | calculated | Fed to `budget_ok(c)`, GDD 1 §6; the limits are GDD 1's and are not restated here |
+
+**Output Range:** sets, sized 0 to the schema; the thresholds and `X` are GDD 1 §6; this GDD computes only membership. `assumes` is excluded from `W_c` because GDD 1 §6 lists filing, dialogue and rules, and assumptions have their own budget (V21). A document binding is a read: the player seeing the field is the chapter reading it, which is why a bound field must be in `reads` (V18) **(PROV: confirm with GDD 1's owner; the alternative, projection reads free, makes the budget toothless for Vera, whose whole chapter is reading files)**. Sign and order rows are global tables, not chapter-scoped, and contribute nothing here.
+**Example:** Vera's act-one chapter: conditions touch 9 dossier and 2 sheet fields; bindings on `reg_212` and folder 4471 add 7, of which 3 overlap → 15; the Rules export adds 2 → `|R_c| = 17 ≤ 20`; footer `reads 17/20`. *Rejected:* counting references rather than distinct fields (GDD 1 says distinct); counting `has_fact` (a held fact is the player's, not the state's).
+
+### 8. Condition depth and leaf count
+
+The condition shape formulas are defined as:
+
+`depth(leaf) = 1; depth(not c) = 1 + depth(c); depth(all|any [cᵢ]) = 1 + max depth(cᵢ)` and `leaves(leaf) = 1; leaves(not c) = leaves(c); leaves(all|any [cᵢ]) = Σ leaves(cᵢ)`; the check is `depth ≤ COND_DEPTH_MAX` (error) and `leaves ≤ COND_LEAVES_WARN` (warning).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `COND_DEPTH_MAX` | int | 3–6 | constant (4) | Nesting limit |
+| `COND_LEAVES_WARN` | int | 4–12 | constant (8) | Leaf warning |
+| `depth`, `leaves` | int | 1–unbounded | calculated | Per condition |
+
+**Output Range:** minimum 1 and 1 (a bare leaf); an empty `all`/`any` is an error, not depth 1, because `all([])` is vacuously true and a gate that gates nothing is a mistake.
+**Example:** `{all: [{is_true: vera.discrepancy}, {not: {any: [{is_unknown: marta.report_4471}, {has_fact: parcel_was_medicine}]}}]}` → depth 4 (all → not → any → leaf), leaves 3: passes at the limit. *Rejected:* no limit (V06b's satisfiability check is exponential in leaves; 8 leaves bound it at 256 assignments).
+
+### 9. The `rev`/stale predicate
+
+The staleness predicate is defined as:
+
+`stale(L, s) = defined(L, s) ∧ rev_L(s) < rev_stale(s)`, where the lock stores `rev` (bumped on class a or b) and `rev_stale` (set to `rev` on class b only); the freeze check is `frozen_ok(s) = ¬frozen(s) ∨ hash(en[s]) = manifest[s] ∨ revise_logged(s, rev(s))`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `rev`, `rev_stale` | int | 1–unbounded | data file (lock) | Source revision; last meaning-preserving rewording |
+| `rev_L(s)` | int | 1–`rev` | data file (locale CSV `rev` column) | Revision the translation was made against |
+| `manifest[s]` | hash | — | data file (freeze manifest) | Frozen `en` hash |
+| `stale`, `frozen_ok` | bool | — | calculated | V38 warning; freeze gate error |
+
+**Output Range:** boolean; a class (c) change never evaluates here because it is a new id at `rev 1`.
+**Example:** `dlg.a1_vera_s2.query_ledger.rybar.1` is at `rev 3, rev_stale 2`; `de` was translated at rev 2 → not stale (rev 3 was a comma); `ru` at rev 1 → stale, ships rev-1 text with a warning. *Rejected:* stale on every `rev` bump (a typo fix would re-queue four locales for nothing, and Core Rule 12a promises it will not).
+
+### 10. Lint watch-mode budget
+
+The watch budget is defined as:
+
+`t_lint(Δ) = t_parse(Δ) + t_lock(Δ) + t_xref(index) ≤ LINT_WATCH_MS`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `Δ` | set of files | 1–all | calculated | Files changed since the last pass |
+| `t_xref(index)` | ms | 0–unbounded | calculated | Cross-reference pass over the cached id index, never the sources |
+| `LINT_WATCH_MS` | int | 1,000–5,000 | constant (2,000) | Measured on the CI reference machine |
+
+**Output Range:** `t_lint ≥ 0`, unbounded; exceeding the budget prints a warning "lint slow: 2,340 ms" and never fails a build (a slow lint is a tooling bug, not a content error). The full compile has no budget, only a reported time.
+**Example:** one beat file changed: parse 40 ms, lock alignment 120 ms, cross-reference over the cached index 300 ms → 460 ms. *Rejected:* a per-file budget (the cross-reference pass is global and cannot be attributed to a file).
 
 ## Edge Cases
 
-[To be designed]
+*Cases 1–20 from the systems designer over the rule and formula space; cases 21–32 from the narrative director over the writing. All resolutions are exact.*
+
+1. **If polyscene renames an action class after ship** (`read_file` → `open_file`): the beat keeps its owner slug `read_file` and its `beat.read_file.*` ids forever; the compiler's `class → beat_slug` map in `world_classes.json` gains `{open_file: read_file}`, V22 resolves through the map, and saves are untouched because they hold ids, not class names. *Core Rule 3: the class name was copied once, at birth.*
+2. **If a beat names a class that is not in `world_classes.json`**: V22 error "orphan beat `burn_reprot`, nearest `burn_report`", with the edit-distance suggestion; the compile still emits the beat so a writer ahead of the engineer is not blocked in watch mode, only in CI. *A typo is the common case, and silent orphans are how beats vanish.*
+3. **If two sign rows share one text and one field flips true while the other is unknown**: the sign shows (`fields[]` is any-of), lagged by the row whose field changed, and the overprint condition is evaluated on that row alone; the unknown field contributes nothing (closed world, GDD 1 §6.7). *One cause is enough.*
+4. **If a document line is bound to, or an answer's `when` reads, a field outside the chapter's `reads`**: V18 error naming the line or answer and the field; the fix is to add it to `reads` (then V20 re-counts) or unbind. Never auto-add to `reads`. *The declaration is the writer's promise and the budget's input; a tool that widens it hides the god object GDD 1 killed.*
+5. **If a `record` text exceeds `LINE_CAP`**: V09 error; `record` is kind `line` because it lands on a form. *The state's wording is short by nature; a long record is a tone failure before it is a length failure.*
+6. **If a save holds a retired string or content id**: `ContentStore` resolves `replaced_by` transitively and logs a warning with both ids; a tombstone with no `replaced_by` resolves to `⟦id⟧` with an error in the log; the Files view never blanks, because blank means unknown. Save/Load's `migrate` job rewrites the save on next write **(PROV: Save/Load)**.
+7. **If a locale is missing one string of a document**: `object_complete` is false and the whole document renders in `en`, warning "doc.reg_212 falls back: 1 of 23 missing"; the locale stays `partial` and cannot enter `shipped_locales`. *One sheet of paper, one language.*
+8. **If a target string lacks a placeholder the source declares, or adds one**: V11 error (shipped) or warning (partial) and the object falls back to `en`. The compiler never substitutes into a mismatched string. *A missing `{courier_name}` is a sentence about nobody; an added one would raise a key error at substitution.*
+9. **If a translator renders `{gap}` as a word**: V11 error, since `{gap}` is a protected span absent from the target set. *The blank is what `unknown` looks like; a translated word would assert a fact the state does not hold.*
+10. **If an `at_least` binds to a constant name the dossier tuning file does not define**: V12 error "unknown constant `ATTN_LOOKS`; defined: `ATTN_LOOK`, `ATTN_WATCHED`"; the validator joins against `assets/data/dossier/tuning.json` by name only and never inlines a number. *A number in content is a projection of a scalar, which GDD 1 forbids.*
+11. **If `pace` appears in MVP content**: lint error at `content_schema_version` 1 "reserved field `pace` has no semantics at schema 1", before the validator runs. *The key stays reserved while Pillar 5's timer question stays with Dialogue & Interrogation.*
+12. **If lint passes and the validator fails on the same file, or the reverse**: the validator's verdict stands, since it alone sees the schema; the discrepancy is filed as a tooling bug against `compile.py` with the file attached, and the lint rule is not loosened to match. *The lint exists to be fast, not to be the authority.*
+13. **If two branches allocate the same ordinal in `idlock.yaml`**: the merge conflicts textually and must not be resolved by hand; `content idlock remerge` re-runs allocation for the incoming branch's `draft`/`assigned` ids, which have never shipped, and re-anchors their segments by text. An id with `first_shipped` on both sides pointing at different text is an error and a human decision.
+14. **If CI's fresh compile differs from the committed JSON or CSV**: the build fails with the diff; the usual causes are an uncommitted recompile, a different Python version, or a non-deterministic emitter, and the third is a tooling bug. *Committed output is the thing reviewed; drift between review and ship is what the rule prevents.*
+15. **If `ContentStore.reload()` is called while a dialogue is open**: it refuses with `ERR_BUSY`, logs the open dialogue id, and retries at the next scene boundary. *A dialogue is forward-only state whose item indices could shift under it. Release builds have no reload at all.*
+16. **If `ending_select` returns a class with no epilogue**: `epilogue()` returns `act_fallback` and logs a warning; V23 should have caught it at build, so at runtime this is evidence of an unvalidated build and the simulator's run report flags the act. *The fallback epilogue carries no `crosses`, so nothing is invented.*
+17. **If a `.tscn` references a `ui.*` id absent from the CSV**: V07 error at build (scene files are scanned for `tr("ui.` literals); at runtime the engine `StringLookup` returns `⟦ui.dossier.tab.flies⟧` visibly, never blank. *A raw id on screen is a bug the tester can read.*
+18. **If a cast `name` carries a diacritic**: V10 error "name outside `[A-Za-z'-]`"; the fix is the naming bible's ASCII spelling, never a transliteration table. *Zelmavian has no diacritics; a target-locale prose line may.*
+19. **If a `yields` fact has no reader anywhere** (no `has_fact`, no dossier use in the Fact registry): V29 warning until the Fact GDD registers its uses, then error; the fact is kept, not deleted. *A fact born in one chapter may be read in act two; Pillar 1 says every fact lands somewhere, and the validator is where that promise is checked.*
+20. **If the Rules export is absent when V20 runs**: V20 counts content references only, prints "V20: Rules export absent; counts are lower bounds", and the release branch (warnings as errors) fails. *A release cannot be cut without knowing what the rules read; while the Rules GDD is unwritten, `manifest.yaml` carries `rules_export_required: false` with a date (Open Questions).*
+21. **If a beat's prose names a person its `present` list omits** (a servant, "the captain"): a cast name, or a title that resolves through the cast table's `titles` to one cast id, is a V30 error; add the id to `present` or cut the mention. A role noun that resolves to no cast entry compiles: the person is furniture, not a witness, and may not speak or be handed paper. *The narrator uses `present` to decide who saw the action.*
+22. **If an epilogue's body asserts a state-specific detail** (Kastan's cigarettes in E1 when `kastan.rewarded` never held): the sentence is cut or rewritten to hold across every end state that folds into that class; if the detail is load-bearing it moves to the action beat keyed to the class that made it true. No machine check; this is the "assumed facts hold" line of the human review. *Epilogues and beats carry no gates (Core Rule 5a), and `kastan.rewarded` is `no_sign`, so the epilogue is the one place the fact could leak into the wrong branch.*
+23. **If a chapter is resumed from a save mid-act**: the `kind: opening` beat and the chapter's `opening[]` play on chapter entry only and are never replayed on resume; the resumed scene starts with no recap. *A recap is history, and Core Rule 6 has no history leaf by design.*
+24. **If a `paper` line has no `hand` because the wording is typed**: V24 still errors. Typed is a hand: the registry carries machine hands (`typewriter_intake`, `typewriter_security`), owned by narrative, drawn by art. *Which machine typed a leaf is evidence, and Paper UI cannot render an unattributed line.*
+25. **If two fields of one sign row are written by two protagonists in one boundary**: the row prints its `text` once and at most one `overprint` line; which hand overprints is GDD 1's overprint condition, not restated here. The writer therefore writes overprint text that is true under either hand and names nobody. *A sign is one line and its second line.*
+26. **If a document's custodian changes at runtime** (the household file goes to security when `vera.reported_jan`): `custodian` is front matter and never changes. The move is authored as a `slip` line on the file bound to the field ("Transferred: Security, PW {n}") plus a second document (a `card`) under the security custodian citing the same serial, also bound. *Files membership is GDD 1's projection from one enum; a transfer slip is how the state moves paper.*
+27. **If a `record` or order form must name a courier whose name the state has not established**: `{courier_name}` always resolves from the cast table and never renders empty; the knowing is a dossier field, so the writer authors two lines, one gated on the knowing field with the placeholder, one ungated reading "courier, name not established". Never a conditional inside a string. *Core Rule 10 forbids blanks; a placeholder is a name, not a fact.*
+28. **If a `carry: true` answer is taken and the next item is `end`**: the carry is dropped; the dialogue closes and "Declined to state." stays on the form. The lint warns when a carry can never fire. *The end of a call is the end; the record is what the form keeps.*
+29. **If a line sets `tell: true` where its register matches the room's**: a warning (V33's inverse), and the flag is kept in the compiled output. *Usually a stale edit from a scene whose register changed; Character Presentation may still want the flag.*
+30. **If `act_fallback` is reached with `crosses` empty**: `closing[]` is still required and the page ends on it, but it names no person's next chapter and no hand-off; it closes the act on the stamp. *A crossing sentence would promise a route the ending table does not make.*
+31. **If a protagonist's opening beat and a world action beat share a name**: V01/V23 error. Opening keys live in their own owner slug (`beat.open_vera.n`) and may never equal a `world_classes.json` class, because `beat(class)` returns one object.
+32. **If a `stage` line names a character who is not in the room**: V30 checks it against the dialogue's speakers and the chapter's protagonist; any other cast name errors. An off-stage presence is written as sound or paper ("a second receiver lifts"), never a name. *A stage direction naming a listener tells the player a fact, and facts are born only on yielding lines.*
+
+**Human review the validator cannot run.** Before an act leaves `validated` for `string_frozen`, the narrative director and the writer read the act end to end under at least two divergent saves and check: every epilogue's assumed details hold in every end state that folds into its class; no beat or epilogue tells a protagonist what they did to the others; the cost of each decision appears as a person in a room, not a line on a form; each `record` is drier than its `says`; `Spolny` and wrong-register `tell` lines read as deliberate; no two chapters' prose contradict a dated leaf; typed and handwritten hands match whose desk the paper was on; the pseudo locale shows no clipped line on the sign, order or file views. The reviewer records the two save ids and the findings as the documented-review evidence (Acceptance Criteria).
 
 ## Dependencies
 
@@ -284,7 +499,37 @@ Backward from `string_frozen` is a structural rework, allowed only through a rec
 
 ## Tuning Knobs
 
-[To be designed]
+Column key: **D** = `assets/content-src/tuning.yaml`, compiled to `assets/data/content/tuning.json` and read by both lint and validator; **B** = build-tool or CI configuration under `tools/content/` or the CI job, never shipped.
+
+| Knob | Default | Safe range | Too low | Too high | Interacts with |
+|---|---|---|---|---|---|
+| `LINE_CAP` (D) | 120 | 100–140 | Rybar cannot finish a sentence; `record` texts fragment | Lines wrap on the form; the `de` band at 1.30 exceeds `TARGET_LINE_HARD` above 123 | `TARGET_LINE_HARD`, `expansion_band_*` |
+| `LABEL_CAP` (D) | 48 | 32–64 | Answer labels become slogans | Tabs and stamps overflow before any locale exists | `TARGET_LABEL_HARD`, Paper UI containers |
+| `PROSE_WARN` (D) | 800 | 500–1,000 | Every beat warns; the warning is ignored | Never fires; `PROSE_CAP` is the only signal | `PROSE_CAP` (must stay below) |
+| `PROSE_CAP` (D) | 1,200 | 1,000–1,600 | The brief's 650-point paragraphs leave no room for act three | A beat becomes a page; translation units too large to review | `PROSE_WARN`, prose target hard cap (`⌈PROSE_CAP × 1.3⌉`) |
+| `ANNOTATION_CAP` (D) | 80 | 60–100 | Marginalia cannot hold an initialled count | Annotations crowd the margin column (art bible §7.2) | `LINE_CAP`, hand registry |
+| `TARGET_LINE_HARD` (D) | 160 | 140–200 | The `de` 1.30 band at 120 (156) collides with the hard cap | Three-line targets pass the validator and fail the layout test | `LINE_CAP`, `max_chars`, Paper UI layout test |
+| `TARGET_LABEL_HARD` (D) | 64 | 48–80 | `de` labels fail before translation starts | Tabs overflow | `LABEL_CAP`, `max_chars` |
+| `DOC_FIT` / `FILE_ENTRY_FIT` / `SAYS_FIT` / `STAMP_FIT` (D) | 72 / 40 / 60 / 12 per line | ±8 / ±6 / ±8 / ±2 | Entries wrap into a second line the sheet has no room for | Text runs past the paper's column | `max_chars` derivation (Formulas §3), Paper UI layout test |
+| `GAP_MIN` (D) | 4 cells | 2–8 | A gap is a dot; `unknown` is invisible | Short entries leave a blank wider than the entry | `gap_width` default, `{gap}` rendering |
+| `expansion_band_de` (D) | 1.9 / 1.5 / 1.30 | ±0.2 per band, decreasing | Translators warned on honest work; warning noise hides real overflow | The band never warns; only the hard cap bites, late | `TARGET_*_HARD`, `PSEUDO_EXPANSION` (pseudo takes `de`'s bands) |
+| `expansion_band_ru`, `_fr` (D) | 1.6 / 1.3 / 1.20 | ±0.2, decreasing | as `de` | as `de` | `TARGET_*_HARD` |
+| `expansion_band_ja` (D, post-MVP) | 1.0 / 0.8 / 0.70 | ±0.1 | — | Width fits, height does not (needs line-height 1.15) | Paper UI font and line-height |
+| `COND_DEPTH_MAX` (D) | 4 | 3–6 | Writers flatten gates into the sheet to get around it | V06b satisfiability becomes slow; conditions unreadable | `COND_LEAVES_WARN`, V06b |
+| `COND_LEAVES_WARN` (D) | 8 | 4–12 | Warnings on every interrogation answer | One condition can consume 8 of `READ_MAX` 20 unnoticed | `READ_MAX` (GDD 1) |
+| `PSEUDO_EXPANSION` (D) | 0.35 | 0.2–0.6 | Pseudo never overflows anything the `de` band would not | Pseudo screenshots are unreadable; nobody runs it | `expansion_band_de` (the effective factor is the max of both) |
+| `ID_MAX_LEN` (D) | 64 | 48–96 | Five-segment dialogue ids collide with the limit | Lint output and translator sheets wrap | `SEG_MAX_LEN` |
+| `SEG_MAX_LEN` (D) | 24 | 16–32 | Long owner slugs cannot exist | Owner slugs become sentences | `ID_MAX_LEN` |
+| `SAMPLE_STRINGS` (B) | 200 | 150–250 | The `de`/`ru` sample proves nothing about plurals or prose; the sample must include ≥ 20 labels, ≥ 10 plurals, ≥ 5 prose | Translation cost before the text freeze | MVP acceptance, `TEXT_FREEZE_LEAD_WEEKS` |
+| `TEXT_FREEZE_LEAD_WEEKS` (B) | 4 | 3–8 | Translators receive strings that change under them; `stale` everywhere | Act text locked before the simulator has shaken it | Freeze manifest, `rev_stale` |
+| `LINT_WATCH_MS` (B) | 2,000 | 1,000–5,000 | The lint warns about itself on every save | Writers wait; the lint stops being used | Cross-reference index caching |
+| `SIGN_LAG_DEFAULT` | 1 beat | owned by GDD 1 Tuning Knobs | — | — | Read by the sign table's `lag` default; not duplicated here |
+| `content_schema_version` (D, `manifest.json`) | 1 | increments only | `pace` and other reserved fields unlock before their GDDs exist | A bump orphans every save's `content_version` without a `migrate` job | Save/Load `migrate`, the `pace` lint rule |
+| `shipped_locales` (D, `manifest.json`) | `[en]` | `reviewed` locales only | — | A `partial` locale listed → V38 missing ids become errors and the build fails, which is the point | `locale_coverage`, V38–V40 |
+| `warnings_as_errors` (B, release-branch CI) | `true` on release, `false` elsewhere | — | Release ships with stale translations and lower-bound budgets | Feature branches cannot merge over a `PROSE_WARN` | V20, V38 warnings, `rules_export_required` |
+| `rules_export_required` (B, `manifest.yaml`) | `false` until the Rules GDD is Designed | boolean, dated | Release budgets are lower bounds forever | — | V20, Rules export **(PROV)** |
+
+Interaction clusters: (a) `LINE_CAP × expansion_band_de[3] ≤ TARGET_LINE_HARD` and `LABEL_CAP × expansion_band_de[2] ≤ TARGET_LABEL_HARD` must hold, or in-band translations fail the hard cap (at defaults 156 ≤ 160 holds; 72 > 64 does not, so every label over 42 code points needs an explicit `max_chars`, which is why `LABEL_CAP` is a warning); (b) `PROSE_WARN < PROSE_CAP`, `COND_LEAVES_WARN < READ_MAX`, `ANNOTATION_CAP < LINE_CAP`; (c) `TEXT_FREEZE_LEAD_WEEKS` and `SAMPLE_STRINGS` set the translation window together, and both are production levers rather than balance.
 
 ## Visual/Audio Requirements
 
@@ -360,4 +605,17 @@ This system has no screen of its own. It supplies Paper UI and the HUD with what
 
 ## Open Questions
 
-[To be designed]
+| Question | Owner | Needed by | Status |
+|---|---|---|---|
+| ADR spike: `TranslationServer` 4.7 API shape and missing-key behaviour; whether `tr()` works without a scene tree; CSV importer tolerance of extra metadata columns and the exact plural/context column names; PO import mapping; per-script font fallback; `JSON.parse_string` size and precision limits (all NOT SOURCEABLE from the pinned reference) | technical-director, engine-programmer | Before the engine `StringLookup` is designed (ADR for this system) | Open; one-day spike, budget with GDD 1's ADR-1 spikes |
+| Does a document binding count as a chapter read (Formulas §7)? The alternative, projection reads free, makes the budget toothless for Vera | Dossier State Model owner (systems-designer) | Before `/review-all-gdds` | Open; this GDD assumes yes |
+| `phase_at_least` as one virtual read `regime.phase` versus four regime fields | Dossier State Model owner | Before `/review-all-gdds` | Open; this GDD assumes one |
+| `action_id` charset `[a-z0-9_]+` and no length cap below 64 in GDD 1's `source` grammar | Dossier State Model owner | Before the compiler is built | Open; GDD 1 does not state a cap |
+| The reserved `pace` field: the narrative director recommends no interrogation timer at all; Pillar 5 permits one under interrogation; the index places timers at Vertical Slice | Dialogue & Interrogation GDD (game-designer, narrative-director) | Vertical Slice | Open; MVP content never sets it |
+| Settings Store's index row lists no `locale` setting | `/map-systems` (producer) | Before the Settings Store GDD | Open; add `locale` to its scope |
+| Which locales ship after MVP, on what dates; whether `ru` keeps Latin names or transliterates (default Latin); whether translated typewritten documents may use diacritics (this GDD: the no-diacritics rule applies to Zelmavian names only) | user, producer, localization-lead | Before the text freeze of act one | Open |
+| A typewriter face with Latin Extended-A plus Cyrillic coverage may be scarce | art-director, producer | Vertical Slice | Open; flagged by the localization lead and the art director |
+| The two existing beat lines that say "Comrade" migrate to `Spolny` under V34 | writer | At content migration of `act-one-beats.md` | Open; ruling made 2026-11-03 |
+| `rules_export_required` stays `false` until the Reactive Event Rules GDD is Designed; release budgets are lower bounds until then | Reactive Event Rules GDD | Before the first release branch | Open; dated in `manifest.yaml` |
+| Epilogue stamp mapping E1–E9 → `archived`/`destroyed`/`released` | narrative-director | Before act-one epilogues are frozen | Open |
+| Performance budgets proposed in Acceptance Criteria | technical-director | ADR | To be confirmed |
