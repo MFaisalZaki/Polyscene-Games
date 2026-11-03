@@ -81,7 +81,7 @@ The anchor is the drawer of the desk Vera inherited, pulled out one notch. It is
 
 Two cross-checks live in `tools/` only, where importing both the content store and this validator is allowed: every content `hotspot` ref exists in the vocabulary (the lint's side), and **X01 (error): every hotspot of kind `paper` or `object` resolves through its content action to at least one fact that passes GDD 2's V42 (the fact has a dossier use)**, so "every hotspot is filable" (Pillar 1) is enforced, not assumed; `door`, `phone` and `person` are exempt by kind. Art bible §6.5's rule for non-hotspot plate details (a detail that implies an unfilable fact is cut) cannot be checked by this system and is a line on the art director's plate sign-off in `production/qa/evidence/scene/signoff.md`. *Rationale:* every rule here is one the art bible already calls *checkable*; making the build the checker means a plate that breaks a rule cannot ship by accident, and the load-time re-run catches a sidecar edited after the build. *Rejected:* validating only at load (too late for the artist; the pipeline proof needs the gate in the export loop).
 
-**3. The input action set is closed.** Seven actions, declared once in `assets/data/input_actions.json` so Settings Store **(PROV)** can remap them; the framework never hardcodes a binding.
+**3. The input action set is closed.** Seven actions (ten action names, since `focus_next`/`focus_prev` are two and `focus_dir` is four: `focus_up`, `focus_down`, `focus_left`, `focus_right`), declared once in `assets/data/input_actions.json` so Settings Store can remap them; the framework never hardcodes a binding.
 
 | Action | Mouse + keyboard default | Gamepad (reserved, not MVP) | Effect |
 |---|---|---|---|
