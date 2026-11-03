@@ -72,6 +72,35 @@ FLOW_LABELS = {'e1_complete_file': 'E1 THE COMPLETE FILE', 'e2_gap': 'E2 THE GAP
                'e4_seized_parcel': 'E4 THE SEIZED PARCEL', 'e5_open_gate': 'E5 THE OPEN GATE', 'e6_mothers_trade': 'E6 THE MOTHER\'S TRADE',
                'e7_daughters_statement': 'E7 THE DAUGHTER\'S STATEMENT', 'e8_martas_breath': 'E8 MARTA\'S BREATH',
                'e9_route_burned': 'E9 THE ROUTE BURNED', 'other': 'OTHER END STATES'}
+
+BEATS_FILE = os.path.join(HERE, '..', '..', 'production', 'narrative', 'paper-walls-act-one', 'dialogue-beats.md')
+
+
+def load_beats(path=BEATS_FILE):
+    """{class: (prose, paper)} from the writer's dialogue-beats.md (### <class> sections);
+    empty when the file is absent, so the placeholder PROSE still narrates."""
+    out = {}
+    try:
+        text = open(path, encoding='utf-8').read()
+    except OSError:
+        return out
+    section = text.split('## Beats', 1)[1].split('## Epilogues', 1)[0] if '## Beats' in text else ''
+    for block in section.split('### ')[1:]:
+        head, _, body = block.partition('\n')
+        cls = head.strip().strip('`').replace('-', '_')
+        paper = ''
+        lines = []
+        for line in body.strip().splitlines():
+            if line.startswith('> paper:'):
+                paper = line[len('> paper:'):].strip()
+            elif line.strip():
+                lines.append(line.strip())
+        out[cls] = (' '.join(lines), paper)
+    return out
+
+
+BEATS = load_beats()
+
 AXES = ['vera_ledger', 'vera_reach', 'vera_fate', 'ilona_review', 'jan_press', 'jan_fate',
         'tomas_gate', 'tomas_cost', 'marta_fate', 'marta_watched', 'berta_fate', 'regime', 'kastan']
 
@@ -88,7 +117,9 @@ class ActOneScenario(Scenario):
         lines = [f'  assuming {v.split(chr(34))[1].replace("_", " ")}' for v, b in self.assumed]
         for (t, _, is_world), ai in zip(self.beats, self.plan.actions):
             name = self._base(ai.action.name)
-            lines.append(f'  {t:>2}. {PROSE.get(name, name)}{"  [world]" if is_world else ""}')
+            beat = BEATS.get(name.replace('-', '_'))
+            text = (beat[0] + (f'  [paper: {beat[1]}]' if beat[1] else '')) if beat else PROSE.get(name, name)
+            lines.append(f'  {t:>2}. {text}{"  [world]" if is_world else ""}')
         end = {k: self.features.get(k) for k in AXES + ['act_ending']}
         lines.append('  — ' + ', '.join(f'{k}={v}' for k, v in end.items() if v is not None))
         return '\n'.join(lines)

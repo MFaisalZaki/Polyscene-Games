@@ -177,3 +177,18 @@ Tomas lets the courier through and nobody pays -> None
   — vera_ledger=pending, vera_reach=leaked, vera_fate=unwatched, ilona_review=deferred, jan_press=named_kastan, jan_fate=free, tomas_gate=passed, tomas_cost=route, marta_fate=hospital, marta_watched=yes, berta_fate=clean, regime=confident, kastan=exposed, act_ending=['e9_route_burned']
 
 === the raw behaviour space on the 13 axes ===
+[600 behaviours in 107.5s; exhausted: False]
+  vera_ledger {'burned': '·', 'doctored': 'UNTOLD', 'filed': '·', 'pending': '·'}
+  vera_reach {'leaked': '·', 'none': '·', 'reported_jan': 'UNTOLD', 'warned': '·'}
+  vera_fate {'blamed': 'UNTOLD', 'unwatched': '·', 'watched': '·'}
+  ilona_review {'admitted': '·', 'deferred': '·', 'pending': 'UNTOLD', 'refused': '·', 'renounced': '·'}
+  jan_press {'distributed': '·', 'named_kastan': '·', 'printed': '·', 'silent': '·'}
+  jan_fate {'arrested': '·', 'free': '·', 'gave_name': '·', 'recanted': '·', 'watched': '·'}
+  tomas_gate {'held': '·', 'passed': '·', 'split': '·', 'untested': 'UNTOLD'}
+  tomas_cost {'none': '·', 'ondra': '·', 'route': '·', 'self': '·'}
+  marta_fate {'cut_off': '·', 'hospital': '·', 'supplied': '·'}
+  marta_watched {'no': '·', 'yes': '·'}
+  berta_fate {'clean': '·', 'implicated': '·', 'liable': 'UNTOLD', 'reporter': '·'}
+  regime {'confident': '·', 'paranoid': 'UNTOLD'}
+  kastan {'exposed': '·', 'hidden': '·'}
+exit 0

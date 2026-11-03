@@ -9,6 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import importlib
 TOPIC = importlib.import_module(os.environ.get('TOPIC', 'topic'))
 engine, PROSE = TOPIC.engine, TOPIC.PROSE
+BEATS = getattr(TOPIC, 'BEATS', {})
 
 H = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 AXES = sys.argv[2:] or getattr(TOPIC, 'FLOW_AXES', ['fate', 'vera_choice', 'vera_fate', 'jan_fate', 'tomas_choice'])
@@ -17,7 +18,7 @@ LABELS = getattr(TOPIC, 'FLOW_LABELS', {})
 OUT = os.environ.get('FLOW_OUT', 'flowchart')
 
 e = engine(horizon=H, assume_min=0)
-t0 = time.time(); found = e.classes(AXES, budget=600, limit=200); dt = time.time() - t0
+t0 = time.time(); found = e.classes(AXES, budget=900, limit=int(os.environ.get('FLOW_LIMIT', '200'))); dt = time.time() - t0
 domains = e.axis_domains(AXES)
 
 def beats(s):
@@ -25,10 +26,12 @@ def beats(s):
     for (t, atom, is_world), ai in zip(s.beats, s.plan.actions):
         name = s._base(ai.action.name)
         args = [str(p).replace('-', ' ').capitalize() for p in ai.actual_parameters]
-        text = PROSE.get(name, name)
+        beat = BEATS.get(name.replace('-', '_'))
+        text = beat[0] if beat else PROSE.get(name, name)
+        paper = beat[1] if beat else ''
         try: text = text.format(*args)
-        except IndexError: pass
-        out.append({'step': t, 'actor': args[0] if args else '', 'action': name, 'text': text, 'world': is_world})
+        except (IndexError, KeyError): pass
+        out.append({'step': t, 'actor': args[0] if args else '', 'action': name, 'text': text, 'paper': paper, 'world': is_world})
     return out
 
 records = []
@@ -68,6 +71,7 @@ main{padding:20px 28px}.fate{margin:26px 0 10px;font-size:13px;letter-spacing:3p
 .state span b{letter-spacing:1px;color:var(--concrete);font-weight:normal;font-size:10px}
 .assume{color:var(--ctext);text-shadow:1px 1px 0 var(--carbon);margin-bottom:6px}
 ol{margin:0;padding-left:22px}li{margin:3px 0}li.world{color:var(--concrete)}li.world:before{content:"[world] ";color:var(--red);font-size:10px}
+.paper{margin:2px 0 4px;padding:2px 6px;border-left:3px solid var(--carbon);color:var(--ctext);font-size:11px;text-shadow:1px 1px 0 rgba(67,76,124,.35)}
 .stamp{position:absolute;right:12px;bottom:10px;width:30px;height:30px;border:3px solid var(--red);opacity:.6;background:repeating-linear-gradient(45deg,transparent 0 3px,var(--red) 3px 4px)}
 """
 parts = [f"<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Paper Walls — act one branches</title><style>{css}</style></head><body>",
@@ -88,7 +92,7 @@ for fate in FATE_ORDER + [f for f in groups if f not in FATE_ORDER]:
         parts.append("</div>")
         if r['assumes']:
             parts.append("<div class='assume'>assuming " + ' · '.join(html.escape(a.split('"')[1].replace('_', ' ')) for a in r['assumes']) + "</div>")
-        parts.append("<ol>" + ''.join(f"<li class='{'world' if x['world'] else ''}'>{html.escape(x['text'])}</li>" for x in r['beats']) + "</ol>")
+        parts.append("<ol>" + ''.join(f"<li class='{'world' if x['world'] else ''}'>{html.escape(x['text'])}" + (f"<div class='paper'>{html.escape(x['paper'])}</div>" if x.get('paper') else '') + "</li>" for x in r['beats']) + "</ol>")
         parts.append("<div class='stamp'></div></div>")
     parts.append("</div>")
 parts.append("</main></body></html>")
