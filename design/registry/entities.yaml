@@ -1388,7 +1388,7 @@ formulas:
       - sidecar.overlay
       - settings
     output_range: "plain data, sorted keys, no floats; byte-equal across hosts"
-    expression: "plan = {lit layers, lit red anchors with variant (red or hatch), ghost list, tint tier, flicker allowance, red_estimate_ppm} computed at scene entry from the snapshot stored at reveal (or view_now()), the sidecar's overlay block and the settings values; immutable while the scene is active"
+    expression: "plan = {lit layers, lit red anchors with variant (red or hatch) including the key light at tier 3, ghost list, flicker allowance, red_estimate_ppm} computed at scene entry from the snapshot stored at reveal (or view_now()), the sidecar's overlay block and the settings values; no tint layer; immutable while the scene is active"
     notes: "Formulas §3. Recomputed only at scene entry; the ghost is a separate op."
     added: 2026-11-03
     revised: ""
