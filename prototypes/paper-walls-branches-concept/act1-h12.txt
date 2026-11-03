@@ -1,0 +1,7 @@
+[grounded in 1.3s, horizon 12]
+
+=== ending classes E1-E9: reachable? (plain solve; if not, the laws that forbid it) ===
+  e1_complete_file         unreachable; forbidding laws: ['licensed_silence']
+  e2_gap                   REACHABLE
+  e3_carbon                unreachable; forbidding laws: ['review_sits']
+  e4_seized_parcel         REACHABLE
