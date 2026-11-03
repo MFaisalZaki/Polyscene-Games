@@ -7,6 +7,7 @@
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
 > **Implements Pillar**: 5 Pressure comes from attention, not reflexes · 2 The state is a character
+> **Gates**: CD-GDD-ALIGN 2026-11-03 CONCERNS (12), all applied: no red in the interrogation portrait, the flicker is the bulb's; the anchor moment matches the day recipe and the door-frame stamp; `subject` on stamps only, never on a key light or a threshold, always state paper naming its subject; release degradation hides the highest tier first; every red layer beneath the figures, a lit prop replaces its hotspot's layer; tier 3 named as state rooms and arrivals, with an act-two placement ask; sourceless plate kept, lamp height as plate authoring, lit hotspot variant recommended; housekeeping. Art-bible B1–B9 and the pool-hotspot question open (block `/asset-spec` and ADR-5). `/design-review` pending.
 
 ## Summary
 
