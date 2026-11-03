@@ -2,7 +2,7 @@
 
 > Authoring guidance: .claude/docs/templates/guidance/game-design-document-guide.md (load per-section as you author — do not read entirely).
 
-> **Status**: In Design
+> **Status**: Designed
 > **Author**: Mustafa Faisal (user) + game-designer, narrative-director, localization-lead, writer, systems-designer (agents)
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
@@ -61,7 +61,7 @@ The format holds two voices and never lets them mix. The human voice is the beat
 **3. The id lock.** `assets/content-src/idlock.yaml` is committed and records every content id and string id ever compiled: `{id, owner, kind, rev, state, first_shipped, replaced_by}`.
 
 - A new source slot gets its id at first compile. A sequence number takes the next unused ordinal for its owner and is never reused; file order and id order may differ.
-- A segment is matched to its lock entry by normalised-text alignment, so an inserted paragraph does not shift its neighbours. When alignment is ambiguous the lint fails and asks for an explicit anchor comment (`<!-- id: beat.read_file.3 -->`), which is the only time an id appears inside prose. Before freeze the writer never sees an id.
+- A segment is matched to its lock entry by normalised-text alignment, so an inserted paragraph does not shift its neighbours. Alignment is *ambiguous* when a segment's normalised text is within `ALIGN_MAX_EDIT` edits of two or more lock entries of the same owner, or of none; then the lint fails and asks for an explicit anchor comment (`<!-- id: beat.read_file.3 -->`), which is the only time an id appears inside prose. Before freeze the writer never sees an id.
 - **Content ids obey the same permanence rule as string ids** (chapter, scene, action, dialogue, answer and decision ids), because GDD 1's effect `source` tags are persisted in saves and change logs. A post-ship rename of a content id is a Save/Load `migrate` job **(PROV: Save/Load)**.
 - States: `draft` (in source only) → `assigned` (in the lock; text editable; rename forbidden) → `frozen` (text locked for the localisation hand-off) → `shipped` (`first_shipped` set; no purge) → `retired` (tombstone; permanent; may carry `replaced_by`). Forward only. `idlock purge <id>` deletes only an id with no `first_shipped`.
 - A retired id referenced by live content is an error; a retired id found in a save resolves through `replaced_by` with a warning, never a blank.
@@ -190,7 +190,7 @@ F    := <record>.<field> | sheet.<field>
 |---|---|---|
 | V01–V04 | Duplicate id; id grammar, charset or length; retired id referenced or redefined; compiled id absent from the lock | E |
 | V05–V06 | Dangling reference of any kind (scene exit, `next`, document, fact, cast, hand, stamp, form id); scene with no exit and not `chapter_end`; dialogue path that does not reach `end`; a backwards `next` | E |
-| V06b | Unreachable scene, item or answer under every state (lint: structurally; validator: by condition satisfiability over the schema's ranges) | W |
+| V06b | Unreachable scene, item or answer under every state (lint: structurally; validator: by condition satisfiability over the schema's ranges, skipped above `COND_LEAVES_WARN` leaves with "not checked: N leaves") | W |
 | V07–V08 | String referenced but absent from `en` (E); defined but unreferenced (W) | E/W |
 | V09–V11 | Kind caps (Rule 4); non-ASCII letters in `en` source, straight quotes required; placeholder set differs between locales; `invariant` string differs between locales; text not NFC; control or bidi characters | E (caps per Rule 4) |
 | V12–V15 | Effect target, field or op missing from the schema or illegal for the field type; field not in the chapter's `writes` (filing, dialogue); writer not in the field's allow-list or ratchet violated; non-cross-life field written from another protagonist's chapter | E |
@@ -207,14 +207,14 @@ F    := <record>.<field> | sheet.<field>
 | V33 | A beat or epilogue body that contains another class id or an `E#` id; a `register` conflicting with the room's without `tell: true` | E/W |
 | V34 | `Spolny` inflected; `Sp.` outside paper; `pan`/`pani` in a `public` item without `tell` | E |
 | V35 | A serial or date pattern inside translatable text; a serial in a string that matches no document's front matter | W/E |
-| V36 | Past-tense and anaphora wordlist hits in beat or epilogue bodies ("earlier", "again", "as before"); unknown capitalised token not in the glossary or cast | W |
-| V37 | A hard-coded visible string literal under the code root or in a scene file, outside `# loc-ignore: <reason>` | E |
-| V38–V40 | Non-source locale: missing ids (W; E for a shipped locale); target over `TARGET_LINE_HARD` or `max_chars` (E); over the banded expansion budget (W); missing plural category or `other`; malformed message syntax; protected-term mismatch (E shipped, W partial); code point outside the locale's font matrix; fallback chain cycle or not ending at `en` | E/W |
+| V36 | Hits from `assets/content-src/lint/wordlist.yaml` (past-tense and anaphora: "earlier", "again", "as before") in beat or epilogue bodies; a capitalised token absent from `assets/content-src/lint/glossary.yaml` and the cast table | W |
+| V37 | A hard-coded visible string literal under the code root or in a scene file, outside `# loc-ignore: <reason>`. *Visible* means: a literal passed to `tr()`/`tr_n()`, assigned to `text`, `placeholder_text` or `tooltip_text`, passed to `add_item()`, or a `.tscn` `text = "…"` property, whose value fails the id grammar | E |
+| V38–V40 | Non-source locale: missing ids (W; E for a shipped locale); target over `TARGET_LINE_HARD` or `max_chars` (E); over the banded expansion budget (W); missing plural category or `other`; malformed message syntax; protected-term mismatch (E shipped, W partial); code point outside the locale's font matrix `assets/data/content/font_matrix.json` (emitted by Paper UI **(PROV)**; W in registry-absent mode until it exists); fallback chain cycle or not ending at `en` | E/W |
 | V41 | Post-id-freeze string missing its translator context fields (speaker, form, `max_chars`, note) | E |
 
 Human review, never a rule: whether the tone is dry; whether a villain speaks as a villain; whether anyone is told what they did to the others; whether the cost appears as a person in a room; whether an epilogue's assumed facts hold across the end states that fold into it. Explicitly **not** checked by machine: tense (present-tense fragments and the paper's perfect tense would both fail any heuristic); style rules never fail the build; the checker never stops at the first error and never flags a file that did not change.
 
-**16. Amendments from Visual/Audio Requirements** (adopted into the format): sign `overprint` rows carry `hand`; stamp registry rows carry `red_class` (`red`, `carbon`, `soot`, `hatch`) and epilogue stamps may not be `carbon`; documents carry `copy: true` when they are duplicates; any `line` in a non-typewriter hand is an annotation and is capped at `ANNOTATION_CAP` characters over at most two rendered lines (V09 applies the tighter of the kind cap and the hand cap); per-container fit caps (`DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `STAMP_FIT`) derive each string's `max_chars` and `max_lines`; `{gap}` has `GAP_MIN`; markup is the closed set double-strike, underline, CAPS; `cap.*` strings carry `speaker` and `source` tags.
+**16. Amendments from Visual/Audio Requirements** (adopted into the format): sign `overprint` rows carry `hand`; stamp registry rows carry `red_class` (`red`, `carbon`, `soot`, `hatch`) and epilogue stamps may not be `carbon`; documents carry `copy: true` when they are duplicates; any `line` in a non-typewriter hand is an annotation and is capped at `ANNOTATION_CAP` characters over at most two rendered lines (V09 applies the tighter of the kind cap and the hand cap); per-container fit caps (`DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `SIGN_FIT`, `STAMP_FIT`) derive each string's `max_chars` and `max_lines`; `{gap}` has `GAP_MIN`; markup is the closed set double-strike, underline, CAPS; `cap.*` strings carry `speaker` and `source` tags.
 
 ### States and Transitions
 
@@ -310,7 +310,7 @@ The target hard-cap check is defined as:
 |---|---|---|---|---|
 | `L` | locale | shipped ∪ partial | data file (manifest) | Target locale; an unlisted locale uses `de`'s bands (the widest) |
 | `len_en`, `len_L` | int | 0–`PROSE_CAP`, 0–unbounded | calculated (§2) | Effective lengths of source and target |
-| `max_chars(s)` | int/absent | 8–1,560 | data file (string metadata, derived from the container fit caps `DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `STAMP_FIT` × `max_lines`) | Container cap; absent → `hard` alone |
+| `max_chars(s)` | int/absent | 8–1,560 | data file (string metadata, derived from the container fit caps `DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `SIGN_FIT`, `STAMP_FIT` × `max_lines`; fixtures carry `max_chars` explicitly until Paper UI declares containers) | Container cap; absent → `hard` alone |
 | `TARGET_LINE_HARD` | int | 140–200 | constant (160) | Hard cap for `line` targets, error |
 | `TARGET_LABEL_HARD` | int | 48–80 | constant (64, added) | Hard cap for `label` targets, error |
 | `b₁, b₂, b₃` | float | 0.5–2.5 | data file (`expansion_band_<L>`) | de 1.9/1.5/1.30, ru 1.6/1.3/1.20, fr 1.6/1.3/1.20, ja 1.0/0.8/0.70 (post-MVP, needs line-height 1.15) |
@@ -318,13 +318,13 @@ The target hard-cap check is defined as:
 | `expansion_ok` | bool | — | calculated | V38 warning |
 
 **Output Range:** `budget` runs from 0 (empty source) to 156 for `de` at a 120-code-point line, which is below `TARGET_LINE_HARD`: a full-cap `en` line translated within band can never trip the hard cap, so the hard cap only fires on `max_chars` or an over-band translation. That ordering is deliberate: the band is advisory, the container is law. The raw band table is non-monotone at its boundaries (`de`: 20 allows 38, 21 allows 32), which is why the formula takes the envelope: `budget(de, 21) = max(32, 38) = 38`, `budget(de, 61) = max(80, 38, 90) = 90`. *Challenge adopted:* a 160 hard cap on a `label` is meaningless (a 48-code-point tab translated to 160 fits the rule and breaks the tab), hence `TARGET_LABEL_HARD`. `max_lines ≤ 3` is Paper UI's headless layout test, not this formula: code points cannot see wrapping.
-**Example:** `sign.car_in_street` = "A car in the street that was not there yesterday." (48) → `de` "Ein Wagen auf der Straße, der gestern nicht da war." (51; ß is one code point); `budget(de, 48) = max(72, 38) = 72`; `51 ≤ 72`, pass; `51 ≤ min(160, max_chars = 96)`, pass. *Rejected:* the raw bands without the envelope (a writer who lengthens a 20-point source by one character shrinks the translator's room by six); a single 1.3 factor for all lengths (short strings expand far more).
+**Example:** `sign.car_in_street` = "A car in the street that was not there yesterday." (48) → `de` "Ein Wagen auf der Straße, der gestern nicht da war." (51; ß is one code point); `budget(de, 48) = max(72, 38) = 72`; `51 ≤ 72`, pass; `51 ≤ min(160, max_chars = 96)` (`SIGN_FIT` 48 × 2 lines), pass. *Rejected:* the raw bands without the envelope (a writer who lengthens a 20-point source by one character shrinks the translator's room by six); a single 1.3 factor for all lengths (short strings expand far more).
 
 ### 4. Pseudo-locale expansion
 
 The pseudo length formula is defined as:
 
-`len_pseudo(s) = max(⌈(1 + PSEUDO_EXPANSION) × len_en⌉, budget(de, len_en))`; the pseudo text is `"[" + accent(en) + pad("~", len_pseudo − len_en) + "]"` with placeholders, protected spans and `{gap}` untouched.
+`len_pseudo(s) = max(⌈(1 + PSEUDO_EXPANSION) × len_en⌉, budget(de, len_en))`; the pseudo text is `"[" + accent(en) + pad("~", len_pseudo − len_en) + "]"` with placeholders, protected spans and `{gap}` untouched; `accent` is the committed map `tools/content/pseudo_map.json`.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
@@ -442,7 +442,7 @@ The watch budget is defined as:
 *Cases 1–20 from the systems designer over the rule and formula space; cases 21–32 from the narrative director over the writing. All resolutions are exact.*
 
 1. **If polyscene renames an action class after ship** (`read_file` → `open_file`): the beat keeps its owner slug `read_file` and its `beat.read_file.*` ids forever; the compiler's `class → beat_slug` map in `world_classes.json` gains `{open_file: read_file}`, V22 resolves through the map, and saves are untouched because they hold ids, not class names. *Core Rule 3: the class name was copied once, at birth.*
-2. **If a beat names a class that is not in `world_classes.json`**: V22 error "orphan beat `burn_reprot`, nearest `burn_report`", with the edit-distance suggestion; the compile still emits the beat so a writer ahead of the engineer is not blocked in watch mode, only in CI. *A typo is the common case, and silent orphans are how beats vanish.*
+2. **If a beat names a class that is not in `world_classes.json`**: V22 error "orphan beat `burn_reprot`, nearest `burn_report`", suggesting only a class within Levenshtein distance 3 of the slug (otherwise "no near match"); the compile still emits the beat so a writer ahead of the engineer is not blocked in watch mode, only in CI. *A typo is the common case, and silent orphans are how beats vanish.*
 3. **If two sign rows share one text and one field flips true while the other is unknown**: the sign shows (`fields[]` is any-of), lagged by the row whose field changed, and the overprint condition is evaluated on that row alone; the unknown field contributes nothing (closed world, GDD 1 §6.7). *One cause is enough.*
 4. **If a document line is bound to, or an answer's `when` reads, a field outside the chapter's `reads`**: V18 error naming the line or answer and the field; the fix is to add it to `reads` (then V20 re-counts) or unbind. Never auto-add to `reads`. *The declaration is the writer's promise and the budget's input; a tool that widens it hides the god object GDD 1 killed.*
 5. **If a `record` text exceeds `LINE_CAP`**: V09 error; `record` is kind `line` because it lands on a form. *The state's wording is short by nature; a long record is a tone failure before it is a length failure.*
@@ -510,7 +510,7 @@ Column key: **D** = `assets/content-src/tuning.yaml`, compiled to `assets/data/c
 | `ANNOTATION_CAP` (D) | 80 | 60–100 | Marginalia cannot hold an initialled count | Annotations crowd the margin column (art bible §7.2) | `LINE_CAP`, hand registry |
 | `TARGET_LINE_HARD` (D) | 160 | 140–200 | The `de` 1.30 band at 120 (156) collides with the hard cap | Three-line targets pass the validator and fail the layout test | `LINE_CAP`, `max_chars`, Paper UI layout test |
 | `TARGET_LABEL_HARD` (D) | 64 | 48–80 | `de` labels fail before translation starts | Tabs overflow | `LABEL_CAP`, `max_chars` |
-| `DOC_FIT` / `FILE_ENTRY_FIT` / `SAYS_FIT` / `STAMP_FIT` (D) | 72 / 40 / 60 / 12 per line | ±8 / ±6 / ±8 / ±2 | Entries wrap into a second line the sheet has no room for | Text runs past the paper's column | `max_chars` derivation (Formulas §3), Paper UI layout test |
+| `DOC_FIT` / `FILE_ENTRY_FIT` / `SAYS_FIT` / `SIGN_FIT` / `STAMP_FIT` (D) | 72 / 40 / 60 / 48 / 12 per line | ±8 / ±6 / ±8 / ±8 / ±2 | Entries wrap into a second line the sheet has no room for | Text runs past the paper's column | `max_chars` derivation (Formulas §3), Paper UI layout test |
 | `GAP_MIN` (D) | 4 cells | 2–8 | A gap is a dot; `unknown` is invisible | Short entries leave a blank wider than the entry | `gap_width` default, `{gap}` rendering |
 | `expansion_band_de` (D) | 1.9 / 1.5 / 1.30 | ±0.2 per band, decreasing | Translators warned on honest work; warning noise hides real overflow | The band never warns; only the hard cap bites, late | `TARGET_*_HARD`, `PSEUDO_EXPANSION` (pseudo takes `de`'s bands) |
 | `expansion_band_ru`, `_fr` (D) | 1.6 / 1.3 / 1.20 | ±0.2, decreasing | as `de` | as `de` | `TARGET_*_HARD` |
@@ -522,7 +522,8 @@ Column key: **D** = `assets/content-src/tuning.yaml`, compiled to `assets/data/c
 | `SEG_MAX_LEN` (D) | 24 | 16–32 | Long owner slugs cannot exist | Owner slugs become sentences | `ID_MAX_LEN` |
 | `SAMPLE_STRINGS` (B) | 200 | 150–250 | The `de`/`ru` sample proves nothing about plurals or prose; the sample must include ≥ 20 labels, ≥ 10 plurals, ≥ 5 prose | Translation cost before the text freeze | MVP acceptance, `TEXT_FREEZE_LEAD_WEEKS` |
 | `TEXT_FREEZE_LEAD_WEEKS` (B) | 4 | 3–8 | Translators receive strings that change under them; `stale` everywhere | Act text locked before the simulator has shaken it | Freeze manifest, `rev_stale` |
-| `LINT_WATCH_MS` (B) | 2,000 | 1,000–5,000 | The lint warns about itself on every save | Writers wait; the lint stops being used | Cross-reference index caching |
+| `ALIGN_MAX_EDIT` (D) | 12 code points | 6–20 | Every typo fix is "ambiguous" and demands an anchor | Two different paragraphs align to one id | Core Rule 3, lock alignment |
+| `LINT_WATCH_MS` (B) | 2,000 | 1,000–5,000 | The lint warns about itself on every save | Writers wait; the lint stops being used | Cross-reference index caching; measured on the CI runner image, which is named in the CI job config (until named, a reported time, not a gate) |
 | `SIGN_LAG_DEFAULT` | 1 beat | owned by GDD 1 Tuning Knobs | — | — | Read by the sign table's `lag` default; not duplicated here |
 | `content_schema_version` (D, `manifest.json`) | 1 | increments only | `pace` and other reserved fields unlock before their GDDs exist | A bump orphans every save's `content_version` without a `migrate` job | Save/Load `migrate`, the `pace` lint rule |
 | `shipped_locales` (D, `manifest.json`) | `[en]` | `reviewed` locales only | — | A `partial` locale listed → V38 missing ids become errors and the build fails, which is the point | `locale_coverage`, V38–V40 |
@@ -556,7 +557,7 @@ Interaction clusters: (a) `LINE_CAP × expansion_band_de[3] ≤ TARGET_LINE_HARD
 - *`{gap}`:* a ruled blank of `gap_width` character cells (integer, monospace), drawn as a baseline rule in the sheet's rule colour, never underscores or a literal "[blank]"; minimum `GAP_MIN` 4 cells, default the entry's worst-case length. In the dissident view the same token renders as a torn absence, decided by the renderer, not the data.
 - *Struck line:* a single horizontal strike in the striking hand's ink through legible text; never redaction black, never red. Redaction bars are content (art bible §3.5) and act one has none.
 - *Marginalia:* `side` left or right, in the annotating hand, in the margin column outside the 55–72 column text block, never over body; cross-chapter overprints default right.
-- *Fit caps per container* (a string cap is not a fit cap; `max_chars`/`max_lines` are derived from these): documents `DOC_FIT` 72 characters per rendered line; dossier field lines `FILE_ENTRY_FIT` 40; answer `says` `SAYS_FIT` 60; stamps `STAMP_FIT` 12 per line × 2 lines. The Files entry at 40 per line is the sharpest difference from `LINE_CAP`.
+- *Fit caps per container* (a string cap is not a fit cap; `max_chars`/`max_lines` are derived from these): documents `DOC_FIT` 72 characters per rendered line; dossier field lines `FILE_ENTRY_FIT` 40; answer `says` `SAYS_FIT` 60; the sign board `SIGN_FIT` 48 per line × 2 lines; stamps `STAMP_FIT` 12 per line × 2 lines. The Files entry at 40 per line is the sharpest difference from `LINE_CAP`.
 - *Misregistration* is a phase effect on plates, never a styling flag in strings. Markup is closed to double-strike, underline and literal CAPS; no italic token exists.
 
 **Audio.** This system owns no sound. `cap.*` caption strings carry a `speaker` tag (cast id or `sound`) and a `source` tag (`paper`, `stamp`, `typewriter`, `phone`, `door`, `street`); captions render as a typed bracketed line on the transcript sheet, soot, never red. Sounds the paper implies, for the Audio system to own and the audio director to specify: stamp impression (one hit matching art bible §7.4's timing), carbon sheet slide, page turn, calendar tear, typewriter on page arrival and never per character, since text never moves. The mood they match is dry, close and unmusical: paper is the loudest thing in the room.
@@ -601,7 +602,101 @@ This system has no screen of its own. It supplies Paper UI and the HUD with what
 
 ## Acceptance Criteria
 
-[To be designed]
+*Drafted with the QA lead; nine testability gaps it found are fixed in the rules they name (Core Rule 3, Edge Case 2, V06b, V36, V37, V40, Formulas §3–§4, Tuning Knobs). Python compiler tests use pytest under `tools/content/tests/`; everything under the code root uses gdUnit4.*
+
+Citations: **CR§n** = Core Rules, **ST** = States and Transitions, **F§n** = Formulas, **EC n** = Edge Cases, **G** = Tuning Knobs, **VA** = Visual/Audio Requirements, **UI** = UI Requirements. Compiler criteria are pytest files under `tools/content/tests/`; validator, store and lookup criteria are gdUnit4 under `tests/unit/content/`; cross-system runs under `tests/integration/content/`; screenshots and review records under `production/qa/evidence/content/`. Every constant is read from `assets/data/content/tuning.json`, never inlined, except where the boundary value is the point. Fixtures live under `tests/unit/content/fixtures/` as a miniature act (`fx`) unless a criterion names act one. Every validator THEN also asserts the message carries `file:line` and a one-line fix, and that the run reports every other error in the fixture rather than stopping at the first.
+
+**Compiler and lock** (Logic, BLOCKING)
+
+- [ ] **Deterministic output (CR§1, EC 14)**, `test_compile_determinism.py`: **GIVEN** the committed `assets/content-src/`, **WHEN** `compile.py` runs twice on CI's two Python versions, **THEN** every file under `assets/data/content/` is byte-equal across all four runs, LF-terminated, sorted-key, timestamp-free; **WHEN** one byte of a committed JSON is changed, **THEN** the CI recompile step exits non-zero and prints the diff.
+- [ ] **Id allocation (CR§3)**, `test_idlock_allocate.py`: **GIVEN** an empty lock and a beat with three paragraphs, **WHEN** compiled, **THEN** `beat.<owner>.1`–`.3` enter the lock as `assigned`, `rev 1`; **WHEN** paragraph 2 is deleted and a new one appended, **THEN** `.2` stays in the lock and the new paragraph is `.4`, never `.2`.
+- [ ] **Alignment (CR§3)**, `test_idlock_align.py`: **GIVEN** a lock holding `beat.read_file.1`–`.3`, **WHEN** a paragraph is inserted after 1 and paragraph 3 gains one typo, **THEN** 2 and 3 keep their ids and the insert is `.4`; **WHEN** two paragraphs are edited to identical normalised text, **THEN** the lint exits non-zero naming the line and asking for `<!-- id: … -->`, and adding the anchor compiles clean.
+- [ ] **Rename and purge (CR§3, ST)**, `test_idlock_states.py`: **GIVEN** an `assigned` id, **WHEN** its source slug is renamed, **THEN** the compile fails naming old and new id; **WHEN** `idlock purge` targets an id with `first_shipped`, **THEN** exit non-zero and the lock is byte-equal; without `first_shipped`, the entry is removed; **WHEN** any state transition runs backwards, **THEN** it is refused.
+- [ ] **Remerge (EC 13)**, `test_idlock_remerge.py`: **GIVEN** two branches that both allocated `beat.gate_log.5` to different text, **WHEN** `content idlock remerge` runs for the incoming branch, **THEN** its slot becomes `.6`, re-anchored by text, and the merged tree compiles; **GIVEN** `first_shipped` on both sides, **THEN** exit non-zero naming the id and "human decision".
+- [ ] **Source derivation (CR§7)**, `test_compile_source.py`: **GIVEN** answer `decline` in ask `query_ledger` of dialogue `a1_vera_s2_rybar` carrying `@ add berta.attention 1`, **WHEN** compiled, **THEN** `source` is `dialogue:a1_vera/s2:a1_vera_s2_rybar_query_ledger_decline`; a decision option derives `filing:`, `assumes` derives `assume:`, and GDD 1's parser accepts all three (V16).
+
+**Validator** (Logic, BLOCKING; `content_validator_<rule>_test.gd`, fixtures under `fixtures/validator/<rule>/`)
+
+- [ ] **V01–V04**: **GIVEN** `fx` with `beat.read_file.1` declared twice, an id `Beat.read_file.1`, a reference to retired `sign.old_notice`, and a compiled id absent from the lock, **WHEN** validated, **THEN** four E lines, one per id, exit non-zero.
+- [ ] **V05–V06**: **GIVEN** an exit `to` naming a missing scene, a scene with no exit and no `chapter_end`, a `next` pointing backwards, and an ask path never reaching `end`, **THEN** four E lines.
+- [ ] **V06b**: **GIVEN** an answer gated `{all: [{is_true: x}, {is_false: x}]}` and a dialogue item after `end`, **THEN** the validator prints one W for the first and the lint one W for the second.
+- [ ] **V07–V08**: **GIVEN** a `.tscn` calling `tr("ui.dossier.tab.flies")` and a CSV row `ui.dossier.tab.unused` referenced nowhere, **THEN** one E and one W.
+- [ ] **V09–V11**: **GIVEN** a `record` of 121 code points, an 84-point line in hand `berta`, a `says` with curly quotes, a `de` row missing `{courier_name}`, a `de` row with `{gap}` translated as "Lücke", `cast.name` "Kastán", and an `en` string not in NFC, **THEN** seven E; a 49-point `label` is one W.
+- [ ] **V12–V15**: **GIVEN** `set office.nonexistent true`, `add vera.discrepancy 1`, a write to a field absent from `writes`, `filing set vera.attention 3`, and a `jan` chapter writing `vera.took_blame`, **THEN** five E each naming field and source tag.
+- [ ] **V16**: **GIVEN** compiled JSON hand-edited to `source: "dialogue:a1_vera:s2"`, **THEN** E "source fails parse".
+- [ ] **V17**: **GIVEN** `writes: [vera.filed_late]` with no effect on it, **THEN** one W.
+- [ ] **V18–V19**: **GIVEN** a `when` of depth 5, a `when` reading `marta.report_4471` absent from `reads`, a `{visited: s2}` leaf, and `reads: [office.unused]` never read, **THEN** three E and one W.
+- [ ] **V20**: **GIVEN** Vera's act-one chapter plus one condition touching four undeclared-but-added fields, **THEN** E `reads 21/20` naming the four; **GIVEN** no Rules export, **THEN** the line "V20: Rules export absent; counts are lower bounds" prints, W normally, E under `warnings_as_errors`.
+- [ ] **V21**: **GIVEN** `assumes` on a scalar, on an undeclared field, a third assumption at `ASSUME_BUDGET` 2, and one without `settles_as`, **THEN** four E.
+- [ ] **V22–V24**: **GIVEN** `world_classes.json` with 50 action/event classes and a beats file carrying 49 with `paper` plus a beat `burn_reprot`, **THEN** E "beat missing: `burn_report`" and E "orphan beat `burn_reprot`, nearest `burn_report`"; a beat with no `paper` line, nine of ten epilogues, and an E3 epilogue with `crosses: []` are each E; **GIVEN** EC 1's rename map `{open_file: read_file}`, **THEN** no error.
+- [ ] **V25–V27**: **GIVEN** `schema.json` projecting a form id with no row, a sign row on a scalar field, a sign-projected field with neither row nor `no_sign`, and `lag: -1`, **THEN** four findings at the table's severities.
+- [ ] **V28–V29**: **GIVEN** `@ fact parcel_was_medcine` and a fact with no yielding line, **THEN** two E; a fact with no reader is W while the Fact registry is absent.
+- [ ] **V30–V32**: **GIVEN** a beat body naming "Kastan" with `present: [vera]`, a `stage` line naming Ondra who is not a speaker, initials "B.K." for Berta, an `ask` whose every answer has a `when`, an answer with `pace: {seconds: 10}` at `content_schema_version` 1, and an option with `effects: []`, **THEN** six E, and the `pace` E comes from the lint before the validator starts (EC 11).
+- [ ] **V32b**: **GIVEN** an option with no cost effect, **THEN** W until Filing registers the predicate, then E.
+- [ ] **V33**: **GIVEN** a beat body containing "E4" and a `private` line in a `public` room without `tell`, **THEN** one E and one W; EC 29's `tell: true` on a matching register is W and the flag survives in the output.
+- [ ] **V34**: **GIVEN** "Spolnys", "Sp." in a beat body, and "pani" in a `public` item without `tell`, **THEN** three E.
+- [ ] **V35**: **GIVEN** "IV/4471/R.31" inside a prose string and "IV/9999/R.1" matching no document front matter, **THEN** one W and one E.
+- [ ] **V36**: **GIVEN** a beat body "as before, the Captain nodded" with no cast or glossary entry `Captain`, **THEN** two W (see flag 3).
+- [ ] **V37**: **GIVEN** `src/ui/dossier_view.gd` with `tr("Files")`, a `.tscn` with `text = "Files"`, and `tr("Files") # loc-ignore: debug`, **THEN** two E, the third silent (see flag 5).
+- [ ] **V38–V40**: **GIVEN** a partial `de` with one missing id, a `de` line of 161, a `de` line of 73 against `en` 48, a `ru` plural lacking `many`, a plural without `other`, "Spolny" rendered "Spolný", a code point outside the `de` font matrix, and `fallback: {de: fr, fr: de}`, **THEN** the table's severities, with the missing id W; **WHEN** `de` is added to `shipped_locales`, **THEN** it becomes E.
+- [ ] **V41**: **GIVEN** a string in a `string_frozen` act with no `max_chars`, **THEN** E naming the field.
+
+**Formulas** (Logic, BLOCKING; `content_formulas_<n>_test.gd`)
+
+- [ ] **F§1 id validity**: **GIVEN** `dlg.a1_vera_s2.query_ledger.rybar.1`, `beat.read_file.1`, `Beat.read_file.1`, `beat.3.1` and a 65-code-point five-segment id, **WHEN** `id_ok` runs, **THEN** pass, pass, charset fail, ordinal fail, and length fail reported before the segment rule.
+- [ ] **F§2 effective length**: **GIVEN** `order.let_pass.courier` with `{courier_name}` worst 14, **THEN** `len_eff = 37`; "Declined to state." = 18; an 84-point marginal note in hand `berta` fails on `ANNOTATION_CAP` and passes `LINE_CAP`; an empty string is an error; a plural message takes its widest category.
+- [ ] **F§3 target fit**: **THEN** `budget(de, 21) = 38`, `budget(de, 48) = 72`, `budget(de, 61) = 90`; the `sign.car_in_street` `de` text (51) passes band and `min(160, 96)`; a 120-point `en` line translated to 156 passes the hard cap; a 49-point `label` translated to 65 fails `TARGET_LABEL_HARD`.
+- [ ] **F§4 pseudo**: **GIVEN** "Files", **THEN** pseudo is `[Fïlés~~~~~]`, 12 wide with brackets; a 20-point label pads to `max(27, 38) = 38`; `{gap}`, `{n}` and protected spans are byte-identical inside the result.
+- [ ] **F§5 object completeness**: **GIVEN** `doc.reg_212` with 22 of 23 `de` strings, **THEN** `object_complete` is false, `text()` returns `en` for all 23, warning "doc.reg_212 falls back: 1 of 23 missing"; the 200-string sample fixture yields `locale_coverage(de) = 27/31 = 0.871` with `0.069` string coverage printed as INFO.
+- [ ] **F§6 content coverage**: **GIVEN** 50 classes and 49 beats, **THEN** `0.98` and error naming `burn_report`; ten epilogues of ten pass; a `kind: opening` beat whose key equals a world class is E (EC 31).
+- [ ] **F§7 budget contribution**: **GIVEN** Vera's act-one fixture (9 dossier + 2 sheet condition fields, 7 bindings of which 3 overlap, Rules export of 2), **THEN** `|R_c| = 17` and the footer reads `reads 17/20`; `has_fact` adds nothing; `phase_at_least` adds `regime.phase`; `assumes` is absent from `W_c`.
+- [ ] **F§8 condition shape**: **GIVEN** the worked example, **THEN** depth 4, leaves 3, passes; wrapped in one more `not` → depth 5 E; `all: []` E; nine leaves W.
+- [ ] **F§9 stale**: **GIVEN** `rev 3, rev_stale 2`, **THEN** `de` at rev 2 is not stale, `ru` at rev 1 is stale and still `defined`; **GIVEN** a frozen `en` string whose hash differs from the manifest with no `revise` log, **THEN** the freeze gate fails naming the id.
+- [ ] **F§10 watch budget**: **GIVEN** one changed beat file, **THEN** the re-lint completes under `LINT_WATCH_MS` on the named reference machine; **GIVEN** a forced 2,340 ms pass, **THEN** it prints "lint slow: 2,340 ms" and exits 0 (see flag 4).
+
+**Lookup and runtime** (Logic, BLOCKING; `content_store_*_test.gd`, `content_lookup_*_test.gd`)
+
+- [ ] **Never blank (CR§8, CR§10, EC 17)**: **GIVEN** the headless `StringLookup` at locale `de`, **WHEN** `text()` is called for an id present in `de`, an id present only in `en`, and `ui.dossier.tab.flies`, **THEN** it returns the `de` text, the `en` text and `⟦ui.dossier.tab.flies⟧`; none is empty; `has()` is true, true, false; the engine implementation passes the same test from a running scene.
+- [ ] **Object-level fallback (CR§11, F§5)**: **GIVEN** a `de` sample covering dialogue A wholly and dialogue B minus one `record`, **THEN** every string of A resolves `de` and every string of B resolves `en`, including B's `says` lines that exist in `de`.
+- [ ] **Retired id (CR§3, EC 6)**: **GIVEN** a save holding `sign.old_notice` with `replaced_by: sign.notice_v2` which in turn is replaced by `sign.notice_v3`, **THEN** the store resolves `sign.notice_v3` and logs a warning with both ids; with no `replaced_by`, it returns `⟦sign.old_notice⟧` and logs an error; no path returns "".
+- [ ] **Epilogue fallback (CR§9, EC 16, EC 30)**: **GIVEN** no epilogue for `E7`, **WHEN** `epilogue("E7")`, **THEN** `act_fallback` is returned with a warning, its `crosses` is empty and its `closing[]` non-empty.
+- [ ] **Reload refused (CR§13, EC 15)**: **GIVEN** an open dialogue, **WHEN** `reload()`, **THEN** `ERR_BUSY`, the dialogue id logged, and the reload applies at the next scene boundary with `content_reloaded` emitted once; **GIVEN** a source edit to the open chapter's `reads`, **THEN** refused with "chapter restart required"; a release export contains no `reload` symbol.
+- [ ] **Read-only views (CR§9)**: **GIVEN** `beat("read_file")`, **WHEN** the caller mutates the returned object, **THEN** a second `beat("read_file")` is unchanged.
+- [ ] **Headless load (CR§1, CR§14)**: **GIVEN** act one's compiled `manifest.json`, **WHEN** `ContentStore.load()` runs under `godot --headless -s` with no scene tree, **THEN** `errors[]` is empty, `chapter("a1_vera")` returns its declarations, `content_version()` matches the manifest and `string_ids()` equals the CSV key set.
+
+**Determinism and headless** (BLOCKING)
+
+- [ ] **CI path check (CR§14)**: **GIVEN** a clean tree, **WHEN** the check runs, **THEN** 0 matches; **GIVEN** `ContentStore` edited to `extends Node`, `get_tree(`, `preload("res://tools/…")` or `tr(` outside the engine `StringLookup`, **THEN** the check fails naming `file:line`.
+- [ ] **One store (CR§14)**, `tests/integration/content/content_sim_parity_test.gd`: **GIVEN** the story simulator and the unit suite, **THEN** both resolve `ContentStore` to one `resource_path` under `src/content/`, and `string_ids()` from the simulator's act-one load equals the suite's.
+
+**Localisation proof for the MVP** (Visual/UI rows BLOCKING on retained screenshots; data rows Logic)
+
+- [ ] **en-only ship (CR§11, ST)**: **THEN** `manifest.shipped_locales == ["en"]` and `en` is `reviewed`; **WHEN** a `partial` `de` is added to the list, **THEN** the build fails on V38.
+- [ ] **Pseudo screenshots (CR§11, VA)**: **GIVEN** a build at locale `pseudo`, **WHEN** the dossier view, document sheet, transcript sheet and sign board are each captured, **THEN** four files `production/qa/evidence/content/pseudo-<screen>-<date>.png` are retained with lead sign-off, every visible string is bracketed, and no line is clipped at the container edge.
+- [ ] **de+ru sample (G `SAMPLE_STRINGS`)**: **GIVEN** `tools/content/sample.yaml` naming the sample ids, **THEN** it holds ≥ 200 ids with ≥ 20 `label`, ≥ 10 plural, ≥ 5 `prose`, counted by the validator, which fails under those minima; `ru` plurals carry `one`, `few`, `many`, `other`, and `text_n` at n = 1, 2, 5, 21 returns each category once.
+- [ ] **Partial de falls back per object**: **GIVEN** the sample loaded at locale `de`, **THEN** a document wholly inside the sample renders `de`, one outside renders `en`, and no sheet mixes; screenshot retained.
+- [ ] **PO round-trip (CR§10)**: **GIVEN** the `de` CSVs, **WHEN** exported to PO and imported unchanged, **THEN** the CSVs are byte-equal; one changed `msgstr` changes exactly that row and bumps nothing else.
+- [ ] **Id-stability gate (CR§12)**: **GIVEN** a frozen `id → hash` manifest fixture, **THEN** a renamed id fails CI, an added id passes, a tombstoned id passes, and a class-(a) text change passes with `rev` bumped and no `stale`.
+
+**Author tools** (Integration, documented run retained under `production/qa/evidence/content/tools-<date>.md`)
+
+- [ ] **Document preview (CR§13, UI)**: **WHEN** `content preview doc reg_212 --set vera.discrepancy=false --set marta.report_4471=unknown`, **THEN** the output shows the struck entry, the `{gap}` entry as a rule of `gap_width` cells (≥ `GAP_MIN`), and the always-prints lines; `--matrix` prints one block per combination of the bound fields.
+- [ ] **Dialogue preview**: **WHEN** `content preview dlg a1_vera_s2_rybar --set vera.discrepancy=true`, **THEN** `blame_clerk` and `decline` are listed and `whole` is not.
+- [ ] **Budget footer names the edit (CR§13, F§7)**: **GIVEN** a prior run at `reads 17/20`, **WHEN** one condition adding one field is saved and `content validate` runs, **THEN** the footer reads `reads 18/20 … (+1 vs last)` and names the item that moved it; the longest-string readout lists one id per kind.
+- [ ] **Watch mode (F§10)**: **WHEN** one file changes under `content watch`, **THEN** only that file's findings print, within `LINT_WATCH_MS`.
+
+**Human review** (documented review, BLOCKING at `validated → string_frozen`)
+
+- [ ] **Two-save read-through (EC 22, ST)**: **GIVEN** an act in `validated`, **WHEN** the narrative director and the writer read it end to end under two divergent saves, **THEN** `production/qa/evidence/content/review-<act>-<date>.md` records both save ids, each of the eight checklist items with pass or finding, and links the pseudo screenshots; the `freeze` command refuses to run without that file.
+
+**Performance** (BLOCKING; `tests/performance/content/`; budgets are the QA lead's proposal and **to be confirmed by the technical director** at `/create-architecture`)
+
+- [ ] **Content load**: act one's `manifest.json` plus CSVs load headless in ≤ 150 ms median, ≤ 300 ms p99 over 20 runs.
+- [ ] **Lookup**: 1,000,000 `text()` calls with two params complete in ≤ 2 s (≤ 2 µs each); no call allocates after warm-up.
+- [ ] **Condition**: 100,000 `Condition.evaluate` of the F§8 example complete in ≤ 500 ms (≤ 5 µs each).
+- [ ] **Validator and compile**: the full validator over act one completes in ≤ 10 s headless; a full `compile.py` in ≤ 20 s; one-file watch under `LINT_WATCH_MS`.
+
+**MVP gate.** Before `/gate-check technical-setup`, on the `fx` fixture act: deterministic output, id allocation, alignment, remerge; V01–V06, V07, V09, V12–V16, V18–V20, V22–V24, V30–V32; F§1, F§2, F§6, F§7, F§8; never blank, headless load, read-only views; CI path check and one store. These prove the toolchain and the headless direction, which every later system imports. The rest is **Vertical Slice**: the remaining validator families, F§3–F§5, F§9–F§10, reload, retired ids, epilogue fallback, the whole localisation proof and its screenshots, author tools, human review and the performance budgets, all of which need act one's real content, Paper UI's containers or a translation sample.
 
 ## Open Questions
 

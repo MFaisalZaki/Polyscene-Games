@@ -70,12 +70,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: security
     added: 2026-11-03
@@ -84,12 +84,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: security
     added: 2026-11-03
@@ -98,12 +98,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: post
     added: 2026-11-03
@@ -112,12 +112,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: records_office
     added: 2026-11-03
@@ -140,12 +140,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: records_office
     added: 2026-11-03
@@ -154,12 +154,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: security
     added: 2026-11-03
@@ -168,12 +168,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: post
     added: 2026-11-03
@@ -182,12 +182,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: person
     custodian: post
     added: 2026-11-03
@@ -196,12 +196,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: unit
     custodian: post
     added: 2026-11-03
@@ -210,12 +210,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: unit
     custodian: records_office
     added: 2026-11-03
@@ -224,12 +224,12 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
-      - "Narrative Content Format & Strings"
     record_kind: regime
     custodian: none
     added: 2026-11-03
@@ -390,6 +390,7 @@ formulas:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
@@ -460,7 +461,160 @@ formulas:
 #       damage_cap in combat.md clamps at 999."
 #     added: 2026-03-26
 #     revised: ""
-
+  - name: id_ok
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Save/Load"
+    variables:
+      - id
+      - SEG_MAX_LEN
+      - ID_MAX_LEN
+      - DOMAINS
+    output_range: "bool"
+    expression: "match(id, ID_RE) and cp(id) <= ID_MAX_LEN and dom(id) in DOMAINS and only the last segment all digits"
+    notes: "Formulas §1. Grammar seg(.seg){2,4}, seg [a-z0-9][a-z0-9_]{0,23}."
+    added: 2026-11-03
+    revised: ""
+  - name: len_eff
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Dialogue & Interrogation"
+    variables:
+      - s
+      - p
+      - worst(p)
+      - LINE_CAP
+      - LABEL_CAP
+      - PROSE_WARN
+      - PROSE_CAP
+      - ANNOTATION_CAP
+    output_range: "0..unbounded; 0 is an error"
+    expression: "cp(strip_markup(s)) - sum cp({p}) + sum worst(p); cap_ok = len_eff <= min(CAP[kind], ANNOTATION_CAP if hand not typewriter)"
+    notes: "Formulas §2. NFC code points, markup excluded, placeholders at worst case."
+    added: 2026-11-03
+    revised: ""
+  - name: fit_hard
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - s
+      - L
+      - len_en
+      - len_L
+      - max_chars
+      - TARGET_LINE_HARD
+      - TARGET_LABEL_HARD
+      - expansion_band_L
+    output_range: "bool"
+    expression: "len_eff(s_L) <= min(hard(kind), max_chars); budget(L,n) = max(ceil(b(L,n)*n), [n>20]*ceil(b1*20), [n>60]*ceil(b2*60)); expansion_ok = len_L <= budget"
+    notes: "Formulas §3. Band envelope is monotone; band is advisory, container is law."
+    added: 2026-11-03
+    revised: ""
+  - name: object_complete
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Dialogue & Interrogation"
+      - "Settings Store"
+    variables:
+      - obj
+      - L
+      - strings(obj)
+      - owner(s)
+    output_range: "bool; locale_coverage 0.0..1.0"
+    expression: "all s in strings(obj): defined(L,s) and placeholders equal and fit_hard; text(s,L) = L[s] if object_complete(owner(s),L) else en[s] else <<id>>"
+    notes: "Formulas §5. Fallback is per content object, never per string; never blank."
+    added: 2026-11-03
+    revised: ""
+  - name: beat_coverage
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    variables:
+      - W_action
+      - W_event
+      - W_ending
+      - beat(c)
+      - epilogue(e)
+    output_range: "0.0..1.0; must be 1.0"
+    expression: "|{c : beat(c) and paper(beat(c))}| / |W_action ∪ W_event|; epilogue_coverage over W_ending ∪ {act_fallback}"
+    notes: "Formulas §6. Joined against world_classes.json from the polyscene topic."
+    added: 2026-11-03
+    revised: ""
+  - name: content_budget_contribution
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Filing & Decision"
+      - "Dialogue & Interrogation"
+    variables:
+      - conds(c)
+      - docs(c)
+      - R_c^rules
+      - W_c^rules
+      - fields_in
+    output_range: "sets 0..schema size"
+    expression: "R_c = ∪ fields_in(when) ∪ bound fields ∪ R_c^rules; W_c = effect targets of actions, decisions, answers ∪ W_c^rules; has_fact -> ∅; phase_at_least -> {regime.phase}"
+    notes: "Formulas §7. Membership only; thresholds are flag_budget_ok (GDD 1 §6). Document binds count as reads (PROV)."
+    added: 2026-11-03
+    revised: ""
+  - name: cond_shape
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Dialogue & Interrogation"
+      - "Filing & Decision"
+      - "Investigation & Fact System"
+    variables:
+      - COND_DEPTH_MAX
+      - COND_LEAVES_WARN
+    output_range: "depth >= 1, leaves >= 1"
+    expression: "depth(leaf)=1; depth(not c)=1+depth(c); depth(all|any)=1+max; leaves summed; depth <= COND_DEPTH_MAX (E), leaves <= COND_LEAVES_WARN (W)"
+    notes: "Formulas §8. Empty all/any is an error. One evaluator: Condition.evaluate(cond, reader)."
+    added: 2026-11-03
+    revised: ""
+  - name: stale
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Save/Load"
+    variables:
+      - rev
+      - rev_stale
+      - rev_L
+      - manifest
+    output_range: "bool"
+    expression: "stale(L,s) = defined(L,s) and rev_L(s) < rev_stale(s); frozen_ok = not frozen or hash(en)=manifest or revise_logged"
+    notes: "Formulas §9. rev_stale moves only on a same-meaning rewording (class b)."
+    added: 2026-11-03
+    revised: ""
 
 # ─── CONSTANTS ───────────────────────────────────────────────────────────────
 # Named numerical values referenced across multiple systems.
@@ -488,6 +642,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
@@ -499,10 +654,10 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Narrative Content Format & Strings"
     value: 4
     unit: points
     added: 2026-11-03
@@ -660,6 +815,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
@@ -672,6 +828,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
@@ -684,6 +841,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
@@ -696,6 +854,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
@@ -732,6 +891,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
@@ -788,3 +948,245 @@ constants:
 #     unit: slots
 #     added: 2026-03-26
 #     revised: ""
+  - name: LINE_CAP
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Dialogue & Interrogation"
+      - "Paper UI"
+    value: 120
+    unit: code points (line kind, error)
+    added: 2026-11-03
+    revised: ""
+  - name: LABEL_CAP
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 48
+    unit: code points (label kind, warning)
+    added: 2026-11-03
+    revised: ""
+  - name: PROSE_WARN
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+    value: 800
+    unit: code points (prose kind, warning)
+    added: 2026-11-03
+    revised: ""
+  - name: PROSE_CAP
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+    value: 1200
+    unit: code points (prose kind, error)
+    added: 2026-11-03
+    revised: ""
+  - name: ANNOTATION_CAP
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 80
+    unit: code points per non-typewriter-hand line, max 2 rendered lines
+    notes: "Art bible §7.2 annotation limit."
+    added: 2026-11-03
+    revised: ""
+  - name: TARGET_LINE_HARD
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 160
+    unit: code points (target locale, line kind)
+    added: 2026-11-03
+    revised: ""
+  - name: TARGET_LABEL_HARD
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 64
+    unit: code points (target locale, label kind)
+    added: 2026-11-03
+    revised: ""
+  - name: DOC_FIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 72
+    unit: characters per rendered document line
+    added: 2026-11-03
+    revised: ""
+  - name: FILE_ENTRY_FIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 40
+    unit: characters per rendered dossier field line
+    added: 2026-11-03
+    revised: ""
+  - name: SAYS_FIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Dialogue & Interrogation"
+      - "Paper UI"
+    value: 60
+    unit: characters per rendered answer label
+    added: 2026-11-03
+    revised: ""
+  - name: SIGN_FIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Overlay & Surveillance Rendering"
+    value: 48
+    unit: characters per rendered sign line, 2 lines
+    added: 2026-11-03
+    revised: ""
+  - name: STAMP_FIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Overlay & Surveillance Rendering"
+    value: 12
+    unit: characters per stamp line, 2 lines
+    added: 2026-11-03
+    revised: ""
+  - name: GAP_MIN
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 4
+    unit: character cells (minimum {gap} width)
+    added: 2026-11-03
+    revised: ""
+  - name: COND_DEPTH_MAX
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Dialogue & Interrogation"
+      - "Filing & Decision"
+    value: 4
+    unit: nesting levels (error)
+    added: 2026-11-03
+    revised: ""
+  - name: COND_LEAVES_WARN
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    value: 8
+    unit: leaves per condition (warning; V06b skips above it)
+    added: 2026-11-03
+    revised: ""
+  - name: PSEUDO_EXPANSION
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 0.35
+    unit: fraction (floor; effective factor is max with the de band)
+    added: 2026-11-03
+    revised: ""
+  - name: ID_MAX_LEN
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Save/Load"
+      - "Paper UI"
+    value: 64
+    unit: code points per id
+    added: 2026-11-03
+    revised: ""
+  - name: SEG_MAX_LEN
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Save/Load"
+    value: 24
+    unit: code points per id segment
+    added: 2026-11-03
+    revised: ""
+  - name: ALIGN_MAX_EDIT
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    value: 12
+    unit: code points (lock alignment ambiguity)
+    added: 2026-11-03
+    revised: ""
+  - name: SAMPLE_STRINGS
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    value: 200
+    unit: strings in the de+ru MVP sample (>=20 labels, >=10 plurals, >=5 prose)
+    added: 2026-11-03
+    revised: ""
+  - name: TEXT_FREEZE_LEAD_WEEKS
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    value: 4
+    unit: weeks before translation hand-off
+    added: 2026-11-03
+    revised: ""
+  - name: LINT_WATCH_MS
+    status: active
+    source: design/gdd/narrative-content-format.md
+    referenced_by:
+      - design/gdd/narrative-content-format.md
+    value: 2000
+    unit: ms per changed file in watch mode (reported, not gated, until the CI runner image is named)
+    added: 2026-11-03
+    revised: ""

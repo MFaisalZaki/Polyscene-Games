@@ -25,7 +25,7 @@ Relationship analysis: four systems carry most of the dependency weight — Doss
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Dossier State Model | Core | MVP | Designed | [dossier-state-model.md](dossier-state-model.md) | — |
-| 2 | Narrative Content Format & Strings (inferred) | Narrative | MVP | Not Started | — | — |
+| 2 | Narrative Content Format & Strings (inferred) | Narrative | MVP | Designed | [narrative-content-format.md](narrative-content-format.md) | Dossier State Model (build-time schema only) |
 | 3 | Scene & Interaction Framework (inferred) | Core | MVP | Not Started | — | — |
 | 4 | Settings Store (inferred) | Meta | MVP | Not Started | — | — |
 | 5 | Investigation & Fact System | Gameplay | MVP | Not Started | — | Narrative Content Format & Strings, Scene & Interaction Framework, Dossier State Model (read only) |
@@ -161,10 +161,10 @@ Producer estimate for GDDs 1–13 at full rigor: 55–75 hours of human approval
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 16 |
-| Design docs started | 1 |
+| Design docs started | 2 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 1/13 |
+| MVP systems designed | 2/13 |
 | Vertical Slice systems designed | 0/3 |
 
 ---
