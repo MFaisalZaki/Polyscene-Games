@@ -136,7 +136,7 @@ Output is total (every hotspot gets exactly one value); `void` and `filed` are e
 
 **7. A scene ends on an exit hotspot and nothing else; the route is read after the boundary; `exits[]` is linted.** The scene ends when `on_hotspot_activated(id)` names an exit hotspot (Rule 4 step 1). A decision does not end a scene; a dialogue's `end` does not end a scene; an insert ends on its dialogue's `end` (Rule 11) because it has no exits. The player may read, hold and pair after deciding; nothing in the room changes (Rule 5), so there is nothing to exploit, and the walk to the door is where "the scene ends by showing which dossiers changed" happens.
 
-The route is resolved at Rule 8 step 10, after `end_boundary` and after the Calendar's bracket closes: `route(scene.exits, reader) = first e in authored order with e.when absent or true` → `e.to` (a scene id of this chapter) or `chapter_end`. The reads are content reads already in `R_c` (GDD 2 V18–V20 count `exits[].when`), served post-boundary, which is why GDD 3 can promise `preload_scene` "after the rules step and before the reveal" with the next id known. A `has_fact` leaf in an exit's `when` may choose where a present door leads, never whether it works (GDD 5 Rule 4, Edge Case 23; this is the reciprocal lint). Which door: at MVP every exit hotspot of a scene resolves the same `exits[]` list; an optional `exits[].via: <hotspot id>` (amendment to GDD 2, Conflicts item 8) lets a two-door scene route by door, and an entry without `via` matches any exit hotspot.
+The route is resolved at Rule 8 step 10, after `end_boundary` and after the Calendar's bracket closes: `route(scene.exits, reader) = first e in authored order with e.when absent or true` → `e.to` (a scene id of this chapter) or `chapter_end`. The reads are content reads already in `R_c` (GDD 2 V18–V20 count `exits[].when`), served post-boundary, which is why GDD 3 can promise `preload_scene` "after the rules step and before the reveal" with the next id known. A `has_fact` leaf in an exit's `when` may choose where a present door leads, never whether it works (GDD 5 Rule 4, Edge Case 23; this is the reciprocal lint). Which door: at MVP every exit hotspot of a scene resolves the same `exits[]` list; an optional `exits[].via: <hotspot id>` (amendment to GDD 2, GDD 2 Rule 5 amendment) lets a two-door scene route by door, and an entry without `via` matches any exit hotspot.
 
 Lint rules on `exits[]`, run by GDD 2's validator with this system as semantics owner (severity as GDD 2 Rule 15; `E` fails the build):
 
@@ -151,7 +151,7 @@ Lint rules on `exits[]`, run by GDD 2's validator with this system as semantics 
 | SF-E7 | A sidecar exit hotspot carries no content action (cross-check in `tools/`, beside GDD 3's X01) | E |
 | SF-W1 | Same-scene read-after-write (Rule 5) | W |
 | SF-W2 | A `person`/`phone` hotspot whose actions can all be false under some state | W |
-| SF-W3 | More than one `decision` action in one scene, or a `decision` and a dialogue with effectful answers in one scene (Conflicts item 2: the solver's beat is one player action) | W |
+| SF-W3 | More than one `decision` action in one scene, or a `decision` and a dialogue with effectful answers in one scene (GDD 6 Rule 7 amendment: the solver's beat is one player action) | W |
 
 The path-length invariant, which the Calendar's beat spans and GDD 6's windows both assume:
 
@@ -180,7 +180,7 @@ exit(scene_id):
               day: date.day, slot: date.slot,
               day_high: calendar.day_high(), step: "decision" }
             # beat is the post-increment value GDD 1 Rule 4a and GDD 7 Rule 1 both name;
-            # dossier.beat() is a non-mutating read (Conflicts item 4)
+            # dossier.beat() is a non-mutating read (GDD 1 Rule 4a amendment)
     apply = CompositeApply.new(dossier, calendar, ctx)        # Rule 9; built once per boundary, before any bracket opens
  3. calendar.begin_boundary(ctx)                             # outer bracket (GDD 7 Rule 1)
  4. dossier.begin_boundary(scene_id, ctx.day)                # inner bracket (GDD 1 Rule 4a)
@@ -191,7 +191,7 @@ exit(scene_id):
                                                              # every rules batch goes through `apply` (Rule 9)
  7. (debug) rules' incompatibles were asserted inside run_boundary through the shared DebugSink
  8. ctx.step = "phase_attention"
- 9. if scene_id is the act's last act-close id: dossier.apply(plan.archive_batch)   # writer chapter; Conflicts item 3
+ 9. if scene_id is the act's last act-close id: dossier.apply(plan.archive_batch)   # writer chapter; GDD 1 Rule 4a amendment
 10. records   = dossier.end_boundary()                       # increments the beat; dossier change records in application order
     calendar.end_boundary()                                  # closes the outer bracket
     snapshot  = calendar.snapshot(ctx)                       # BoundaryView, memoised by beat (GDD 7 Rule 9)
@@ -257,11 +257,11 @@ return {insert, insert_firing, paper, degraded}
 
 Output: at most one insert per boundary, always (GDD 6 Visual/Audio §3: "never two inserts at one boundary"); a second `insert` firing becomes its beat's `paper` line, which exists for every class (GDD 2 V23), so nothing fired is lost. An `insert` firing at a boundary whose route is `chapter_end`, or at an act-close beat, or in a chapter with no insert row for the class, degrades the same way: the state writes instead of visiting. A truncated cascade changes nothing here because only `fired[]` is read (GDD 6 Visual/Audio §3: "a truncated cascade shows nothing extra"). `paper_visible(f, protagonist)` is `protagonist == null` (the act close: the player reads the closing bell, not a protagonist) or `∃ c ∈ f.changes : view(protagonist) ∈ c.projections` with `view = {vera: files, jan: signs, tomas: orders}`; it is the one place this system reads a change record's `projections`, and it implements GDD 6 Visual/Audio §1's "a `paper` beat the protagonist never sees renders nowhere in that chapter" **(PROV: Paper UI to confirm the filter lives here and not in its renderer)**. `presentation.rule_fired(class, "paper")` is emitted at the reveal (Rule 8 step 12) and `rule_fired(class, "insert")` at the insert's `scene_ready` (Rule 11), never at firing time, so Audio never hears the state before the paper or the person is in the frame (GDD 6 Visual/Audio §7). *Worked example (GDD 6 Rule 13):* at `v_turn`'s boundary R1 `query_ledger` (`insert`) fires at step 0 and B1 is a candidate but Berta's `delay: 1` holds it; `fired = [R1]`, `insert_scene_for(a1_vera, query_ledger) = rybar_query_ledger`, `route = v_person`, so `insert = rybar_query_ledger`, `paper = []`. Were B1 to fire at the same boundary with `beat: insert` too, it would be second in selection order (priority 70 vs Berta's), degrade to its paper line (the memo) and appear in the reveal after the call.
 *Rationale:* GDD 6 says the presentation rule is Scene Flow's and that "no rule data is written to arrange it"; a pure function over `fired[]` and the open chapter's content is the smallest implementation and the one the simulator can diff.
-*Rejected:* queueing the second insert for the next boundary (a reaction delayed by presentation, which GDD 6 Rule 5 forbids: "a losing candidate is dropped, not queued" is the evaluator's rule and this would re-create a queue one layer up); a global `beats` table `class → insert scene id` (Rybar's telephone call exists only in Vera's room; a per-chapter row is what makes "no room for this person here" a content fact, Conflicts item 8).
+*Rejected:* queueing the second insert for the next boundary (a reaction delayed by presentation, which GDD 6 Rule 5 forbids: "a losing candidate is dropped, not queued" is the evaluator's rule and this would re-create a queue one layer up); a global `beats` table `class → insert scene id` (Rybar's telephone call exists only in Vera's room; a per-chapter row is what makes "no room for this person here" a content fact, GDD 2 Rule 5 amendment).
 
 ---
 
-**11. An insert scene plays through the same host, closes no boundary, and its effects ride the next authored boundary.** Content (amendment to GDD 2, Conflicts item 8): an insert is a scene row in the chapter's `scenes[]` with `kind: insert`, `class` (the rule class it answers; at most one row per class per chapter, lint SF-E8), `location`, `register`, exactly one `dialogues[]` entry (its entry dialogue), optional `documents[]` the dialogue's answers may open, no `actions[]` beyond the dialogue's own, no `exits[]` and no timetable row (GDD 7 Edge Case 20). Its sidecar has a `threshold` hotspot through which the person enters (GDD 6 Visual/Audio §1).
+**11. An insert scene plays through the same host, closes no boundary, and its effects ride the next authored boundary.** Content (amendment to GDD 2, GDD 2 Rule 5 amendment): an insert is a scene row in the chapter's `scenes[]` with `kind: insert`, `class` (the rule class it answers; at most one row per class per chapter, lint SF-E8), `location`, `register`, exactly one `dialogues[]` entry (its entry dialogue), optional `documents[]` the dialogue's answers may open, no `actions[]` beyond the dialogue's own, no `exits[]` and no timetable row (GDD 7 Edge Case 20). Its sidecar has a `threshold` hotspot through which the person enters (GDD 6 Visual/Audio §1).
 
 `play_insert(scene_id)`:
 1. Availability for its hotspots is derived as in Rule 6 (the room is the same room; filed ghosts stay filed).
@@ -300,7 +300,7 @@ Dialogue and Filing are *systems*, not sink calls: Scene Flow calls `dialogue.ru
 
 ---
 
-**14. Save points are the closed reveal; Scene Flow serialises the cursor and nothing staged.** The only save point is Rule 8 step 13, after `on_continue` closes the reveal and before the insert plays or the next scene is entered. At that moment the dossier and the Calendar are outside their brackets (GDD 1 Rule 10, GDD 7 Edge Case 15), the fact system is at a boundary (GDD 5 Rule 6's `at_boundary: true`), the rules evaluator is idle (GDD 6 States), and `cursor.staged` is empty by construction (an insert's effects are staged only when it plays, and it plays *after* the save point). `serialize() → {sf_schema_version, act, chapter_id, cursor: {next: scene_id | chapter_end, pending_insert: scene_id | null}, phase ∈ {in_chapter, act_close}}` — plain data, no resource, no string, no availability (re-derived, Rule 6), no focus or camera (GDD 3 Interactions), no staged effects, ever. `deserialize(data)` accepts only the current `SF_SCHEMA_VERSION`, whole or not at all (GDD 1 Edge Case 13's shape), and is legal only before `run_act` has entered a scene. Load order, which Save/Load owns **(PROV)** but which this system requires: content, then `dossier.deserialize`, `calendar.deserialize`, `rules.deserialize`, `facts.deserialize(data, at_boundary = true)`, then Scene Flow's; then Scene Flow calls `calendar.open_chapter(chapter_id)` again (Conflicts item 7), `reader.bind`, rebuilds `writer`, and runs `play_insert(pending_insert)` if set, else `enter(next)` — the same path as an unloaded game, which is what makes "re-derived on load" (GDD 3 Rule 5) a single function. The dossier's own `chapter_id` and beat come from its payload; Scene Flow does not call `chapter_open` again (it would re-apply the assumptions).
+**14. Save points are the closed reveal; Scene Flow serialises the cursor and nothing staged.** The only save point is Rule 8 step 13, after `on_continue` closes the reveal and before the insert plays or the next scene is entered. At that moment the dossier and the Calendar are outside their brackets (GDD 1 Rule 10, GDD 7 Edge Case 15), the fact system is at a boundary (GDD 5 Rule 6's `at_boundary: true`), the rules evaluator is idle (GDD 6 States), and `cursor.staged` is empty by construction (an insert's effects are staged only when it plays, and it plays *after* the save point). `serialize() → {sf_schema_version, act, chapter_id, cursor: {next: scene_id | chapter_end, pending_insert: scene_id | null}, phase ∈ {in_chapter, act_close}}` — plain data, no resource, no string, no availability (re-derived, Rule 6), no focus or camera (GDD 3 Interactions), no staged effects, ever. `deserialize(data)` accepts only the current `SF_SCHEMA_VERSION`, whole or not at all (GDD 1 Edge Case 13's shape), and is legal only before `run_act` has entered a scene. Load order, which Save/Load owns **(PROV)** but which this system requires: content, then `dossier.deserialize`, `calendar.deserialize`, `rules.deserialize`, `facts.deserialize(data, at_boundary = true)`, then Scene Flow's; then Scene Flow calls `calendar.open_chapter(chapter_id)` again (GDD 7 Rule 1 amendment), `reader.bind`, rebuilds `writer`, and runs `play_insert(pending_insert)` if set, else `enter(next)` — the same path as an unloaded game, which is what makes "re-derived on load" (GDD 3 Rule 5) a single function. The dossier's own `chapter_id` and beat come from its payload; Scene Flow does not call `chapter_open` again (it would re-apply the assumptions).
 A quit inside a scene resumes at that scene's start: the documents already read in the abandoned scene are re-read, facts held there are not restored (GDD 5 Edge Case 13 forbids a mid-dialogue load, and a mid-scene held set with no board-to-sheet synchrony is what it forbids it for). This is a player-experience ruling for the creative director to confirm (Open Questions); the alternative is in "Rejected".
 Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way: `SceneFlow.reload_window() → bool` is true exactly at the save point, and `ContentStore.reload()` is legal only then; a reload inside a scene would change the action table under the player's cursor.
 *Rationale:* every stateful system already refuses a mid-bracket load; choosing the closed reveal makes "at a boundary" one instant every GDD agrees on, and makes the cursor two ids.
@@ -361,7 +361,7 @@ Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way:
 
 | System | In (to Scene Flow) | Out (from Scene Flow) | Interface owner |
 |---|---|---|---|
-| **Dossier State Model** (GDD 1) | `beat()` (read; Conflicts item 4), `read` through the reader, `apply → [change]`, `end_boundary → [change]`, `select_ending` | The bracket in Rule 8's order: `begin_boundary(scene_id, day)` → `apply(staged)` once → `apply` per cascade step through the composite → (`apply(archive_batch)` at the act's last boundary) → `end_boundary()`; `chapter_open(id, reads, writes, assumes)` / `chapter_close()`; the `DossierWriter` staging facade handed to Filing and Dialogue | GDD 1 owns the bracket's calls and the effect/change formats; Scene Flow owns the order and the staging |
+| **Dossier State Model** (GDD 1) | `beat()` (read; GDD 1 Rule 4a amendment), `read` through the reader, `apply → [change]`, `end_boundary → [change]`, `select_ending` | The bracket in Rule 8's order: `begin_boundary(scene_id, day)` → `apply(staged)` once → `apply` per cascade step through the composite → (`apply(archive_batch)` at the act's last boundary) → `end_boundary()`; `chapter_open(id, reads, writes, assumes)` / `chapter_close()`; the `DossierWriter` staging facade handed to Filing and Dialogue | GDD 1 owns the bracket's calls and the effect/change formats; Scene Flow owns the order and the staging |
 | **Narrative Content Format** (GDD 2) | `chapter(id)`, `scene(chapter_id, scene_id)` with `kind`, `class`, `exits[]`, `actions[]`; `beat(class)`; `epilogue(class)`; `Condition.evaluate` and the reader shape; `scene_vocab.json` kinds | `scene_id`/`chapter_id` for every `source`; the semantics of `scene`, `exits[]`, `kind`, `class`, `via`; lint rules SF-E1–E8, SF-W1–W3; the hot-reload window | GDD 2 owns syntax and the validator; Scene Flow owns scene and exit semantics |
 | **Scene & Interaction Framework** (GDD 3) | `SceneHost`: `scene_preloaded`, `scene_ready`, `hotspot_activated`, `hotspot_examined`, `scene_exited`; `hotspot_ids`, `hotspot_counts`, `focus`; `NullSceneHost` drivers | `preload_scene` (after rules, before the reveal), `activate_scene(id, wipe)`, `unload_scene`, `set_hotspot_state` (before activation; `filed` on `document_filed`), `set_focus` at entry, `push/pop_input_block` for `enter:`, `boundary:`, `insert:` | GDD 3 owns the host; Scene Flow owns door semantics, availability values and the order of calls |
 | **Investigation & Fact** (GDD 5) | `open(document_id) → holdable`, `open_dialogue`, `filed_documents()`, `has` (through the reader), `document_filed` (signal), `serialize/deserialize(at_boundary)`, `chapter_close()` | The resolved document or dialogue id after a hotspot event; `set_hotspot_state(filed)` on its signal and after a load; `at_boundary = true` at the save point; the `ConditionReader` composition (built here, bound per chapter) | GDD 5 owns yields, the held set and the filed rule; Scene Flow owns availability and the boundary |
@@ -377,8 +377,6 @@ Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way:
 | **Save/Load** (PROV) | `deserialize(data)` before the first `enter`; the load order of Rule 14 | `serialize() → {sf_schema_version, act, chapter_id, cursor, phase}`; `SF_SCHEMA_VERSION`; `reload_window()`; the save point definition | Save/Load owns the registry and migration; Scene Flow owns the cursor's shape and the save point |
 | **Character Presentation** (PROV) | Nothing | Nothing direct: it listens to the host's `scene_ready`/`hotspot_activated` (GDD 3 Rule 10) | GDD 3 |
 
----
-
 ## Formulas
 
 [To be designed]
@@ -389,7 +387,25 @@ Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way:
 
 ## Dependencies
 
-[To be designed]
+*Hard* means the system cannot function without the other; *soft* means it works without it and is improved by it. Rows marked **(PROV)** name a system whose GDD is not yet written. Reciprocity today: GDD 1 names Scene Flow as the owner of the bracket's order; GDD 2 as the semantics owner of `scene` and `exits[]`; GDD 3 as the caller of the host and the owner of availability and door semantics; GDD 5 as the resolver of hotspot actions and the caller of `set_hotspot_state(filed)`; GDD 6 as the caller of `run_boundary` and the owner of the presentation rule; GDD 7 as the assembler of `ctx` and the caller of `open_chapter`, `begin/end_boundary`, `transition_between` and `snapshot`. All six match the rows below.
+
+| System | Direction | Hard/Soft | Interface |
+|---|---|---|---|
+| Dossier State Model (GDD 1) | This depends on it | Hard | The bracket (`begin_boundary(scene_id, day)`, `apply`, `end_boundary`, `beat()`), `chapter_open/close`, the `DossierWriter` staging facade, `select_ending`; the archive batch admitted at the act's last boundary |
+| Narrative Content Format & Strings (GDD 2) | Mutual | Hard | `chapter`, `scene` (`kind`, `class`, `exits[{to, when, via}]`, `actions[]`), `beat(class)`, `epilogue(class)`, `Condition.evaluate`; this system owns the semantics of scenes and exits and the lints SF-E1–E8, SF-W1–W3; hot reload only at the save point |
+| Scene & Interaction Framework (GDD 3) | Mutual | Hard | `SceneHost` calls and signals; `NullSceneHost` for the simulator; availability set only here; `preload_scene` after the rules step; the input block for `enter:`, `boundary:`, `insert:` |
+| Investigation & Fact System (GDD 5) | Mutual | Hard | `open`, `open_dialogue`, `filed_documents`, `document_filed`, `serialize/deserialize(at_boundary)`, `chapter_close`; the `ConditionReader` built here and bound per chapter |
+| Reactive Event Rules & Story Simulator (GDD 6) | Mutual | Hard | `run_boundary(ctx, apply, choices)` once per boundary; `stage_firings` (one insert, the rest paper); `rule_fired` through the sink; `step(intent)` and the `BoundaryRecord` for the replay runner; `ChoiceSource` |
+| Calendar, Regime Phase & Attention (GDD 7) | Mutual | Hard | `open_chapter(id, resumed)`, `begin_boundary(ctx)`/`end_boundary()` as the outer bracket, `date_for`, `day_high`, `transition_between`, `snapshot(ctx)`, `apply_calendar` through the composite |
+| Settings Store (GDD 4) | None, by rule | — | No key is read here; the CI path check adds `src/scene_flow/` to the never-import list |
+| Paper UI | Depends on this **(PROV)** | Hard | The sink's `reveal`, `open_document`, `chapter_card`, `transition`, `epilogue` and `on_continue`; `paper_visible`; the sheet-stack contract |
+| Overlay & Surveillance Rendering | Depends on this **(PROV)** | Soft | The snapshot inside `reveal`; the slot transition; the insert's cut through the host |
+| Audio & Adaptive Surveillance Mix | Depends on this **(PROV)** | Soft | `rule_fired(class, insert|paper)` at the moment the person or paper is in the frame; the snapshot's booleans; `transition` |
+| Dialogue & Interrogation | Mutual **(PROV)** | Hard | `run(dialogue_id, reader, writer)` and `on_dialogue_end`; effects staged through the writer; the room suspended under its sheet; timers are its own |
+| Filing & Decision | Mutual **(PROV)** | Hard | `run(decision_id, reader, writer)` and `on_decision_made`; one decision per scene; effects staged |
+| Chapter & Story Structure | Mutual **(PROV)** | Hard | `ActPlan {play_order, chapters, act_close, archive_batch, ending_table}`; `run_act(plan)`; the pseudo-chapter `<act>_close`; chapter cards |
+| Save/Load | Depends on this **(PROV)** | Soft | `serialize()`/`deserialize(data)` of the cursor; `SF_SCHEMA_VERSION`; the save point is the closed reveal; `reload_window()` |
+| Character Presentation | None direct **(PROV)** | — | Listens to the host's signals (GDD 3 Rule 10) |
 
 ## Tuning Knobs
 
@@ -401,15 +417,34 @@ Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way:
 
 ## Game Feel
 
-[To be designed]
+Optional for a Core system; three feel properties follow from it and are stated so Paper UI, Overlay and Audio inherit them as targets.
+
+- **The room waits.** Nothing in a scene changes on idle, on a clock or on focus; availability changes only in answer to the player's own act, and every effect waits for the door. A player who reads a sheet for ten minutes finds the room as they left it.
+- **The boundary is one motion.** Wipe, reveal, at most one person through a threshold, the tear-off if the day turned, the next room: always in that order, never interleaved, with no spinner and no wait the player can see (the reveal's reading time hides the load, GDD 3 Rule 7). The paper tempo is §7.4's.
+- **The state arrives as a cut, never a wipe.** An insert enters by a cut ("the floor goes", art bible §2.1); the figure is on the threshold line before any light changes; the authored room resumes afterwards by the ordinary wipe.
 
 ## UI Requirements
 
-[To be designed]
+This system has no screen and must not have one. Every sheet the player sees at a boundary (the reveal, the chapter card, the tear-off, the epilogue) is Paper UI's, fed by the sink; every room is the Scene & Interaction Framework's; every transcript is Dialogue's and every filing sheet is Filing's. Scene Flow renders no text, no counter and no indicator; the one number it hands on is GDD 3's read count inside `reveal`, which Paper UI prints in typed form. Debug builds only: an inspector that prints the cursor, the staged batch, the pending insert, the last `BoundaryRecord` and the sink's last calls, reachable through the debug menu and absent from release (the same rule as GDD 2's, GDD 6's and GDD 7's debug surfaces). The simulator's reports under `tools/sim/` are the writers' tools.
+
+> **📌 UX Flag — Scene Flow**: no player-facing UI of its own. The reveal sheet, the empty reveal ("no files changed"), the chapter card and the epilogue are Paper UI's `/ux-design` work; the insert's entry is Character Presentation's and Overlay's; `design/accessibility-requirements.md` must state that every boundary sheet is dismissed by `on_continue` with no timeout and that the input block during a wipe is announced to a screen reader.
 
 ## Cross-References
 
-[To be designed]
+| This GDD references | In | Owner | Nature |
+|---|---|---|---|
+| The atomic bracket, `beat()`, the archive batch, `chapter_open/close`, the `DossierWriter` staging facade, change records, `select_ending`, the stale-source rejection | GDD 1 Core Rules 2, 4, 4a, 5, 6; Formulas §5; Edge Cases 12–14; States | Dossier State Model | Consumed; three amendments applied there for this GDD |
+| `chapter`, `scene` (`kind`, `class`, `exits[].via`), `action`, `decision`, `dialogue`, `beat`, `epilogue`; `Condition.evaluate`; `source` grammar; hot reload; the validator's rule table | GDD 2 Core Rules 5, 5c, 6, 7, 9, 13, 15 | Narrative Content Format | Consumed and extended; one amendment applied (the scene row), the lints SF-E/SF-W owned here |
+| `SceneHost` and `NullSceneHost`, availability, the two-scene residency and the preload moment, the input block stack, the wipe, timers as sheets, the constructor | GDD 3 Core Rules 5, 6, 7, 8, 13, 14; Edge Cases 14, 15, 17 | Scene & Interaction Framework | Consumed; one amendment applied (the constructor sentence) |
+| `open`/`open_dialogue`, `filed_documents`, `document_filed`, the `ConditionReader`, `deserialize(at_boundary)`, the filed rule, `when` never hiding an exit | GDD 5 Core Rules 4, 6, 9; Edge Case 19 | Investigation & Fact | Consumed; one amendment applied (the reader bound per chapter) |
+| `run_boundary`, `RulesResult`, the composite apply, the presentation rule, `rule_fired`, the trace, `ChoiceSource`, the solver's beat | GDD 6 Core Rules 3, 5, 7, 9, 11, 12; Visual/Audio §1, §3 | Reactive Event Rules | Consumed; one amendment applied (Rule 7, `close_scene`) |
+| `ctx`, `open_chapter`, the Calendar's bracket, `date_for`, `transition_between`, `snapshot`, calendar scenes, the act-close pseudo-chapter, `day_high`, the timetable validation | GDD 7 Core Rules 1, 2, 3, 4, 5, 9, 11; Edge Cases 1, 2, 4, 5, 16, 20, 22; Visual/Audio §3 | Calendar | Consumed; two amendments applied there |
+| "A setting changes how the game asks, never what it asks"; the never-import list | GDD 4 Player Fantasy; Core Rules 11, 13 | Settings Store | Consumed |
+| The arcs and the scene beats per chapter; insert scenes "written as inserts, not chapters" | Narrative brief §1, §8 | Narrative | The shape of a chapter's exit graph |
+| The game states, the reactive-event entry, paper animation, the UX alignment | Art bible §2.1, §7.4, §7.6 | Art direction | Visual/Audio |
+| Pillars 1, 2, 3, 4, 5; "not a sandbox" | design/gdd/game-concept.md | Creative direction | Player Fantasy; the exit lints |
+| Headless CI, `--check-only`, lambda capture, `@abstract`, typed-return overrides, `await` only as `yield`'s replacement, `signal.connect` | docs/engine-reference/godot/current-best-practices.md lines 19–40, 46–47, 190–223; breaking-changes.md lines 17, 69; deprecated-apis.md lines 27, 28, 47 | Engine reference | Rule 16; the test runner |
+| Signals on `RefCounted`, `Callable`, awaiting a tween, threaded loading, `queue_free`, the recursive input-disable property name | NOT SOURCEABLE from the pinned reference (no `core.md`) | Engine reference | Open Questions; the host twins' spikes |
 
 ## Acceptance Criteria
 
