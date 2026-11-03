@@ -731,10 +731,10 @@ formulas:
     status: active
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Investigation & Fact System"
     variables:
       - kind
       - avail
@@ -865,6 +865,92 @@ formulas:
     output_range: "a shipped locale"
     expression: "persisted if in shipped; else lang(os_locale) if persisted is null and in shipped; else DEFAULT_LOCALE"
     notes: "Formulas §5. OS value read at first run only."
+    added: 2026-11-03
+    revised: ""
+  - name: facts_per_scene
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+    variables:
+      - paper(s)
+      - yields(h)
+      - yields(d)
+      - FACTS_PER_DOC_MAX
+      - FACTS_PER_SCENE_MAX
+    output_range: "1..FACTS_PER_SCENE_MAX (error above)"
+    expression: "sum over paper hotspots of |yields| + sum over dialogues of |yields|; derived and bind-gated facts excluded"
+    notes: "Formulas §1. Bounds the board, not the document count."
+    added: 2026-11-03
+    revised: ""
+  - name: link_coverage
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    variables:
+      - L_c
+      - F_c
+      - D_c
+      - LINK_COVERAGE_LOW
+      - LINK_COVERAGE_HIGH
+    output_range: "0..1 (warning outside the band)"
+    expression: "|L_c| / C(|F_c| + |D_c|, 2)"
+    notes: "Formulas §2. Authoring warning; the lever is links, not facts."
+    added: 2026-11-03
+    revised: ""
+  - name: fact_use
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Filing & Decision"
+      - "Dialogue & Interrogation"
+    variables:
+      - targets(c)
+      - effects(t)
+      - reach(f)
+      - LINK_DEPTH_MAX
+    output_range: "bool per fact; dead_end_facts must be empty"
+    expression: "use(f) = exists t with effects(t) non-empty and has_fact(g) in leaves(when(t)) and g in reach(f) within LINK_DEPTH_MAX link hops"
+    notes: "Formulas §3. The exact definition of a dossier use (GDD 2 V29, GDD 3 X01, the simulator criterion). A decline-only or prose-only gate is not a use."
+    added: 2026-11-03
+    revised: ""
+  - name: link_depth
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - from(l)
+      - LINK_DEPTH_MAX
+    output_range: "0..LINK_DEPTH_MAX (error above); links form a DAG"
+    expression: "depth(primary) = 0; depth(yields(l)) = 1 + max(depth(a), depth(b))"
+    notes: "Formulas §8."
+    added: 2026-11-03
+    revised: ""
+  - name: board_pages
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - H_c(t)
+      - BOARD_CAPACITY[form]
+    output_range: "1..3"
+    expression: "max(1, ceil(|H_c(t)| / BOARD_CAPACITY[form(c)]))"
+    notes: "Formulas §7. Paper UI pages the board; no runtime cap on holds."
     added: 2026-11-03
     revised: ""
 
@@ -1067,6 +1153,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
@@ -1156,6 +1243,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/settings-store.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
@@ -1205,6 +1293,7 @@ constants:
     status: active
     source: design/gdd/narrative-content-format.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/narrative-content-format.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Dialogue & Interrogation"
@@ -1217,6 +1306,7 @@ constants:
     status: active
     source: design/gdd/narrative-content-format.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/narrative-content-format.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
@@ -1672,6 +1762,7 @@ constants:
     status: active
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
+      - design/gdd/investigation-fact-system.md
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
@@ -1774,5 +1865,113 @@ constants:
     value: 1
     unit: catalogue version (monotonic)
     notes: "Separate from GDD 1 SCHEMA_VERSION and GDD 2 content_schema_version."
+    added: 2026-11-03
+    revised: ""
+  - name: FACTS_PER_SCENE_MAX
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+    value: 12
+    unit: primary facts holdable at scene open (the prototype noise line)
+    added: 2026-11-03
+    revised: ""
+  - name: FACTS_PER_DOC_MAX
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 4
+    unit: facts one document may declare
+    added: 2026-11-03
+    revised: ""
+  - name: LINK_DEPTH_MAX
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+    value: 2
+    unit: link chain depth for derived facts
+    added: 2026-11-03
+    revised: ""
+  - name: HELD_MAX_WARN
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 16
+    unit: facts per chapter before the authoring warning (no runtime cap)
+    added: 2026-11-03
+    revised: ""
+  - name: BOARD_CAPACITY_VERA
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 16
+    unit: index cards per tray page
+    added: 2026-11-03
+    revised: ""
+  - name: BOARD_CAPACITY_JAN
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 12
+    unit: pinboard fragments per page
+    added: 2026-11-03
+    revised: ""
+  - name: BOARD_CAPACITY_TOMAS
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 20
+    unit: margin entries per page
+    added: 2026-11-03
+    revised: ""
+  - name: FACT_TEXT_CAP
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 48
+    unit: code points for a fact display string (noun phrase)
+    added: 2026-11-03
+    revised: ""
+  - name: LINK_COVERAGE_LOW
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    value: 0.1
+    unit: fraction of pairs that click (authoring warning below)
+    added: 2026-11-03
+    revised: ""
+  - name: LINK_COVERAGE_HIGH
+    status: active
+    source: design/gdd/investigation-fact-system.md
+    referenced_by:
+      - design/gdd/investigation-fact-system.md
+    value: 0.5
+    unit: fraction of pairs that click (authoring warning above)
     added: 2026-11-03
     revised: ""

@@ -2,7 +2,7 @@
 
 > Authoring guidance: .claude/docs/templates/guidance/game-design-document-guide.md (load per-section as you author — do not read entirely).
 
-> **Status**: In Design
+> **Status**: Designed
 > **Author**: Mustafa Faisal (user) + game-designer, systems-designer, narrative-director, gameplay-programmer (agents)
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
@@ -64,7 +64,7 @@ The anchor is the parcel slip. Its serial, IV/4471/R.31, is typed on the slip an
 
 **4. A fact unlocks only through `has_fact`, and never a hotspot or a line.** Legal gate sites: a dialogue `answer.when` or `line.when`, a decision `option.when`, a scene `exits[].when` (a door is a threshold, not an object to file; **PROV: Scene Flow**), and a scene `action.when` only where the hotspot has another action with no `has_fact` leaf (a new lint check: the gate selects *which* action runs on a present hotspot, never whether the hotspot exists). A fact cannot make a `hidden` hotspot appear (GDD 3's Player Fantasy forbids late-appearing hotspots, and availability changes only in answer to the player through a hotspot event, not through the board). A fact cannot unlock a document line: lines have no `when` and must not get one, because paper shows what the *state* has on paper (GDD 1 Core Rule 1), and a line that appeared because Vera knows something would be the player's knowledge printed on the state's form. If a writer wants "once you know the parcel, the folder reads differently", that is an answer or an option that reads differently, or an effect that writes the paper. *Rejected:* `has_fact` in `bind` (the projection memo would depend on the held set, which GDD 1 never sees).
 
-**5. "Every fact has a dossier use" is a compiled registry, and this is the exact definition of a use.** At build time GDD 2's compiler produces, and this GDD owns the meaning of, `FactRegistry`: `facts[{id, kind, text_id, sources[{doc, line} | {dialogue, item}], derived_from: link_id | null, depth, uses[]}]`, `links[{id, from (sorted), yields, text_id}]`. `uses` is derived, never authored. A **use** of fact F is a path F → `{has_fact: F}` (possibly inside `all`/`any`/`not`, possibly through a link to a derived fact G and then G's uses, to `LINK_DEPTH_MAX`) → a target that carries at least one effect: an `answer` or `option` with non-empty `effects[]`, a scene `action` with `effects[]`, or an `exits[].when` that routes. Explicitly not uses: a gate on prose or a `stage` line (V29); a gate on an answer whose only effect is `carry: true` (declining is always available, so gating a decline is not a weapon); a fact whose only use is to feed a link whose derived fact has no use (uses are computed bottom-up, so this falls out). A fact with `uses = []` is V29's error; a link whose derived fact has `uses = []` is the same error naming the link; a link whose two facts share no visible token (a name, serial, date, address or object substring after normalisation) is an error (the link must be readable before it is tested, Player Fantasy). The registry is what switches GDD 2's V28–V29 from registry-absent warnings to errors, what GDD 3's X01 joins against (a hotspot is filable iff some fact in its content action has `uses ≠ []`), and what the simulator's acceptance criterion reads (the registry joined against the dossier schema's field list, GDD 1's Interactions row). *Rationale:* Pillar 1 as a lint, not a review item. *Rejected:* "a fact with a reader anywhere counts" (a `has_fact` on an epilogue line would pass a fact that changes nothing).
+**5. "Every fact has a dossier use" is a compiled registry, and this is the exact definition of a use.** At build time GDD 2's compiler produces, and this GDD owns the meaning of, `FactRegistry`: `facts[{id, kind, text_id, sources[{doc, line} | {dialogue, item}], derived_from: link_id | null, depth, uses[]}]`, `links[{id, from (sorted), yields, text_id}]`. `uses` is derived, never authored. A **use** of fact F is a path F → `{has_fact: F}` (possibly inside `all`/`any`/`not`, possibly through a link to a derived fact G and then G's uses, to `LINK_DEPTH_MAX`) → a target that carries at least one effect: an `answer` or `option` with non-empty `effects[]`, a scene `action` with `effects[]`, or an `exits[].when` that routes. Explicitly not uses: a gate on prose or a `stage` line (V29); a gate on an answer whose only effect is `carry: true` (declining is always available, so gating a decline is not a weapon); a fact whose only use is to feed a link whose derived fact has no use (uses are computed bottom-up, so this falls out). A fact with `uses = []` is V29's error; a link whose derived fact has `uses = []` is the same error naming the link; a link whose two facts share no visible token is an error (the link must be readable before it is tested, Player Fantasy); a token is a word of at least three characters or a whole numeral, compared after normalisation (lowercase; punctuation and diacritics stripped; whitespace collapsed; numerals compared whole, so `4471` never matches `447`). The registry is what switches GDD 2's V28–V29 from registry-absent warnings to errors, what GDD 3's X01 joins against (a hotspot is filable iff some fact in its content action has `uses ≠ []`), and what the simulator's acceptance criterion reads (the registry joined against the dossier schema's field list, GDD 1's Interactions row). *Rationale:* Pillar 1 as a lint, not a review item. *Rejected:* "a fact with a reader anywhere counts" (a `has_fact` on an epilogue line would pass a fact that changes nothing).
 
 **6. API.** `FactSystem extends RefCounted`, constructed `new(content_store, registry, condition_reader)`; no autoload.
 - `open(document_id) → {holdable: [{fact_id, line_id, held}]}` and `open_dialogue(dialogue_id)`: Scene Flow calls them after resolving the hotspot's action; `holdable` is computed by evaluating each yielding line's bind through the injected evaluator (the one place this system reads the dossier; the reads land in GDD 1's per-chapter read set automatically); the `held` flag lets Paper UI draw the ghost on re-open without a second query.
@@ -72,9 +72,9 @@ The anchor is the parcel slip. Its serial, IV/4471/R.31, is typed on the slip an
 - `pair(a, b) → {linked, link_id, derived, text_id}`.
 - `held() → [fact_id]` in `seq` order; `has(fact_id) → bool`. This system **is** the `has_fact` provider of GDD 2 Rule 6's reader: a `ConditionReader` class in `src/investigation/` composes `{read, has_fact, phase}` from the dossier reader, this system and the Calendar, is built at chapter open, and is what Dialogue and Filing evaluate against (a testable object, not a closure).
 - `board() → view` (Rule 7); `filed_documents() → [document_id]` so Scene Flow maps document to hotspot and calls `set_hotspot_state(id, filed)` itself, synchronously on `fact_held` and again after a load (GDD 3 persists nothing).
-- `serialize() → {schema_version, chapter_id, held: [{fact, source, seq}], made: [link_id], next_seq}`, all sorted; `deserialize(data)` only at a scene boundary, rejecting any other `schema_version` whole (GDD 1 Rule 10's shape; Save/Load owns the registry and migration). Plain data, never a resource. The tried set is not saved (telemetry only, Rule 3).
+- `serialize() → {schema_version, chapter_id, held: [{fact, source, seq}], made: [link_id], next_seq}`, all sorted; `deserialize(data, at_boundary: bool)` where Scene Flow passes `at_boundary` (this system has no scene access and cannot know); false returns `BOUNDARY_ONLY` and loads nothing; any other `schema_version` is rejected whole (GDD 1 Rule 10's shape; Save/Load owns the registry and migration). Plain data, never a resource. The tried set is not saved (telemetry only, Rule 3).
 - `chapter_close()` wipes held, made and the tried set and resets `next_seq`.
-- Signals: `fact_held(fact_id, source)`, `link_made(link_id, derived_fact_id)`, `pair_failed(a, b)`, `document_filed(document_id)` (emitted once, on the first hold from that document).
+- Signals: `fact_held(fact_id, source)`, `link_made(link_id, derived_fact_id)`, `pair_failed(a, b)`, `document_filed(document_id)` (emitted once per document, when a held fact first makes it filed; a fact declared on two documents therefore emits for both on one hold, Edge Case 1).
 
 *6a. Which hotspots are filed.* A hotspot is filed when **at least one** fact yielded by its content action is held (`≥ 1`, not all). *Rationale:* the ghost means "I have been here and took something", and the read count is "documents mined", not "documents exhausted"; under "all", a folder with one line struck by the dossier could never read as read, and the count would quietly punish the player for the state's redactions. *Rejected:* "all facts held" (above); "filed on open" (filing would be a click, not an act of knowing, and X01's "filable" would mean "openable").
 
@@ -138,7 +138,7 @@ The fact density formula is defined as:
 | `facts_per_scene` | int | 1–`FACTS_PER_SCENE_MAX` | calculated | Primary facts the scene can put on the board |
 
 **Output Range:** 1 to 12 at defaults. The theoretical ceiling from the parts (8 × 4 = 32) is far above the scene cap on purpose: `FACTS_PER_DOC_MAX` bounds one document's reading load, `FACTS_PER_SCENE_MAX` bounds the board; at 8 paper hotspots the mean is 1.5 facts per document.
-**Example:** the MVP office: six documents yielding {2, 2, 1, 2, 1, 1} = 9, two conversations {1, 0} = 1 → 10 ≤ 12, two facts of headroom. *Rejected:* a pure product `n_h × FACTS_PER_DOC_MAX` (a six-document scene could hold 24, double the prototype's noise line).
+**Example:** a reduced six-document office yielding {2, 2, 1, 2, 1, 1} = 9 plus two conversations {1, 0} = 1 → 10 ≤ 12; the act-one office of Core Rule 12 declares 12 holdable at open plus one bind-gated → 12 ≤ 12, at the cap. *Rejected:* a pure product `n_h × FACTS_PER_DOC_MAX` (a six-document scene could hold 24, double the prototype's noise line).
 
 ### 2. Link coverage
 
@@ -156,7 +156,7 @@ The link coverage formula is defined as:
 | `link_coverage` | float | 0–1 | calculated | Fraction of possible pairs that click |
 
 **Output Range:** 0 to 1; undefined below two facts (the check is skipped with a warning "chapter has no board"). 1.0 is a warning, not an error, because an epilogue chapter with two facts and one link is legitimately 1.0.
-**Example:** the MVP chapter, 10 primary + 4 derived = 14; `C(14, 2) = 91`; 6 links → 0.066, below 0.10 → warning; the lever that works is links, not facts (the prototype's 6 over 8 facts was 0.21, inside the band). *Rejected:* coverage over `|F_c|` only (derived facts are on the board and pairable).
+**Example:** a reduced chapter of 10 primary + 4 derived = 14; `C(14, 2) = 91`; 6 links → 0.066, below 0.10 → warning. The act-one office of Core Rule 12 (13 primary + 6 derived = 19; `C(19, 2) = 171`; 6 links) is 0.035 and also warns: the writers add links or trim flavour facts before the content freeze (Open Questions). The lever that works is links, not facts (the prototype's 6 over 8 facts was 0.21, inside the band). *Rejected:* coverage over `|F_c|` only (derived facts are on the board and pairable).
 
 ### 3. Dossier-use predicate and dead ends
 
@@ -423,7 +423,95 @@ This system owns no screen. It supplies Paper UI with everything the fact board 
 
 ## Acceptance Criteria
 
-[To be designed]
+*Drafted with the QA lead; the four rule gaps it found are fixed in the rules they name (Formulas §1–§2 examples reconciled with Core Rule 12, token normalisation in Rule 5, a boundary flag on `deserialize` in Rule 6, `document_filed` for a two-source fact in Rule 6). Criteria that need an undesigned system or an unsourced engine API are marked Vertical Slice or run-and-observe; signal assertions use a recording listener so they hold whatever GDD 3's spike substitutes.*
+
+*Drafted with the QA lead. Everything is gdUnit4 after `godot --headless --path . --import`: Holding, Links, Registry and lint, Filed-ness, Serialisation, ConditionReader and Telemetry under `tests/unit/investigation/` (`fact_<group>_test.gd`, fixtures under `tests/unit/investigation/fixtures/`; the act-one content of Core Rule 12 as `act_one_content.json` with its compiled `act_one_registry.json`); the simulator path and the headless check under `tests/integration/investigation/`; retained screenshots and sign-offs under `production/qa/evidence/investigation/`, one `Run result:` line each per `.claude/docs/run-and-observe.md`; timing budgets under `tests/performance/investigation/`, reported per run and blocking only on the reference machine the technical director names. No unit test asserts wall time. Every unit test constructs `FactSystem.new(content_store, registry, condition_reader)` with a `FakeDossierReader` whose field values and read log the test owns; nothing under `tests/unit/` or `src/investigation/` imports from `src/scene/engine/`. Signals are observed through a recording listener; if GDD 3's spike finds `signal` on a `RefCounted` cannot emit headless, the same criteria hold against whatever callback the spike substitutes. Constants are read from `assets/data/investigation/tuning.json`, never inlined, except where the boundary value is the point. Every lint THEN also asserts the message names the offending id (fact, link, line, hotspot or answer) and that one error is emitted per offence.*
+
+Citations: **PF** = Player Fantasy, **CR§n** = Core Rules, **ST** = States and Transitions, **F§n** = Formulas, **EC n** = Edge Cases, **G** = Tuning Knobs, **VA§n** = Visual/Audio Requirements, **UI** = UI Requirements.
+
+**Holding** (Logic, BLOCKING; `fact_hold_test.gd`)
+
+- [ ] **Explicit hold on a line (CR§2a)**: **GIVEN** act-one content and `open("doc_4471")`, **WHEN** `hold("serial_4471", "doc_4471/l40")`, **THEN** `{ok: true}`, `has("serial_4471")` is true, `held()` is `["serial_4471"]`, and `fact_held("serial_4471", "doc_4471/l40")` fires once; before the `hold`, `has()` is false and nothing has fired (opening holds nothing).
+- [ ] **Automatic on dialogue (CR§2b, EC 15)**: **GIVEN** `open_dialogue("kastan")`, **WHEN** the line yielding `ilona_on_cellar_stairs` is shown, **THEN** it is held with source `kastan/<item>` through `hold()` and `fact_held` fires once; showing the line again returns `{ok: true, reason: ALREADY_HELD}`, fires nothing and leaves `seq` unchanged. The same for an `answer`, and the recording listener logs the hold before the fake effect runner is called.
+- [ ] **Idempotent re-hold (CR§2, EC 1)**: **WHEN** `hold` runs twice for one fact, from the same or a second declared source, **THEN** the second returns `{ok: true, reason: ALREADY_HELD}`, `source` and `seq` are the first call's, and no second `fact_held` fires.
+- [ ] **Refusals (CR§6, EC 19)**: **GIVEN** no document open, **THEN** `hold("serial_4471", …)` is `NOT_YIELDED_HERE`; **GIVEN** `doc_4471` open, `hold("intake_bl", …)` (declared on another document) is `NOT_YIELDED_HERE` and `hold("clerk_shift_time", …)` (absent from the registry) is `UNKNOWN_FACT`; in all three `held()` is unchanged and nothing fires.
+- [ ] **Bind gates the yield (CR§2, EC 3)**: **GIVEN** `vera.discrepancy` false, **WHEN** `open("carbon_box")`, **THEN** `holdable` omits `carbon_leaf40`; set it true and re-open, **THEN** `holdable` lists it with `held: false` and earlier holds keep their `seq`.
+- [ ] **Held survives a later strike (CR§2, EC 2)**: **GIVEN** `serial_4471` held, **WHEN** the fake reader strikes leaf 40 and `open("doc_4471")` runs again, **THEN** `has("serial_4471")` stays true, its `text` in `board()` is unchanged, and `holdable` omits it.
+- [ ] **Re-open shows held flags (CR§6)**: **GIVEN** two of a document's three facts held, **WHEN** `open()`, **THEN** `holdable` lists all three in line order with `held` true, true, false.
+- [ ] **Wrong chapter (EC 18)**: **GIVEN** a Jan-chapter document in the content store while Vera's chapter is open, **WHEN** `open(it)`, **THEN** `WRONG_CHAPTER`, `holdable` empty, no signal.
+
+**Links** (Logic, BLOCKING; `fact_link_test.gd`)
+
+- [ ] **Order-independent pair (CR§3)**: **GIVEN** `subject_sokol` and `vrba_9_3` held, **WHEN** `pair` in either order, **THEN** `{linked: true, link_id: "her_neighbour", derived: "her_neighbour", text_id: "fact.link.her_neighbour"}`, `has("her_neighbour")`, its `board()` entry has `source: "link:her_neighbour"`, `derived: true`, `depth: 1`, and `link_made` and `fact_held` each fire exactly once.
+- [ ] **Failed pair (CR§3, F§4)**: **GIVEN** `serial_4471` and `intake_bl` held (no link), **WHEN** `pair`, **THEN** `{linked: false, derived: null, text_id: "fact.no_link.vera"}`, `pair_failed(a, b)` fires once, and `held()`, `board()` and `serialize()` are byte-equal to before; `board()` has no key naming tried pairs.
+- [ ] **Malformed pairs silent (EC 4)**: **WHEN** `pair(a, a)`, or `pair` with one unheld input, **THEN** `{linked: false, link_id: null, derived: null, text_id: null}`, no `pair_failed`, no state change.
+- [ ] **Re-pair idempotent (EC 5)**: **WHEN** a made link is paired again in the other order, **THEN** `linked: true` with the same ids, no `fact_held`, no `link_made`, `serialize()` unchanged.
+- [ ] **Depth-2 chain (CR§3, F§8)**: **GIVEN** `riba_is_kastan` made and `vrba_9_3` held, **WHEN** paired, **THEN** `stair_is_watched` is held with `depth: 2`.
+- [ ] **Depth-3 lint error (EC 7)**: **GIVEN** the fixture plus a link consuming `stair_is_watched`, **THEN** the compile emits one error naming that link, with `LINK_DEPTH_MAX` read from tuning.
+- [ ] **DAG lint (F§8, EC 6)**: **GIVEN** fixtures with a cycle, with `yields(l) ∈ from(l)`, with two links yielding one fact, and with a derived fact also declared on a line, **THEN** one error each naming the link (or the fact).
+
+**Registry and lint** (Logic, BLOCKING; `fact_registry_test.gd`; runs in CI as the build-time lint)
+
+- [ ] **Act-one fixture is clean (CR§5, CR§12, F§3)**: **GIVEN** the compiled act-one registry, **THEN** `dead_end_facts` is empty, every one of the thirteen primary and six derived facts has `uses ≠ []`, and `uses` of `ilona_in_circle` includes V9's option.
+- [ ] **Dead end (F§3)**: **GIVEN** the fixture plus `clerk_shift_time` on a line with no link or gate, **THEN** one error "fact has no dossier use" naming it.
+- [ ] **Unused derived fact names the link (CR§5)**: **GIVEN** a link whose derived fact gates nothing, **THEN** one error naming the link, and each input fact with no other use is also a dead end (bottom-up).
+- [ ] **Shared token (EC 8)**: **GIVEN** a link between `intake_bl` and `vrba_9_3` (no shared normalised token), **THEN** one error naming the link; the six act-one links pass.
+- [ ] **Illegal gate sites (CR§4, EC 9, EC 10)**: **GIVEN** `has_fact` in a line `bind`, on an action with no sibling free of a `has_fact` leaf, and on an action of a `hidden` hotspot, **THEN** three errors, each naming the line or hotspot.
+- [ ] **Decline-only use (EC 11)**: **GIVEN** a fact gating only an answer whose sole effect is `carry: true`, **THEN** a dead-end error naming the fact and the answer.
+- [ ] **Statement facts (CR§11)**: **GIVEN** a `statement` fact with neither a link nor a gate, **THEN** one error; `leaves_blank` (feeds `gap_under_berta`) passes.
+- [ ] **Fact text rules (CR§11a–e)**: **GIVEN** fixture strings with a terminal full stop, `because`, `you`, 49 characters at `FACT_TEXT_CAP` 48, a `statement` without a stating verb, the token `incomplete`, and a link line containing `can now`, **THEN** one error each; the act-one strings pass.
+- [ ] **Scene density (F§1, EC 22)**: **GIVEN** a scene fixture yielding {2, 2, 1, 2, 1, 1} + {1, 0}, **THEN** `facts_per_scene` is 10, no error; **GIVEN** thirteen unbound facts declared, **THEN** one error; **GIVEN** twelve unbound and one bind-gated, **THEN** 12, no error; **GIVEN** a document declaring five, **THEN** one `FACTS_PER_DOC_MAX` error naming it.
+- [ ] **Coverage warning (F§2)**: **GIVEN** 10 primary, 4 derived, 6 links, **THEN** `link_coverage` is 0.066 (±0.001) with one warning; a one-fact chapter warns "chapter has no board"; 2 facts and 1 link is 1.0, a warning, never an error.
+- [ ] **Held warning (F§6)**: **GIVEN** 13 + 6 facts for Vera, **THEN** 19 > `min(16, 16)` and one warning; 16 does not warn; for Jan the threshold is 12.
+
+**Filed-ness** (Logic, BLOCKING; `fact_filed_test.gd`)
+
+- [ ] **Once per document (CR§6)**: **WHEN** two facts are held from `doc_4471`, **THEN** `document_filed("doc_4471")` fires once, on the first, and `filed_documents()` is `["doc_4471"]`.
+- [ ] **After load (ST)**: **GIVEN** a payload with holds from two documents, **WHEN** `deserialize` at a boundary, **THEN** `filed_documents()` lists both, sorted, and no signal is replayed.
+- [ ] **Any, not all (CR§6a)**: **GIVEN** a document with one line struck and the other held, **THEN** it is filed.
+- [ ] **Two-source fact (EC 1)**: **GIVEN** a fact declared on documents A and B, **WHEN** held from A with B never opened, **THEN** `filed_documents()` lists both.
+
+**Serialisation and chapter close** (Logic, BLOCKING; `fact_persist_test.gd`)
+
+- [ ] **Round-trip (CR§6, CR§9)**: **GIVEN** holds made in the order 3, 1, 2 and one link, **THEN** `serialize()` → `deserialize` → `serialize()` is byte-equal, `held` and `made` are sorted, and two systems given the same holds in different orders serialise identically except `seq`.
+- [ ] **Boundary and schema only (EC 13)**: **WHEN** `deserialize` runs with the boundary flag false, **THEN** `BOUNDARY_ONLY`, state untouched; **WHEN** `schema_version` differs, **THEN** refused whole, state untouched.
+- [ ] **Undeclared ids (EC 12)**: **GIVEN** a payload holding one fact and one link the registry lacks and one fact of another chapter, **THEN** those three are dropped with three warnings naming the ids, the rest held, `next_seq` kept.
+- [ ] **Chapter close (CR§1, ST, EC 14)**: **GIVEN** a document open and facts held, **WHEN** `chapter_close()`, **THEN** `held()` is empty, `has()` false for all, a late `hold` is `NOT_YIELDED_HERE`, a late `pair` is `linked: false` with no signal, and `serialize()` has empty `held` and `made`, `chapter_id` the closed chapter's, `next_seq` reset.
+
+**ConditionReader** (Logic, BLOCKING; `fact_reader_test.gd`)
+
+- [ ] **Before any chapter (EC 17)**: **GIVEN** a `ConditionReader` built with no chapter open, **WHEN** `has_fact("serial_4471")`, **THEN** `false`, no error.
+- [ ] **Composite (CR§6)**: **GIVEN** the reader composed from the fake dossier reader, the system and a fake calendar, **THEN** `read("vera.discrepancy")`, `has_fact` and `phase()` each answer from their own source, and `all[is_true, has_fact]` evaluates correctly for the four combinations.
+- [ ] **Reads (CR§8, F§5)**: **WHEN** a `has_fact` condition is evaluated, **THEN** the fake reader's read log is empty; **WHEN** `open()` evaluates a bound line, **THEN** the log holds that field once.
+
+**Headless and CI** (Integration, BLOCKING; `tests/integration/investigation/`)
+
+- [ ] **No scene imports (CR§9)**: **GIVEN** `src/investigation/`, **THEN** a CI grep finds no `preload`/`load` of `src/scene/engine/*`, no `extends Node`, no `get_tree`, no `FileAccess`.
+- [ ] **Simulator path (CR§9, EC 19)**: **GIVEN** `tools/sim/` driving a `NullSceneHost` through Scene Flow, **WHEN** a script activates the 4471 hotspot, holds `serial_4471`, activates the household card, holds `household_card_halm`, and pairs them, **THEN** `has("missing_entry_4471")` is true, `filed_documents()` lists both, and a scripted `hold` without its `open` is refused `NOT_YIELDED_HERE`.
+
+**Board and sheet** (UI/Visual, run-and-observe, BLOCKING; `production/qa/evidence/investigation/`, each with a `Run result:` line and the art director's sign-off)
+
+- [ ] **Four span states (VA§1)**: **GIVEN** one sheet at 1080 and at 720, **THEN** retained screenshots show unheld-holdable (underline, 2 px tick), focused (3 px tick, caret, no colour change), held (double-strike, `cc`, tick gone) and a struck line that was held (`cc`, no underline, no tick); the reviewer confirms each by shape with the colour channel removed.
+- [ ] **Three forms (VA§2)**: **GIVEN** the same six-fact, two-link data with the depth-2 chain, **THEN** screenshots of Vera's tray, Jan's pinboard and Tomas's margin show the kind code, cite, derived mark and depth placement per form.
+- [ ] **The click (VA§3)**: **WHEN** a pair succeeds, **THEN** two retained frames, one mid-type and one after the derived card has slid in (clip set, no glow, no scale), and the `Run result:` line records that the type-out matched the transcript cadence; **WHEN** a pair fails, **THEN** a frame of the no-connection slip at its hold with the selection cleared and nothing else changed.
+- [ ] **No generated numeral (VA§2, PF)**: **GIVEN** a Vera board with 17 facts held (two pages), **THEN** the reviewer lists every numeral visible and its source; each is inside a fact text or cite.
+- [ ] **One mark family (VA§4)**: **GIVEN** the room ghost on a filed hotspot and the sheet `cc` side by side at 1080 and 720, **THEN** the reviewer names them as one thing.
+
+**Player Fantasy design test** (Integration, documented playtest, BLOCKING; `production/qa/evidence/investigation/design-test.md`)
+
+- [ ] **The board is not a tally (PF)**: **GIVEN** two screenshots of Vera's tray with 2 and 10 facts held, **WHEN** three reviewers who have not played are asked which player is doing better and what on the board tells them, **THEN** no reviewer cites anything but the cards they counted themselves; any mark, number, state or affordance a reviewer names as a progress signal is a defect. A grep of `board()`'s keys and Paper UI's board strings finds no `count`, `total`, `of`, `%` or `complete`.
+
+**Telemetry** (Logic, BLOCKING; `fact_telemetry_test.gd`, against an injected sink)
+
+- [ ] **Null is recorded (F§9)**: **GIVEN** a chapter closed with no link made, **THEN** the sink holds `t_first_link: null` for the chapter, not an absent key.
+- [ ] **Resumed (EC 21)**: **GIVEN** `deserialize` of a payload with `made` non-empty, **THEN** no `t_first_link` is recorded; with `made` empty, the first `link_made` records it with `resumed: true`.
+- [ ] **held_fraction (F§9, F§4)**: **GIVEN** 11 held of 19 at the decision, **THEN** `0.579` (±0.001); `tried` holds distinct failed pairs only, and a re-tried pair adds nothing.
+
+**Performance** (`tests/performance/investigation/fact_perf_test.gd`; reported per run; BLOCKING only on the named reference machine)
+
+- [ ] **Runtime budgets**: **GIVEN** a 19-fact board, **THEN** `hold`, `pair` and `has` ≤ 5 µs median over 10,000 calls, `board()` ≤ 0.1 ms, and a counter on the registry compiler reads 0 after a full chapter of play (compile only at build). *Budgets to be confirmed by the technical director.*
+
+**MVP gate** (on the one archivist scene, before `/gate-check technical-setup`): Holding, Links, Registry and lint on the act-one fixture, Filed-ness, Serialisation, ConditionReader, Headless and CI, the Vera-only Board and sheet screenshots (four span states, tray, click, slip, numeral, mark family at 1080) and the design test. **Vertical Slice**: Jan's and Tomas's forms, the 720 variants, Telemetry (needs Scene Flow's `scene_ready` and a telemetry sink), Performance on the reference machine, `WRONG_CHAPTER` against real second-chapter content, and the accessibility announcements once `design/accessibility-requirements.md` exists.
 
 ## Open Questions
 
@@ -438,4 +526,5 @@ This system owns no screen. It supplies Paper UI with everything the fact board 
 | `design/accessibility-requirements.md` does not exist; this GDD's inputs are listed in UI Requirements | accessibility-specialist | Before `/gate-check technical-setup` | Open |
 | The playtest hypotheses `INFORMED_HYPOTHESIS` 0.5 and `T_FIRST_LINK_HYPOTHESIS` 300 s, and the prototype's completionism question (`held_fraction`), are observed in the MVP playtest, never tuned against | ux-designer, analytics-engineer | MVP playtest | Open |
 | Art-director flags: Vera's card cite is typed, not pencil (art bible §7.2's 1.2× minimum for hand letterforms; a pencil cite needs a larger card); `press_jan` is a new machine hand needing a GDD 2 registry row; the kind corner codes need `ui.kind.*` string ids | narrative-director, art-director, writer | Before the fact-board UX spec | Open |
+| The act-one office's link coverage is 0.035, below `LINK_COVERAGE_LOW`: add links or trim flavour facts before the content freeze | narrative-director, writer | Act-one content freeze | Open |
 | Performance budgets proposed in Acceptance Criteria | technical-director | ADR | To be confirmed |
