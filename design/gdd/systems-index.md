@@ -6,7 +6,7 @@
 > **Source Concept**: design/gdd/game-concept.md
 > **Technical Director Review (TD-SYSTEM-BOUNDARY)**: CONCERNS (applied) 2026-11-03 — effect-record dossier API, Scene Flow system, persistence contract, Settings Store split, simulator decoupled from chapter structure, phase as a pure function at MVP.
 > **Producer Review (PR-SCOPE)**: OPTIMISTIC (adjustments applied) 2026-11-03 — 17 MVP GDDs merged to 13; MVP clock restated as 8–12 weeks from 2026-11-03 including design and Technical Setup; slice 5–8 months; `/prototype` of the archivist scene recommended now.
-> **Creative Director Review (CD-SYSTEMS)**: [pending]
+> **Creative Director Review (CD-SYSTEMS)**: CONCERNS (applied) 2026-11-03 — per-character attention signal added to system 7; Scene Flow gains a reveal-changes step; Paper UI gains the fact board; dossier views owned by GDD 1; two-protagonist slice floor planned in advance (option B).
 
 ---
 
@@ -28,13 +28,13 @@ Relationship analysis: four systems carry most of the dependency weight — Doss
 | 4 | Settings Store (inferred) | Meta | MVP | Not Started | — | — |
 | 5 | Investigation & Fact System | Gameplay | MVP | Not Started | — | Narrative Content Format & Strings, Scene & Interaction Framework, Dossier State Model (read only) |
 | 6 | Reactive Event Rules & Story Simulator | Gameplay | MVP | Not Started | — | Dossier State Model, Narrative Content Format & Strings, Calendar & Regime Phase |
-| 7 | Calendar & Regime Phase | Core | MVP (phase) / Vertical Slice (calendar) | Not Started | — | Dossier State Model |
-| 8 | Scene Flow (inferred) | Core | MVP | Not Started | — | Dossier State Model, Reactive Event Rules & Story Simulator, Calendar & Regime Phase, Scene & Interaction Framework |
+| 7 | Calendar, Regime Phase & Attention | Core | MVP (phase and per-character attention) / Vertical Slice (calendar) | Not Started | — | Dossier State Model |
+| 8 | Scene Flow (inferred) | Core | MVP | Not Started | — | Dossier State Model, Reactive Event Rules & Story Simulator, Calendar, Regime Phase & Attention, Scene & Interaction Framework, Paper UI (reveal step hands change records to it) |
 | 9 | Overlay & Surveillance Rendering (inferred) | Core | MVP | Not Started | — | Scene & Interaction Framework, Calendar & Regime Phase, Settings Store |
 | 10 | Character Presentation (inferred) | Core | MVP (stub) / Vertical Slice (full) | Not Started | — | Scene & Interaction Framework |
 | 11 | Dialogue & Interrogation | Narrative | MVP (no timers) / Vertical Slice (timers) | Not Started | — | Narrative Content Format & Strings, Investigation & Fact System, Dossier State Model, Scene & Interaction Framework, Settings Store |
 | 12 | Filing & Decision | Gameplay | MVP | Not Started | — | Investigation & Fact System, Dossier State Model, Narrative Content Format & Strings |
-| 13 | Paper UI (inferred) | UI | MVP (archivist dossier view, document and transcript sheets, minimal HUD) / Vertical Slice (split into Dossier UI, Document & Transcript UI, HUD, Menus & Calendar UI) | Not Started | — | Dossier State Model, Character Presentation, Overlay & Surveillance Rendering, Narrative Content Format & Strings, Investigation & Fact System, Dialogue & Interrogation, Settings Store |
+| 13 | Paper UI (inferred) | UI | MVP (archivist dossier view, fact board where held facts click together, document and transcript sheets, scene-end change reveal, minimal HUD) / Vertical Slice (split into Dossier UI, Document & Transcript UI, HUD, Menus & Calendar UI) | Not Started | — | Dossier State Model, Character Presentation, Overlay & Surveillance Rendering, Narrative Content Format & Strings, Investigation & Fact System, Dialogue & Interrogation, Settings Store |
 | 14 | Chapter & Story Structure | Narrative | Vertical Slice | Not Started | — | Dossier State Model, Narrative Content Format & Strings, Calendar & Regime Phase, Scene Flow |
 | 15 | Save/Load (inferred) | Persistence | Vertical Slice (contract at MVP) | Not Started | — | Persistence registry: every stateful system (1, 5, 6, 7, 13, 14) exposes serialize/deserialize with a schema version |
 | 16 | Audio & Adaptive Surveillance Mix (inferred) | Audio | Vertical Slice | Not Started | — | Calendar & Regime Phase, Reactive Event Rules & Story Simulator, Dialogue & Interrogation |
@@ -67,6 +67,8 @@ Progression and Economy do not apply: progress is knowledge and standing, held i
 | **Full Vision** | Polish, edge cases, nice-to-haves, and content-complete features. | Stretch acts 4–5; content only, no new systems | Design as needed |
 
 > **Producer Note** (MVP): the 4–6 week MVP figure in the concept counts build time after the Technical Setup gate; from today, design plus Technical Setup plus build is 8–12 weeks at 10–20 h/week. To answer the core hypothesis sooner, run the concept's planned `/prototype` of the archivist scene now (throwaway, 1–2 weeks, outside the rigor gates). Start the art-pipeline proof alongside GDD writing at about 20% of weekly capacity; it depends on the art bible, not on any GDD. Two rigor levers were offered and **not** applied here because they are the user's call: a `standard` per-system override for Overlay Rendering and the Character Presentation stub (`workflow_overrides.system_overrides`), and a "slice minimum" of two protagonists plus one cross-chapter payoff with the third chapter as slice-plus (a scope change for creative-director).
+> **Creative Director Note** (Vertical Slice): plan three protagonist chapters, with **archivist plus dissident declared now as the agreed fallback** that still passes go/no-go: the required cross-chapter payoff runs archivist → dissident (a filing becomes a raid or a sign); the conscript appears in the slice as a presence (an order or dossier entry seen through the other two chapters); the go/no-go criteria list what a two-chapter slice leaves untested (orders-view readability, the three-way weave); the conscript chapter is the first work after the gate, before the skeleton.
+> **Creative Director Note** (GDD requirements): Investigation & Fact — simulator acceptance criterion that every authored fact has at least one dossier use (Pillar 1); Filing & Decision — content check that every option writes at least one cost effect (Pillar 3); Dialogue & Interrogation — timed *search* scenes (checkpoint, border) in scope, not only interrogation (Pillar 5); Chapter & Story Structure — owns protagonist death and the story continuing. The concept's wording that facts "drop into a dossier" is reconciled at the next concept revision: held facts live on the fact board; only filed facts enter the dossier.
 > **Producer Note** (Vertical Slice): 5–8 months from start, expected about 7 at 15 h/week; re-run `/estimate` after the MVP produces velocity data. The likely cut point under pressure is the third protagonist's chapter or the signs/orders dossier views.
 
 ---
@@ -75,7 +77,7 @@ Progression and Economy do not apply: progress is knowledge and standing, held i
 
 ### Foundation Layer (no dependencies)
 
-1. Dossier State Model — the sole cross-storyline channel; single effect-record mutation API; emits change records; holds only what the state knows
+1. Dossier State Model — the sole cross-storyline channel; single effect-record mutation API; emits change records; holds only what the state knows; its GDD owns the three read-only protagonist views (files / signs / orders) as a design rule for which facts reach each protagonist and how — Paper UI renders them
 2. Narrative Content Format & Strings — documents, dialogue, scene/chapter graph, decision and effect data, string-ID scheme, lookup and export; all text is a string
 3. Scene & Interaction Framework — isometric plate, layers, hotspot registration, scene loading, input actions, cursor and focus; navigation and walkable regions as a conditional section decided by the MVP pipeline proof
 4. Settings Store — plain-data settings (timer mode, UI scale, flicker, red-as-hatching) read by others, written by the HUD settings screens
@@ -83,9 +85,9 @@ Progression and Economy do not apply: progress is knowledge and standing, held i
 ### Core Layer (depends on foundation)
 
 1. Investigation & Fact System — depends on: Narrative Content Format & Strings, Scene & Interaction Framework, Dossier State Model (reads for unlock conditions; never writes)
-2. Calendar & Regime Phase — depends on: Dossier State Model (phase is a pure function of dossier aggregates; never written by rules)
+2. Calendar, Regime Phase & Attention — depends on: Dossier State Model (two pure functions of dossier aggregates: the global regime phase and per-character attention — the signal that drives stamp red and the surveillance stamp within a single scene; never written by rules)
 3. Reactive Event Rules & Story Simulator — depends on: Dossier State Model, Narrative Content Format & Strings, Calendar & Regime Phase (evaluates at scene boundaries only; emits events; never calls Feature code)
-4. Scene Flow — depends on: Dossier State Model, Reactive Event Rules, Calendar & Regime Phase, Scene & Interaction Framework (owns the scene-boundary sequence)
+4. Scene Flow — depends on: Dossier State Model, Reactive Event Rules, Calendar, Regime Phase & Attention, Scene & Interaction Framework (owns the scene-boundary sequence: decision → effects → rules → phase and attention → **reveal changes** (change records, including another protagonist's overprint when a payoff lands, handed to Paper UI) → calendar → next scene or save)
 5. Overlay & Surveillance Rendering — depends on: Scene & Interaction Framework, Calendar & Regime Phase, Settings Store (owns stamp and overprint rendering and the red-budget gates; never reads raw dossier fields)
 6. Character Presentation — depends on: Scene & Interaction Framework (owns y-sort and portrait rendering; Dialogue requests a portrait state, this system owns how it looks)
 
@@ -117,7 +119,7 @@ None. Accessibility is a requirement inside the implementing systems, not a late
 | 4 | Settings Store | MVP | Foundation | ux-designer | S |
 | 5 | Investigation & Fact System | MVP | Core | game-designer | M |
 | 6 | Reactive Event Rules & Story Simulator | MVP | Core | systems-designer, technical-director | M |
-| 7 | Calendar & Regime Phase | MVP | Core | systems-designer | S |
+| 7 | Calendar, Regime Phase & Attention | MVP | Core | systems-designer | S |
 | 8 | Scene Flow | MVP | Core | game-designer, lead-programmer | S |
 | 9 | Filing & Decision | MVP | Feature | game-designer, narrative-director | S |
 | 10 | Dialogue & Interrogation | MVP | Feature | narrative-director, writer | M |
@@ -167,7 +169,7 @@ Producer estimate for GDDs 1–13 at full rigor: 55–75 hours of human approval
 
 ## Next Steps
 
-- [ ] Review and approve this systems enumeration (CD-SYSTEMS)
+- [x] Review and approve this systems enumeration (CD-SYSTEMS: CONCERNS, applied)
 - [ ] `/prototype` the archivist scene (HTML, throwaway) to answer "is reading-and-filing tense?" before the full-rigor MVP
 - [ ] Design MVP-tier systems in the order above (`/design-system [system-name]`), logging human hours per GDD
 - [ ] Start the art-pipeline proof alongside GDD writing (about 20% of weekly capacity)

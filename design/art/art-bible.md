@@ -1,9 +1,9 @@
 # Art Bible: Paper Walls
 
-> **Status**: Draft
+> **Status**: Approved
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-03
-> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-03 — CONCERNS C1–C8 and minor items applied (autonomous mode; see production/session-logs/decision-log.md); re-check #1 cleared keyline and portrait rules; re-check C-A/C-B/C-C (official shoulders, dissident scarf accent, conscript cap) applied; final read of §3.2 and §5.1–5.2 pending
+> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-03 — CONCERNS C1–C8 and minor items applied (autonomous mode; see production/session-logs/decision-log.md); re-check #1 cleared keyline and portrait rules; re-check C-A/C-B/C-C (official shoulders, dissident scarf accent, conscript cap) applied; final read of §3.2 and §5.1–5.2 returned APPROVE on resolution of C-D (stale clause in §5.1), which is applied
 
 `/art-bible` writes these nine sections in this order and replaces each
 section's `[To be designed]` line as that section is approved. A section still
@@ -175,7 +175,7 @@ Text contrast (WCAG relative luminance, measured): soot on UI bone 13.8:1, soot 
 Each protagonist keeps the one silhouette trait of §3.2 and adds exactly one costume accent in their own ink (§4.2); the rest of the costume is a tint of bone or concrete so the figure never merges with a wall of its own ink colour (the archivist works in grey-green rooms). *Checkable:* ink accent ≤ 15% of costume area; costume dominant differs from the plate's dominant neutral by ≥ 20% value. Names and ages below are proposals for narrative-director to confirm.
 
 - **Archivist** (woman, ~40). Buttoned paper-grey cardigan, skirt below the knee, flat shoes, hair pinned flat; accent: grey-green sleeve protectors. Props: the file held to the chest with both hands, pencil behind the ear. Face: tired, precise, mouth closed; she looks at the lens.
-- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: a soot ink-bleed along the scarf edge at the collar (ink is his trade; the stain is inside the collar crop of every portrait and readable at plate scale, AD-ART-BIBLE re-check C-B). Ink-stained fingers appear only in the hand-over animation and on documents he authors. No props carried openly; hands in pockets except when handing over. Face: unshaven; his Neutral portrait meets the lens like everyone else's (AD-ART-BIBLE C1: looking away is a *state*, never a permanent trait), so his tell is the ink-stained fingers alone.
+- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: a soot ink-bleed along the scarf edge at the collar (ink is his trade; the stain is inside the collar crop of every portrait and readable at plate scale, AD-ART-BIBLE re-check C-B). Ink-stained fingers appear only in the hand-over animation and on documents he authors. No props carried openly; hands in pockets except when handing over. Face: unshaven; his Neutral portrait meets the lens like everyone else's (AD-ART-BIBLE C1: looking away is a *state*, never a permanent trait), so his tell is the scarf-edge ink-bleed alone.
 - **Conscript** (boy, ~19). Greatcoat one size too big, cap peak level; accent: khaki stencilled number on the collar tab. Prop: a folded order sheet, one corner showing from the breast pocket. Face: unlined, too open.
 
 All three traits are bilaterally symmetric (file centred, scarf even, cap frontal) so the West facing can be mirrored from East (three directions authored, N/S/E, per §8.7 T8) without a prop changing hands.

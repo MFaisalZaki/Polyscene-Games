@@ -328,7 +328,7 @@ file tense, and understand the dossier change without explanation.
 | Tier | Content | Features | Timeline |
 | ---- | ---- | ---- | ---- |
 | **MVP** | One archivist scene + art pipeline proof | Investigation, dossier write, one reactive event, simulator tests | 4–6 weeks |
-| **Vertical Slice** | One chapter per protagonist, ~6 locations, 20–40 min, closes on an ending beat | Full dossier system, three views, one cross-chapter payoff, Carbon Copy art, scene-boundary saves. Ships standalone as a prologue/demo. **Go/no-go gate here.** | 4–6 months from start |
+| **Vertical Slice** | One chapter per protagonist, ~6 locations, 20–40 min, closes on an ending beat (agreed fallback, decided in advance: archivist + dissident with the conscript present as an order or dossier entry; see systems-index Creative Director Note) | Full dossier system, three views, one cross-chapter payoff, Carbon Copy art, scene-boundary saves. Ships standalone as a prologue/demo. **Go/no-go gate here.** | 4–6 months from start |
 | **Skeleton** | Every act and ending of the core outlined and wired at low fidelity | All endings reachable via dossier state; simulator proves it | Immediately after the slice |
 | **Core (shippable)** | 3 acts × 3 chapters + finale, ~18–20 locations, ~12 characters, ~35–40k words, 5–6 h | Everything, final art and audio, all endings | 14–18 months (producer estimate) |
 | **Full Vision (stretch)** | + acts 4–5: ~30 locations, ~18 characters, ~60k words, 8–10 h | Depth only; the core is already complete | 24–30 months |
