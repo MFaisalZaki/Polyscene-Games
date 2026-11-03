@@ -338,6 +338,7 @@ formulas:
     referenced_by:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Overlay & Surveillance Rendering"
       - "Audio & Adaptive Surveillance Mix"
@@ -358,6 +359,7 @@ formulas:
     referenced_by:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
@@ -620,7 +622,6 @@ formulas:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Investigation & Fact System"
       - "Paper UI"
     variables:
@@ -957,8 +958,8 @@ formulas:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Chapter & Story Structure"
     variables:
       - priority
@@ -976,8 +977,6 @@ formulas:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
     variables:
       - lo
       - hi
@@ -1053,8 +1052,8 @@ formulas:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1071,8 +1070,8 @@ formulas:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1089,8 +1088,8 @@ formulas:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1109,8 +1108,8 @@ formulas:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1128,8 +1127,8 @@ formulas:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1147,7 +1146,6 @@ formulas:
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -1157,6 +1155,158 @@ formulas:
     output_range: "first_beat(n) a beat or empty; U = max run length in beats"
     expression: "first_beat(n) = min beat at which phase() >= n over the game space; U = max_t run_t of boundaries with band >= 1 and not paranoid"
     notes: "Formulas §9. Simulator reports, never laws; act-one acceptance: first_beat(1) != empty, first_beat(2) = first_beat(3) = empty."
+    added: 2026-11-03
+    revised: ""
+  - name: boundary_procedure
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - staged
+      - ctx
+      - fired
+      - route
+    output_range: "one ordered call sequence per boundary; invariants I1–I4"
+    expression: "assemble ctx and CompositeApply; calendar.begin_boundary(ctx); dossier.begin_boundary(scene_id, day); dossier.apply(staged) once; rules.run_boundary(ctx, apply, choices); archive batch at the act's last boundary only; dossier.end_boundary(); calendar.end_boundary(); snapshot; route; stage_firings; preload; reveal; on_continue"
+    notes: "Formulas §1. Every call exactly once; the beat changes only at dossier.end_boundary; staged is empty at the save point."
+    added: 2026-11-03
+    revised: ""
+  - name: exit_graph_lints
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - G_c
+      - path_len
+      - chapter.beats
+    output_range: "booleans SF-E1..E9 and SF-E4b"
+    expression: "the chapter's exit graph is a DAG, every scene reachable, every entry-to-chapter_end path has length chapter.beats over authored and calendar scenes; sum of chapter.beats plus HORIZON_SLACK equals HORIZON_ACT"
+    notes: "Formulas §2. Build gates owned by Scene Flow and listed in GDD 2 Rule 15's table."
+    added: 2026-11-03
+    revised: ""
+  - name: stage_firings
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - fired
+      - chapter_id
+      - route
+    output_range: "at most one insert; the rest paper (degraded[] in the trace)"
+    expression: "fold over fired[] in selection order; admit(f) = [beat = insert] * [no insert yet] * [insert row exists for class in chapter] * [route != chapter_end] * [chapter != act_close]; everything else is paper"
+    notes: "Formulas §3. GDD 6's presentation rule as a function: one insert then paper, never two inserts."
+    added: 2026-11-03
+    revised: ""
+  - name: availability_derive
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - actions
+      - filed_documents
+      - has_fact_free_when
+    output_range: "one of unfiled, filed, void, hidden per hotspot"
+    expression: "void iff kind in {paper, object} and every has_fact-free action's when is false on the pre-boundary dossier; filed iff a document action's document is in filed_documents(); hidden never at MVP; else unfiled"
+    notes: "Formulas §4. Derived at entry and after a load by one function; one synchronous in-scene path (document_filed)."
+    added: 2026-11-03
+    revised: ""
+  - name: composite_apply
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - batch
+    output_range: "dossier records then calendar records"
+    expression: "partition by target: calendar.* to apply_calendar, else dossier.apply; returns D ++ K; calendar records are trace-only (projections empty)"
+    notes: "Formulas §5. The apply Scene Flow injects into run_boundary."
+    added: 2026-11-03
+    revised: ""
+  - name: boundary_record
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - beat
+      - day
+      - scene_id
+      - chapter_id
+      - fired
+      - route
+      - insert
+      - paper
+      - degraded
+      - transition
+      - snapshot_digest
+    output_range: "one record per boundary; snapshot_digest = FNV-1a over the canonical BoundaryView"
+    expression: "GDD 6's trace fields plus route, insert, paper, degraded, transition, snapshot_digest; StepResult {accepted, reason, at, boundary}"
+    notes: "Formulas §6. Hash stability NOT SOURCEABLE: own FNV-1a with a Python twin."
+    added: 2026-11-03
+    revised: ""
+  - name: paper_visible
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - firing
+      - protagonist
+      - projections
+    output_range: "bool"
+    expression: "paper_visible(f, p) = [p = none] + [exists r in f.changes : view(p) in r.projections]"
+    notes: "Formulas §7. A paper beat the protagonist never sees renders nowhere in that chapter; Paper UI may take ownership (Open Questions)."
+    added: 2026-11-03
+    revised: ""
+  - name: save_ok
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - state
+      - staged
+      - block_count
+      - brackets
+    output_range: "bool, true at exactly one instant per boundary"
+    expression: "save_ok = [state = reveal closed] * [staged empty] * [no bracket open in dossier, calendar, facts] * [block count zero]; the load order L ends in calendar.open_chapter(chapter_id, resumed = true) then play_insert or enter"
+    notes: "Formulas §8. The only save point."
     added: 2026-11-03
     revised: ""
 constants:
@@ -1457,6 +1607,7 @@ constants:
       - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     value: 12
     unit: beats
     added: 2026-11-03
@@ -1845,8 +1996,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
+      - design/gdd/scene-flow.md
     value: 500
     unit: ms cold load to scene_ready (TD to confirm)
     added: 2026-11-03
@@ -1856,8 +2006,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
+      - design/gdd/scene-flow.md
     value: 50
     unit: ms preloaded swap behind the wipe (TD to confirm)
     added: 2026-11-03
@@ -1867,9 +2016,9 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Audio & Adaptive Surveillance Mix"
-      - "Scene Flow"
     value: 360
     unit: ms (180 in, 180 out; ceiling 400, art bible §7.4)
     added: 2026-11-03
@@ -2179,8 +2328,6 @@ constants:
     referenced_by:
       - design/gdd/reactive-event-rules.md
       - design/gdd/calendar-regime-phase-attention.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
     value: 3
     unit: re-evaluation steps per boundary
     added: 2026-11-03
@@ -2199,8 +2346,7 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Scene Flow"
+      - design/gdd/scene-flow.md
     value: 4
     unit: agent fires per boundary across cascade steps (world moves and drift exempt)
     added: 2026-11-03
@@ -2220,6 +2366,7 @@ constants:
     referenced_by:
       - design/gdd/reactive-event-rules.md
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
     value: 2
@@ -2231,6 +2378,7 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
+      - design/gdd/scene-flow.md
     value: measured
     unit: solver step horizon (events per act); prototype 14; set in the first sprint
     notes: "A step is one event, not one beat."
@@ -2318,6 +2466,7 @@ constants:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/scene-flow.md
     value: 8
     unit: "days in the act (act one: Friday 6 to Friday 13 October 1989; the narrative director's ruling)"
     added: 2026-11-03
@@ -2401,5 +2550,23 @@ constants:
       - design/gdd/calendar-regime-phase-attention.md
     value: 1
     unit: ms per BoundaryView snapshot, advisory, reference machine only
+    added: 2026-11-03
+    revised: ""
+  - name: PLAYER_ACTIONS_PER_SCENE_MAX
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    value: 3
+    unit: "effectful player actions per authored scene before lint SF-W3 warns; the generator's cap per beat"
+    added: 2026-11-03
+    revised: ""
+  - name: SF_SCHEMA_VERSION
+    status: active
+    source: design/gdd/scene-flow.md
+    referenced_by:
+      - design/gdd/scene-flow.md
+    value: 1
+    unit: "Scene Flow cursor save schema version"
     added: 2026-11-03
     revised: ""
