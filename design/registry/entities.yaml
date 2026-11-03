@@ -224,11 +224,11 @@ entities:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
     record_kind: regime
     custodian: none
@@ -296,9 +296,9 @@ formulas:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Reactive Event Rules & Story Simulator"
       - "Filing & Decision"
       - "Dialogue & Interrogation"
     variables:
@@ -953,6 +953,96 @@ formulas:
     notes: "Formulas §7. Paper UI pages the board; no runtime cap on holds."
     added: 2026-11-03
     revised: ""
+  - name: rule_select_key
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Chapter & Story Structure"
+    variables:
+      - priority
+      - id
+      - fired_so_far
+      - RULES_PER_AGENT_PER_BOUNDARY
+      - RULES_PER_BOUNDARY_MAX
+    output_range: "a total order over candidates"
+    expression: "key(r) = (-priority(r), id(r)); per agent keep RULES_PER_AGENT_PER_BOUNDARY; across agents keep RULES_PER_BOUNDARY_MAX - fired_so_far; world moves and drift exempt"
+    notes: "Formulas §1. The deterministic policy; also generated as policy.lp for the solver."
+    added: 2026-11-03
+    revised: ""
+  - name: world_move_beat
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Scene Flow"
+    variables:
+      - lo
+      - hi
+      - licensed(m,b)
+      - b_arm
+    output_range: "a beat in [lo, hi] or none"
+    expression: "b_fire = min{b in [lo,hi] : licensed(m,b)}; seeded: b_arm + rng.next_int(hi - b_arm + 1), discarded if the licence lapses"
+    notes: "Formulas §3. Earliest licensed beat; act one uses no seeded windows."
+    added: 2026-11-03
+    revised: ""
+  - name: drift_tick
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    variables:
+      - while
+      - a_d
+      - period_d
+      - value_d
+    output_range: "0 or 1"
+    expression: "tick = [while] * [b > a_d] * [(b - a_d) mod period = 0]; anchor a_d = beat while became true, cleared when false"
+    notes: "Formulas §4. Anchored, restart not resume; pinned identically in the generated driftWhile."
+    added: 2026-11-03
+    revised: ""
+  - name: rules_parity
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Save/Load"
+    variables:
+      - diagnose(T)
+      - K_rt
+      - K_sol
+      - RUNS
+      - WITNESSES
+      - PARITY_MIN
+    output_range: "rates 0..1; both must equal PARITY_MIN"
+    expression: "adm = |{T : diagnose(T) = empty}| / |RUNS|; real = |{W : axes and ending match}| / |WITNESSES|"
+    notes: "Formulas §5. RUNS = the exhaustive player-input DAG leaves at MVP, seeded sampling above PLAYER_DAG_MAX recorded as debt."
+    added: 2026-11-03
+    revised: ""
+  - name: rules_coverage
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+    variables:
+      - C_req
+      - reach(a)
+      - dom(a)
+    output_range: "class_cov and axis_cov 1.0; e0_ok and fallback_ok true"
+    expression: "class_cov over E1..E9 in the game space; axis_cov over every axis value; e0_ok = E0 unreachable in the world space and diagnose(E0) = {no_one_unchanged}; fallback_ok = act_fallback in no witness"
+    notes: "Formulas §6. The simulator acceptance criterion."
+    added: 2026-11-03
+    revised: ""
 
 # ─── CONSTANTS ───────────────────────────────────────────────────────────────
 # Named numerical values referenced across multiple systems.
@@ -980,10 +1070,9 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Reactive Event Rules & Story Simulator"
     value: 3
     unit: points
     added: 2026-11-03
@@ -1026,9 +1115,8 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Reactive Event Rules & Story Simulator"
     value: 3
     unit: beats
     added: 2026-11-03
@@ -1084,9 +1172,8 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Reactive Event Rules & Story Simulator"
     value: 3
     unit: beats
     added: 2026-11-03
@@ -1167,10 +1254,10 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Reactive Event Rules & Story Simulator"
       - "Chapter & Story Structure"
     value: 24
     unit: fields per chapter
@@ -1230,11 +1317,11 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
-      - "Reactive Event Rules & Story Simulator"
     value: 2
     unit: assumptions per act
     added: 2026-11-03
@@ -1256,6 +1343,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Calendar, Regime Phase & Attention"
@@ -1973,5 +2061,134 @@ constants:
       - design/gdd/investigation-fact-system.md
     value: 0.5
     unit: fraction of pairs that click (authoring warning above)
+    added: 2026-11-03
+    revised: ""
+  - name: CASCADE_MAX
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+    value: 3
+    unit: re-evaluation steps per boundary
+    added: 2026-11-03
+    revised: ""
+  - name: RULES_PER_AGENT_PER_BOUNDARY
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 1
+    unit: agent fires per agent per boundary
+    added: 2026-11-03
+    revised: ""
+  - name: RULES_PER_BOUNDARY_MAX
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+    value: 4
+    unit: agent fires per boundary across cascade steps (world moves and drift exempt)
+    added: 2026-11-03
+    revised: ""
+  - name: PRIORITY_DEFAULT
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 50
+    unit: rule priority when unset (0–100)
+    added: 2026-11-03
+    revised: ""
+  - name: HORIZON_SLACK
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Calendar, Regime Phase & Attention"
+    value: 2
+    unit: act-close beats beyond BEATS_PER_ACT (HORIZON_ACT = 14)
+    added: 2026-11-03
+    revised: ""
+  - name: HORIZON_EVENTS
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: measured
+    unit: solver step horizon (events per act); prototype 14; set in the first sprint
+    notes: "A step is one event, not one beat."
+    added: 2026-11-03
+    revised: ""
+  - name: PARANOID_EARLIEST
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 6
+    unit: beat before which the regime announcement cannot fire
+    added: 2026-11-03
+    revised: ""
+  - name: BREATH_ZERO
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 0
+    unit: breath value at which marta_collapses is licensed
+    added: 2026-11-03
+    revised: ""
+  - name: GROUND_BUDGET_S
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 5
+    unit: seconds for polyscene ground() at HORIZON_EVENTS (CI)
+    added: 2026-11-03
+    revised: ""
+  - name: PLAYER_DAG_MAX
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 1000
+    unit: player-input DAG leaves before CI falls back to seeded sampling
+    added: 2026-11-03
+    revised: ""
+  - name: SIM_RUNS_CI
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 50
+    unit: seeded runtime traces on fallback
+    added: 2026-11-03
+    revised: ""
+  - name: PARITY_MIN
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 1.0
+    unit: required admissibility and realisability rate
+    added: 2026-11-03
+    revised: ""
+  - name: SIM_JOB_BUDGET_MIN
+    status: active
+    source: design/gdd/reactive-event-rules.md
+    referenced_by:
+      - design/gdd/reactive-event-rules.md
+    value: 10
+    unit: minutes for the whole simulator job in CI
     added: 2026-11-03
     revised: ""
