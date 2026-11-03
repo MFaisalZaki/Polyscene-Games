@@ -125,7 +125,7 @@ The anchor is the parcel slip. Its serial, IV/4471/R.31, is typed on the slip an
 
 The fact density formula is defined as:
 
-`facts_per_scene(s) = Σ_{h ∈ paper(s)} |yields(h)| + Σ_{d ∈ dialogues(s)} |yields(d)|`, with the checks `|yields(h)| ≤ FACTS_PER_DOC_MAX` (error) and `facts_per_scene(s) ≤ FACTS_PER_SCENE_MAX` (error). Derived facts are excluded (counted by §6).
+`facts_per_scene(s) = Σ_{h ∈ paper(s)} |yields(h)| + Σ_{d ∈ dialogues(s)} |yields(d)|`, with the checks `|yields(h)| ≤ FACTS_PER_DOC_MAX` (error) and `facts_per_scene(s) ≤ FACTS_PER_SCENE_MAX` (error). Derived facts are excluded (counted by §6), and so are bind-gated facts (lines bound to a dossier field, which print only when the state has acted): the count is of facts holdable at scene open, so Core Rule 12's twelve plus one gated fact passes. The runtime never refuses a hold (§6).
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
@@ -274,7 +274,51 @@ The investigation telemetry is defined as:
 
 ## Edge Cases
 
-[To be designed]
+*From the systems designer over the rule and formula space; entry 22 settles the fact-count semantics with Formulas §1.*
+
+1. **If the same fact is declared on two sources and is held from both**: the first `hold` wins (`source` and `seq` are set once); the second returns `{ok: true, reason: ALREADY_HELD}`, fires nothing and leaves `seq` untouched. Both documents are filed, because filed-ness is derived from the held fact, so Scene Flow ghosts the second hotspot on the first `fact_held` even if that paper was never opened. *One knowing, two papers.*
+
+2. **If a fact is held and a dossier write then strikes its yielding line**: the fact stays held, its text frozen as at hold, its card unchanged. On re-open the line prints in its struck form, is omitted from `holdable`, and carries neither the carbon-blue underline nor the ghost (a strike has no span). *Knowledge is not un-known when the paper is corrected.*
+
+3. **If a document is re-opened after a line newly prints in entry form**: `open()` lists the new fact in `holdable` with `held: false`; earlier holds keep their `seq`; the document's filed state does not change. *The bind is the only gate, so flipping it is the authored way to let a document grow.*
+
+4. **If `pair(a, a)` is called, or either input is unheld**: returns `{linked: false, link_id: null, derived: null, text_id: null}`; no `pair_failed`, no tried-set entry, no typed line. *These are malformed calls (a script or a stale UI), not guesses; Paper UI never offers a selected card to itself.*
+
+5. **If `pair` is called on a link already made, in either ordering**: the key is unordered, so it is the same link; it returns `{linked: true, link_id, derived, text_id}` so Paper UI may retype the click, but no `fact_held`, no `link_made`, and `made` and `seq` are unchanged. *`derived_from` is singular, so two links declaring the same `yields` is a build error and "derived fact already held by another route" cannot arise.*
+
+6. **If a derived fact is also declared primary on a line or dialogue item**: build error (`sources ≠ []` while `derived_from ≠ null`). *Its depth would be ambiguous, and a primary hold would make the link's click yield nothing.*
+
+7. **If a link's derived fact would reach depth 3**: build error naming the link (§8). The same check errors on a cycle or on `yields(l) ∈ from(l)`. *Five primary facts in one line of reasoning is more than the tray can lay out.*
+
+8. **If a link's two facts share no visible token after normalisation**: build error naming the link (Rule 5). *The pair must be readable before it is tested; an unreadable link invites the brute force the tried set no longer marks.*
+
+9. **If a `has_fact` gate sits on an action of a hotspot authored `hidden`, or on an action with no sibling action free of a `has_fact` leaf**: build error (GDD 3's new check). *In both cases the fact decides whether the hotspot does anything at all, which is existence, not selection.*
+
+10. **If `has_fact` appears in a document line's `bind`**: GDD 2's lint errors on the leaf. *The projection never sees the held set; a bind it cannot evaluate would print the player's knowledge on the state's form.*
+
+11. **If a fact's only path is a gate on a decline answer (`carry: true` alone)**: `dead_end_facts` error naming the fact and the answer; the writer gates a non-decline answer or removes the yield. *Declining is always available, so gating it changes nothing (§3).*
+
+12. **If `deserialize` finds a held fact or made link the registry no longer declares, or declares for another chapter**: drop that entry, log a warning, keep the rest, keep `next_seq`. *A content patch must not void a save; a `schema_version` mismatch is the only whole refusal.*
+
+13. **If `deserialize` is called mid-dialogue, or anywhere but a scene boundary**: refused with `BOUNDARY_ONLY`, state untouched. *A dialogue yield is held before its effects run; splitting that pair across a load would desynchronise the board from the sheet.*
+
+14. **If `chapter_close` fires while a document is open**: the wipe is immediate and also clears the open document's holdable set; a late `hold` returns `NOT_YIELDED_HERE`, a late `pair` returns `linked: false`, nothing fires. *Chapter owns the order of the boundary; this system is safe when the order is wrong.*
+
+15. **If a dialogue `line` with `yields` is shown twice (the dialogue re-entered)**: `hold` returns `ALREADY_HELD`, ok, no signal, no `seq` change. *Hearing it again is not knowing it twice.*
+
+16. **If a thirteenth fact is held on a twelve-fact board**: `hold` returns ok, `seq` increments, `board_pages` recomputes (§7); nothing refuses. *§1's scene cap is a lint on declarations and §6 is a warning; the held set has no runtime cap, because "which fact is worthless?" is never asked.*
+
+17. **If the `ConditionReader` is asked `has_fact` before any chapter is open**: `false`, no error. *The held set between chapters is empty, and a condition evaluated at the first `scene_ready` must get an answer, not an exception.*
+
+18. **If `open()` is called for a document in another chapter's content**: error `WRONG_CHAPTER`, nothing holdable, no signal; the registry's `chapter` on each fact decides. *Jan's copy of Vera's paper (V7) is Jan's document yielding Jan's facts; no fact crosses a chapter.*
+
+19. **If a scripted `hold` names a fact not holdable in the open document**: `NOT_YIELDED_HERE` (no document open, the line struck, or the fact declared elsewhere); `UNKNOWN_FACT` if the registry lacks it. *The simulator asserts the refusal; it never bypasses `open()`.*
+
+20. **If `fact_held` fires while Scene Flow holds `set_hotspot_state` in a block**: this system fires regardless and waits on nothing; if the block still refuses, Scene Flow re-derives from `filed_documents()` when it lifts, the same path it uses after a load. *A hold is the player's act (an `activate` on a span, or a line they chose to hear), so GDD 3's "only in answer to the player" is satisfied.*
+
+21. **If a chapter resumes from a save**: telemetry is not saved, so `t_first_link` restarts from the resumed session's first `scene_ready`, is flagged `resumed: true` and is excluded from the hypothesis band; if `made` is non-empty on load, no `t_first_link` is recorded for the chapter. *The hypothesis measures an unbroken first encounter, not the time the game was closed.*
+
+22. **If a scene declares more primary facts than `FACTS_PER_SCENE_MAX` once bind-gated lines are counted**: Formulas §1 counts only facts on unbound lines and dialogue items; a fact whose yielding line is bound to a dossier field is excluded from `facts_per_scene(s)`, so Core Rule 12's twelve holdable facts plus one gated fact passes the check at 12 ≤ 12. The runtime never refuses a hold whatever the count. *The cap bounds what the board can show at once; a gated fact prints only after the state moves, and by then the player has usually paired the board down to what matters.*
 
 ## Dependencies
 
