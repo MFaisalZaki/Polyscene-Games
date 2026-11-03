@@ -10,7 +10,9 @@
 
 ## Summary
 
-[To be designed]
+Scene Flow is the conductor of Paper Walls: the one system that knows what happens next. It opens a chapter and its rooms, turns a touched hotspot into the document, conversation or decision the content names, stages everything the player does in a room, and when the room is left runs the boundary in a fixed order, the decision batch into the dossier, the rules over the result, the Calendar's phase and attention, the next room preloaded, the reveal that shows which files changed, then at most one inserted scene, the tear-off if the day turned, and the next room. It exists so that effects land once and in one order, so the state answers only at a boundary, so the story simulator replays a telling through the same path the game runs, and so Pillar 4 has a mechanism by which a filing in one chapter becomes paper in another. It owns no state but the cursor and runs headless on the null host.
+
+> **Quick reference** — Layer: `Foundation` · Priority: `MVP` · Key deps: `Dossier State Model` (the bracket), `Reactive Event Rules & Story Simulator` (`run_boundary`, the presentation rule, the replay runner), `Calendar, Regime Phase & Attention` (`ctx`, the outer bracket, transitions, the snapshot), `Scene & Interaction Framework` (the host), `Narrative Content Format & Strings` (scenes and exits), `Investigation & Fact System` (actions resolved, availability); drives Paper UI, Overlay, Audio, Dialogue & Interrogation, Filing & Decision, Chapter & Story Structure, Save/Load through the presentation sink and the injected runners
 
 > **Quick reference** — Layer: `Foundation` · Priority: `MVP` · Key deps: `Dossier State Model`, `Reactive Event Rules & Story Simulator`, `Calendar, Regime Phase & Attention`, `Scene & Interaction Framework`, `Narrative Content Format & Strings`, `Investigation & Fact System`
 
@@ -452,4 +454,15 @@ This system has no screen and must not have one. Every sheet the player sees at 
 
 ## Open Questions
 
-[To be designed]
+| Question | Owner | Needed by | Status |
+|---|---|---|---|
+| ADR-1 confirms the bracket as Scene Flow drives it (the Calendar's bracket outside the dossier's; `beat()`; the archive batch at the act's last boundary; the composite apply; the staging facade) and ADR-5 (the renderer) the `SceneHost`/`PresentationSink` twins | technical-director via `/architecture-decision` | Before Technical Setup | Open; this GDD is the input |
+| GDD 2 amendments applied here in outline (scene `kind`, `class`, `exits[].via`; the lints SF-E1–E8 and SF-W1–W3 joining Rule 15's table with Scene Flow as owner; `source` naming the insert scene id): the content compiler and validator implement them when built | Narrative Content owner | Before the content compiler is built | Open; requested and recorded |
+| `paper_visible` (a `paper` beat the protagonist never sees renders nowhere in that chapter): filtered here over the firing's change-record projections; Paper UI may prefer to own it | Paper UI GDD | Paper UI | Open; proposed here |
+| Mid-scene quit resumes at the scene's start with that scene's held facts lost (Core Rule 14); the alternative, a continuous fact save, needs a GDD 5 amendment and a second class of save point | creative-director (at the gate), Save/Load GDD | Save/Load GDD | Open; ruled here, confirmation pending |
+| The MVP chapter is GDD 7's MVP fixture (`v_office`, `v_cal_weekend`, `v_turn`, `v_person`) while the act file keeps `v_night`; Chapter & Story Structure decides whether the shipped Vera chapter carries the calendar beat or the night scene | Chapter & Story Structure GDD; narrative-director | Vertical Slice | Open; both are run by this system |
+| `PLAYER_ACTIONS_PER_SCENE_MAX` (3) and the solver's `close_scene` action (GDD 6 Rule 7 amendment): the generator models a boundary's player actions as steps at one beat; `HORIZON_EVENTS` is re-measured with them | technical-director, systems-designer | First simulator run | Open |
+| The insert scenes' content for act one (`rybar_query_ledger` in Vera's chapter; Berta's memo; Kastan's slip is paper; the captain at the post): one `kind: insert` row per class per chapter, written by the narrative team | narrative-director, writer | Act-one content | Open |
+| Engine spikes, NOT SOURCEABLE from the pinned reference (no `core.md`): signals on a `RefCounted` and connecting the host's signals to a headless object; the `Callable`/`RefCounted` reference cycle (`dispose()` plus a `weakref` test); `await` semantics (avoided by design); the recursive input-disable property name (GDD 3's); synchronous versus deferred signal emission (a `DeferredNullSceneHost` twin, the contract suite runs both); `@abstract` on the base classes versus a plain base with `push_error` bodies until `/setup-engine refresh` records the installed editor | technical-director, engine-programmer | ADR; before the first host twin | Open |
+| The zero-test trap: gdUnit4 exits 0 on "No test cases found"; CI must fail on the runner's zero-tests row or a minimum count | devops-engineer (`/test-setup`) | Test setup | Open |
+| `design/accessibility-requirements.md` must state that every boundary sheet is dismissed by `on_continue` with no timeout and that the input block during a wipe is announced | `/ux-design accessibility` | Before this GDD's criteria are checked | Open |
