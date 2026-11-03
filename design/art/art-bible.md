@@ -2,8 +2,8 @@
 
 > **Status**: Draft
 > **Owned By**: art-director
-> **Last Updated**: 2026-11-02
-> **Art Director Sign-Off (AD-ART-BIBLE)**: [Not yet reviewed]
+> **Last Updated**: 2026-11-03
+> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-03 — CONCERNS C1–C8 and minor items applied (autonomous mode; see production/session-logs/decision-log.md); focused re-check of §5, §6.4, §7.6 pending
 
 `/art-bible` writes these nine sections in this order and replaces each
 section's `[To be designed]` line as that section is approved. A section still
@@ -103,7 +103,7 @@ Each plate has one hero class at a time: the object with a fact in it (Pillar 1)
 
 ### 3.5 UI shape grammar
 
-The UI echoes the world because the player never leaves the document (Hook §1). Panels are sheets with tabs and staples; buttons are typed brackets or stamp impressions; hover is a corner lift; selected is stamped; disabled is a greyed typed bracket struck through VOID (redaction bars are content only — amended per §7.6 C3); the timer is a margin filling. No rounded corners, glass, glow, or drop shadow into the plate. Where the UI stands apart is not shape but treatment: it is the only perfectly aligned, unlit layer, and it never takes the plate's lamp or sodium. The three dossier views differ in grammar — archivist: gridded form; dissident: pinboard of torn fragments; conscript: a single list sheet.
+The UI echoes the world because the player never leaves the document (Hook §1). Panels are sheets with tabs and staples; buttons are typed brackets or stamp impressions; focus (hover, keyboard or gamepad cursor) is a corner lift; selected is stamped; disabled is a greyed typed bracket struck through VOID (redaction bars are content only — amended per §7.6 C3); the timer is a margin filling. No rounded corners, glass, glow, or drop shadow into the plate. Where the UI stands apart is not shape but treatment: it is the only perfectly aligned, unlit layer, and it never takes the plate's lamp or sodium. The three dossier views differ in grammar — archivist: gridded form; dissident: pinboard of torn fragments; conscript: a single list sheet.
 
 ### 3.6 Alternatives considered
 
@@ -146,7 +146,7 @@ Secondary (light and ink): **incandescent amber** `#DDB065` (private light), **s
 
 ### 4.4 UI palette and where it diverges
 
-UI base is full-value bone `#EDE4CC` with soot text; carbon blue for interactive and linkable facts (clicking a fact files it, so world meaning and UI meaning converge); stamp red only for state attention — timer margin, surveillance indicator — never as a generic error or danger colour; protagonist inks for annotation. The divergence is **value, not hue**: UI runs at full bone and pure soot (about 13:1 contrast), higher than any plate; it never takes lamp or sodium tint; it contains no ochre or concrete. Per view: archivist bone + blue; dissident bone + soot with torn edges; conscript bone + khaki.
+UI base is full-value bone `#EDE4CC` with soot text; carbon blue for interactive and linkable facts — **as text, the darker UI tint `#2E3559` of carbon** (measured 7.9:1 on UI bone; the world carbon `#434C7C` measures 6.5:1 and fails the §7.2 text rule, AD-ART-BIBLE C4) (clicking a fact files it, so world meaning and UI meaning converge); stamp red only for state attention — timer margin, surveillance indicator — never as a generic error or danger colour; protagonist inks for annotation. The divergence is **value, not hue**: UI runs at full bone and pure soot (about 13:1 contrast), higher than any plate; it never takes lamp or sodium tint; it contains no ochre or concrete. Per view: archivist bone + blue; dissident bone + soot with torn edges; conscript bone + khaki.
 
 ### 4.5 Colourblind safety
 
@@ -160,7 +160,7 @@ No semantic colour carries meaning alone; each has a shape backup, and the two a
 | Carbon blue vs soot | Tritan, low vision. | Filed = double-struck ghost plus a "cc" mark; unfiled = single strike. |
 | Grey-green vs khaki inks | Deutan. | Letterform (cursive vs stencil) plus the chapter tab on the page. |
 
-Text contrast: soot on bone ≥ 7:1; carbon blue on UI bone ≈ 7.6:1. An accessibility toggle that renders stamp red as hatching only is a ux-designer item, supplementary to these defaults.
+Text contrast (WCAG relative luminance, measured): soot on UI bone 13.8:1, soot on plate bone 11:1, carbon text tint `#2E3559` on UI bone 7.9:1 (world carbon `#434C7C` is 6.5:1 and is not used for text). An accessibility toggle that renders stamp red as hatching only is a ux-designer item, supplementary to these defaults.
 
 ### 4.6 Alternatives considered
 
@@ -175,14 +175,14 @@ Text contrast: soot on bone ≥ 7:1; carbon blue on UI bone ≈ 7.6:1. An access
 Each protagonist keeps the one silhouette trait of §3.2 and adds exactly one costume accent in their own ink (§4.2); the rest of the costume is a tint of bone or concrete so the figure never merges with a wall of its own ink colour (the archivist works in grey-green rooms). *Checkable:* ink accent ≤ 15% of costume area; costume dominant differs from the plate's dominant neutral by ≥ 20% value. Names and ages below are proposals for narrative-director to confirm.
 
 - **Archivist** (woman, ~40). Buttoned paper-grey cardigan, skirt below the knee, flat shoes, hair pinned flat; accent: grey-green sleeve protectors. Props: the file held to the chest with both hands, pencil behind the ear. Face: tired, precise, mouth closed; she looks at the lens.
-- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: soot-stained fingers (ink is his trade, visible in portrait only). No props carried openly; hands in pockets except when handing over. Face: unshaven, eyes slightly off-lens by default — the only character whose neutral portrait does not meet the camera.
+- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: soot-stained fingers (ink is his trade, visible in portrait only). No props carried openly; hands in pockets except when handing over. Face: unshaven; his Neutral portrait meets the lens like everyone else's (AD-ART-BIBLE C1: looking away is a *state*, never a permanent trait), so his tell is the ink-stained fingers alone.
 - **Conscript** (boy, ~19). Greatcoat one size too big, cap peak level; accent: khaki stencilled number on the collar tab. Prop: a folded order sheet, one corner showing from the breast pocket. Face: unlined, too open.
 
-All three traits are bilaterally symmetric (file centred, scarf even, cap frontal) so a 2-direction sprite set can mirror to 4 without a prop changing hands.
+All three traits are bilaterally symmetric (file centred, scarf even, cap frontal) so the West facing can be mirrored from East (three directions authored, N/S/E, per §8.7 T8) without a prop changing hands.
 
 ### 5.2 Telling types apart at a glance
 
-One straight-edge count per type, checkable on the 64 px fill: officials ≥ 2 straight edges (hat brim, briefcase, a straight column of visible coat buttons — no load carried low); conscript exactly 1 (§3.2); protagonists, citizens and informers 0. Citizens always carry something below the hip (bag, bucket, bundle) and wear a headscarf or flat cap; protagonists never carry below the hip. **Informers are drawn as citizens with no variation at all** (§3.2); the tell is applied in-engine, never painted: once the player holds the fact, the portrait receives a carbon-blue duplicate of its own outline offset 2–3 px down-right plus a "cc" mark in the lower-right corner — the same filed mark as §4.5 — so "informer" and "filed" are literally one mark. The plate-scale figure is never marked: the walking city cannot be read, only the file can.
+One straight-edge count per type, checkable on the 64 px fill, **counting costume and body only — carried props (the archivist's file, an official's briefcase) never count** (AD-ART-BIBLE C2): officials ≥ 2 straight edges (hat brim and a straight column of visible coat buttons; the briefcase is an extra prop, not a tally item; no load carried low); conscript exactly 1 (cap peak or greatcoat hem, §3.2); protagonists, citizens and informers 0. Citizens always carry something below the hip (bag, bucket, bundle) and wear a headscarf or flat cap; protagonists never carry below the hip. **Informers are drawn as citizens with no variation at all** (§3.2); the tell is applied in-engine, never painted: once the player holds the fact, the portrait receives a carbon-blue duplicate of its own outline offset 2–3 px down-right plus a "cc" mark in the lower-right corner — the same filed mark as §4.5 — so "informer" and "filed" are literally one mark. The plate-scale figure is never marked: the walking city cannot be read, only the file can.
 
 Background figures painted into a plate (queues) are permitted only as non-interactive, still, and inside the plate's midtone band; an interactive figure sits at second-highest contrast (§3.4) and is always a separate layer.
 
@@ -201,7 +201,7 @@ ID-photo framing (§3.2): frontal, cropped at the collar, head 60–70% of frame
 | Evasive | off-lens, side | level | closed |
 | Exposed | down | down | parted |
 
-Budget: 12 × 4 = 48 portraits core, 72 at stretch; the informer overprint is a layer, not a fifth state.
+Budget: 12 × 4 = 48 portraits core, 72 at stretch (from the concept's ~12 named characters in the 3-act core, ~18 with stretch acts); the informer overprint is a layer, not a fifth state.
 
 ### 5.5 LOD philosophy and the presentation decision
 
@@ -243,7 +243,7 @@ Every plate has exactly one hero (§3.4) and 3–8 hotspots regardless of densit
 
 ### 6.4 Hotspot legibility without glow
 
-A hotspot is an object **disturbed from the grid by one unit**: a lifted paper corner, a drawer out one notch, a door ajar, a receiver off its cradle, a cord across a threshold. Hotspots and figures are the only keylined objects on a plate; every hotspot sits with a clear margin of plate midtone at least half its width on all sides, and no hotspot stands directly behind a figure's head. After its fact is filed the object loses its keyline and gains the carbon ghost, so a read room looks read. Hover feedback is the §3.5 corner lift and cursor bracket (ux-designer, §7). *Checkable:* keylined objects = hotspots + figures + hero.
+A hotspot is an object **disturbed from the grid by one unit**: a lifted paper corner, a drawer out one notch, a door ajar, a receiver off its cradle, a cord across a threshold. Hotspots, figures and the hero are the only keylined objects on a plate, and an unfiled hotspot's 2 px keyline is **permanent**, not focus-only (AD-ART-BIBLE C3); on focus the corner lifts and the keyline thickens to 3 px. Every hotspot sits with a clear margin of plate midtone at least half its width on all sides, and no hotspot stands directly behind a figure's head. After its fact is filed the object loses its keyline and gains the carbon ghost, so a read room looks read. Hover feedback is the §3.5 corner lift and cursor bracket (ux-designer, §7). *Checkable:* keylined objects = hotspots + figures + hero.
 
 ### 6.5 Environmental storytelling
 
@@ -288,14 +288,14 @@ Paper moves like paper: rigid translate, no rotation beyond 2°, no bend or curl
 
 ### 7.5 Surveillance indicator and interrogation timer
 
-Two elements, two shapes, two edges — never the same one. **Surveillance** is a square stamp in the top-right corner of every open sheet: hatching-only outline at Confident, red fill rising with the phase (reviewer: fill percentage matches §4.3 budget tier), static, no motion. **Timer** is the margin fill (§2.1): the right margin of the transcript sheet fills top-to-bottom in stamp red with a bordered hatched edge, ruled across by hatching ticks at every 20% so the rate can be read without numerals; one fill = one decision; numerals are forbidden on screen, while the portrait crop tightens. A countdown string is exposed to the screen reader only. Settings offer **timer off / 2× / default**, defaulting to the normal timer; the audio cue is specified by audio-director. The timer is the only UI element allowed continuous motion.
+Two elements, two shapes, two edges — never the same one. **Surveillance** is a square stamp inside the top-right corner of every open sheet, set 16 px in from both edges; the chapter tab and the "changed" marker (§7.6 C6) protrude *beyond* the sheet's top-right edge, so the two never overlap (AD-ART-BIBLE C8): hatching-only outline at Confident, red fill tracking the §4.3 tier — rising through Paranoid and Panicking and **falling back to a hatched outline at Collapsing**, when red withdraws (reviewer: fill percentage matches the §4.3 budget tier) — static, no motion. **Timer** is the margin fill (§2.1): the right margin of the transcript sheet fills top-to-bottom in stamp red with a bordered hatched edge, ruled across by hatching ticks at every 20% so the rate can be read without numerals; one fill = one decision; numerals are forbidden on screen, while the portrait crop tightens. A countdown string is exposed to the screen reader only. Settings offer **timer off / 2× / default**, defaulting to the normal timer; the audio cue is specified by audio-director. The timer is the only UI element allowed continuous motion.
 
 ### 7.6 UX alignment: conflicts and resolutions
 
 The ux-designer review set eight requirements (keyboard and later gamepad reach for every interactive element; body text ≥ 16 px with contrast measured post-overlay; every state distinguishable by shape; timer accessibility; AccessKit roles on every Control; hotspot discoverability without pixel-hunting; dossier changes legible unaided; flicker limits) and found seven conflicts with the art rules. Decisions:
 
 - **C1 Hotspot discovery** (art: keyline and displacement only, cursor fixed; UX: too subtle at 720p under grain). *Decided:* keep the fixed cursor and no glow; add a **hold-key / gamepad-button reveal** that raises every hotspot's corner lift at once, and a **read count** ("4 of 6 documents") on the dossier sheet at scene exit. The brief treats discoverability as a hypothesis: test with players at 720p in the MVP before locking.
-- **C2 Hover vs focus.** *Merged:* the corner lift is the **focus** state, triggered by mouse hover, keyboard focus and a gamepad cursor alike, with a 2 px soot keyline on focus so it survives grain. No hover-only affordance exists.
+- **C2 Hover vs focus.** *Merged:* the corner lift is the **focus** state, triggered by mouse hover, keyboard focus and a gamepad cursor alike; the hotspot's permanent 2 px keyline (§6.4) thickens to 3 px on focus so the state survives grain. No hover-only affordance exists.
 - **C3 Disabled state** (art, §3.5: redaction bar; UX: indistinguishable from censored content, unreadable by screen readers). *Decided:* disabled = greyed typed bracket struck through **VOID**, exposed via the AccessKit disabled flag; redaction bars are content only. §3.5 amended to match.
 - **C4 Interactive facts.** *Merged:* the typed-rule underline and margin tick in §7.2.
 - **C5 Timer** (art: margin fill, no numerals; UX: no rate read, no off switch). *Decided:* the ticks, the off / 2× / default option and the screen-reader countdown in §7.5.
@@ -331,7 +331,7 @@ Every raster asset is **PNG, 8-bit sRGB, lossless**. §6.2 demands hard edges an
 
 ### 8.2 Naming
 
-`[class]_[slug]_[state]_[phase]_[dir]_[frame].png`, snake_case ASCII, tokens omitted when inapplicable but never reordered, no version suffixes (git holds versions).
+`[class]_[slug]_[state]_[phase]_[dir]_[frame].png`, snake_case ASCII, tokens omitted when inapplicable but never reordered, no version suffixes (git holds versions). This deliberately drops the studio default's `[size]` token: size is fixed per class in 8.3.
 
 Classes: `plate`, `hot`, `fig`, `stand`, `por`, `doc`, `ui`, `stamp`, `font`. Phase: `ph1`–`ph4` (§2.2 order). Direction: `n s e w` (or `l r` for 2-direction). Frame: `f00`.
 
@@ -339,9 +339,9 @@ Examples: `plate_archive_reading_room.png` · `hot_archive_reading_room_drawer_o
 
 ### 8.3 Resolution tiers
 
-- **Plates: 1920×1080 ship, painted at 3840×2160 and downsampled 2:1 on export.** Source-only, not runtime; 2× painting keeps the §5.5 1 px keyline and §3.1 edges clean after reduction. Scrolling plates may extend width, never height. 720 is a ⅔ `canvas_items` stretch of the same file; a second 720 set is refused (8.7).
-- **Figures / standing layers:** 15–20% of plate height (§5.5) → 160–216 px tall at 1080, exported in a 256×256 frame, feet on a fixed baseline row.
-- **Portraits:** crop 640×800 (4:5, head 60–70% → 480–560 px), **export 896×1120** with bleed (~4 MB each). Only present characters' four states load per scene (≤ 24 portraits ≈ 96 MB), never the full set.
+- **Plates: 1920×1080 ship, painted at 3840×2160 and downsampled 2:1 on export.** Source-only, not runtime; 2× painting keeps the §5.5 2 px keyline and §3.1 edges clean after reduction. Scrolling plates may extend width, never height. 720 is a ⅔ `canvas_items` stretch of the same file; a second 720 set is refused (8.7).
+- **Figures / standing layers:** 15–20% of plate height (§5.5) → 162–216 px tall at 1080, exported in a 256×256 frame, feet on a fixed baseline row.
+- **Portraits:** crop 640×800 (4:5, head 60–70% → 480–560 px), **export 896×1120** with bleed (~4 MB each). Only present characters' four states load per scene (≤ 24 portraits ≈ 128 MB with mipmaps), never the full set.
 - **Documents:** 1:1 at 1080 (max 1200×1080 full-frame). Legibility belongs to the font: the paper field under any text area must be ≥ bone `#D8CDB2` so 18 px soot type holds the §4.5 7:1 contrast.
 - **UI nine-slices:** 1× at 1080, all margins multiples of 3 px so the ⅔ stretch lands on whole pixels. Stamps ≤ 256².
 
@@ -370,8 +370,8 @@ sRGB, 8-bit, **ICC profile stripped**, no colour transform on export (keeps §4.
 
 Engine Godot 4.7, Forward+, GDScript. Each item is **SOURCED** (reference file cited) or **NOT SOURCEABLE / SPIKE** (not covered by `docs/engine-reference/godot/`; verified in the MVP pipeline proof, never asserted from memory of post-4.3 behaviour).
 
-- **T1 Texture memory per scene.** Ceiling 2 GB RAM (technical-preferences, SOURCED). Stated assumption, not sourced: minimum GPU is integrated / shared-memory class with 2 GB usable, so textures count against the same 2 GB. Allocation: engine, scripts and audio reserve 512 MB; resident textures ≤ 1 GB; **≤ 256 MB per loaded scene**, two scenes resident (current and preloading next). One 1920×1080 RGBA8 plate costs 8.3 MB (11 MB with mipmaps). Consequence: hotspot, figure and carbon layers are cropped to their bounding box, never full-frame (nine full-frame layers would be 75 MB on one plate).
-- **T2 Maximum dimensions per asset class** (project policy; the engine maximum is NOT SOURCEABLE). Plate: a single 1920×1080 PNG at runtime (painted at 2× and downsampled on export, 8.3); a scrolling plate ≤ 3840×1080, still one texture. Hotspot and standing-figure layer: ≤ 512×512 crop. Portrait: 896×1120 export (8.3). Document: ≤ 2048×2048. UI: 2048×2048 atlas sheets. Hard cap for any asset **4096×4096**. One plate per scene is one draw either way; atlasing plates would only add memory.
+- **T1 Texture memory per scene.** Ceiling 2 GB RAM (technical-preferences, SOURCED). Stated assumption, not sourced: minimum GPU is integrated / shared-memory class with 2 GB usable, so textures count against the same 2 GB. Allocation: engine, scripts and audio reserve 512 MB; resident textures ≤ 1 GB; **≤ 256 MB per loaded scene**, two scenes resident (current and preloading next). One 1920×1080 RGBA8 plate costs 8.3 MB (11 MB with mipmaps). Consequence: hotspot, figure and carbon layers are cropped to their bounding box, never full-frame (nine full-frame layers would be 75 MB on one plate). **Worst-case scene worksheet** (AD-ART-BIBLE C6; mipmapped textures cost 1.33×): plate 11 MB + one protagonist sprite sheet 16 MB + 24 portraits at 5.35 MB = 128 MB + UI atlas 16 MB + overlays and layers ≈ 10 MB + **documents: at most 4 full-resolution documents resident (≈ 21 MB); the rest stream in on open** → ≈ 202 MB, under the 256 MB ceiling. Twenty resident documents would push it to ≈ 260 MB, so the resident-document cap is a hard rule, verified in the MVP spike.
+- **T2 Maximum dimensions per asset class** (project policy; the engine maximum is NOT SOURCEABLE). Plate: a single 1920×1080 PNG at runtime (painted at 2× and downsampled on export, 8.3); a scrolling plate ≤ 3840×1080, still one texture. Hotspot and standing-figure layer: ≤ 512×512 crop. Portrait: 896×1120 export (8.3; ≈ 5.35 MB each with mipmaps). Document: ≤ 2048×2048. UI: 2048×2048 atlas sheets. Hard cap for any asset **4096×4096**. One plate per scene is one draw either way; atlasing plates would only add memory.
 - **T3 Draw calls** against the 500/frame default (SOURCED budget; batching rules NOT SOURCEABLE). Target ≤ 150 steady state: plate 1; hotspot layers ≤ 8 (+8 focus states); figures ≤ 6; carbon ghosts ≤ 16 (one extra draw per filed object); stamps ≤ 12; grain 1; phase tint 1; documents ≤ 20; UI ≤ 60; reserve 17. Counted with the engine's draw-call monitor (API name: SPIKE).
 - **T4 Overlay stack.** Four engine layers above the base plate, in order: grain (one tileable texture, uniform, 8–12% opacity on plates, ≤ 6% on UI per §7.2) → carbon (duplicate of the object sprite, offset 2–3 px, carbon-blue tint, dossier-driven) → stamp (instances from one stamp atlas, placed by phase reach) → phase red tint (full-frame). SOURCED: `DrawableTexture2D` exists in 4.7 (`modules/rendering.md`) as a candidate for runtime stamp placement. NOT SOURCEABLE — SPIKE: `CanvasLayer` ordering, `CanvasModulate` versus a full-frame tint shader, blend modes, screen-texture access in 2D under Forward+.
 - **T5 Import settings** (option names NOT SOURCEABLE — SPIKE; the reasons stand). Source PNG, lossless. No VRAM compression: block compression fringes hard edges, bands three-value flat fields (§6.2) and contaminates the red measurement. Mipmaps and filtering per 8.4. sRGB for all colour textures.
@@ -386,7 +386,7 @@ Engine Godot 4.7, Forward+, GDScript. Each item is **SOURCED** (reference file c
 |---|---|---|---|
 | Keyline width | 1 px (§5.5 as first written) | Not crisp at both 720 and 1080 under a 1.5× stretch | **2 px at 1080**; §5.5 amended |
 | Filtering | Mipmaps off, no trilinear | Mipmaps on for plates and portraits to avoid shimmer at 720 | **Tech**: on for plates and portraits, off for UI, linear |
-| Portrait size | 896×1120 export (~4 MB) | 640×800 (~2 MB), per-scene loading | **Art size with per-scene loading**: ≤ 24 portraits ≈ 96 MB per scene |
+| Portrait size | 896×1120 export (~4 MB) | 640×800 (~2 MB), per-scene loading | **Art size with per-scene loading**: ≤ 24 portraits ≈ 128 MB per scene with mipmaps |
 | Layer registration | Full plate canvas per layer | Full-frame layers forbidden (memory) | **Crop to bounding box with recorded integer offset** |
 
 Everything else was compatible: lossless PNG, naming, 2× painting source with 1080 runtime plates, document sizes, the review checklist. Where the two halves gave different red thresholds, the HSV tolerance in T7 is the one scripts use.
