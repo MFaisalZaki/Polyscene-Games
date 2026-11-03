@@ -156,8 +156,6 @@ Keys sorted at serialisation, no floats, computed at `scene_preloaded` (so `load
 | **Audio (PROV)** | nothing | nothing | The portrait swap is silent; the insert's cue keys on `rule_fired`, not on this system |
 | **Art pipeline** (`tools/asset-pipeline/`) | the `figures` block schema; T7 Gate A over figure crops and portraits (`red_px = 0`) | the export's crops, `standing_point`, 896×1120 portraits with 20% bleed | Technical artist owns the export; this system's validator reads what it writes |
 
----
-
 ## Formulas
 
 [To be designed]
@@ -168,7 +166,21 @@ Keys sorted at serialisation, no floats, computed at `scene_preloaded` (so `load
 
 ## Dependencies
 
-[To be designed]
+*Hard* means the system cannot function without the other; *soft* means it works without it and is improved by it. Rows marked **(PROV)** name a system whose GDD is not yet written. Reciprocity today: GDD 3 names this system as the owner of every figure pixel and the reader of `baseline_y` and `figure_band`, and now exposes `focus_changed`; GDD 2 names it as the owner of the portrait vocabulary V31 checks and of `persons[]`'s semantics; GDD 8 carries `cast[]` in `enter_scene` and derives `hidden` from presence; GDD 9 keeps red off figures and names the threshold's figure; GDD 5 lends `has_fact` for the overprint. All five match the rows below.
+
+| System | Direction | Hard/Soft | Interface |
+|---|---|---|---|
+| Scene & Interaction Framework (GDD 3) | Mutual | Hard | The sidecar's `figures` block (crops per pose per person hotspot, `standing_point`) validated by `CastDataValidator` inside GDD 3's validator; person hotspots carry no `layer*` of their own; `baseline_y`, `kind`, `figure_band`, `hero.rect`, person hit regions; `scene_preloaded`/`scene_ready`/`scene_exited` and `focus_changed(id, prev, source)`; figure layers parented under the y-sort root; `report_resident_bytes("character", …)` into W13; under walking `walkable`, `approach`, arrival |
+| Narrative Content Format & Strings (GDD 2) | Mutual | Hard | The cast table; `persons[]` on the scene row (`cast_id`, `hotspot`, `present_when`, `poses[{pose, when}]`); the `portrait:` word on dialogue items; this system's two vocabularies (`portrait_vocab.json` for V31, `pose_vocab.json`) and lints CP-E1…E13, CP-W8–W9, X03 |
+| Scene Flow (GDD 8) | This depends on it | Hard | `enter_scene(scene_id, kind, slot, protagonist_id, cast[])` with presence and pose already resolved by Scene Flow's reader; `hidden` set for absent persons before activation; the insert's figure-first order |
+| Investigation & Fact System (GDD 5) | This depends on it | Soft | `has_fact(fact_id)` as an injected callable for `resolve_portrait`'s overprint; the fact registry for CP-E11; `informer_fact(cast_id)` is this system's content (act one: `kastan → riba_is_kastan`) |
+| Overlay & Surveillance Rendering (GDD 9) | Mutual | Soft | Both `apply` on frame one at `scene_ready`, Overlay's `apply_after_threshold` second; red never on figures (O05, O07, Gate B); the threshold's figure named the same way in both GDDs; `_lit` twins where a pose's bounds meet a pool crop |
+| Dialogue & Interrogation | Depends on this **(PROV)** | Hard | `resolve_portrait(cast_id, word, context, scene_kind, threshold_kind, has_fact) → PortraitSpec` per spoken item; which face an interrogation pins is Dialogue's |
+| Paper UI | Depends on this **(PROV)** | Hard | `PortraitSpec`, `portrait_texture(asset_id)`, `acc.portrait.*`; Paper UI draws the portrait, its state-light layer, the crop tightening and the "cc" overprint, and runs the flicker under Overlay's allowance |
+| Settings Store (GDD 4) | This depends on it | Soft | `motion` under walking only (hand-over and page-turn skip at `reduced`); `sr_verbosity` through Paper UI; nothing read under standing |
+| Dossier State Model (GDD 1); Calendar (GDD 7); Rules (GDD 6) | None | — | Dossier-blind; no tier, snapshot or beat enters this system; a rule's `beat: insert` arrives only as Scene Flow's `enter_scene(kind: insert)` |
+| Save/Load; Audio | None **(PROV)** | — | Nothing persisted (presence and pose are re-derived at entry); no sound |
+| Art pipeline (`tools/asset-pipeline/`) | This depends on it at build | Hard (CI) | The export's crops and twins, `standing_point`, 896×1120 portraits with 20% bleed; Gate A `red_px = 0` over figure crops and portraits |
 
 ## Tuning Knobs
 
@@ -198,15 +210,31 @@ Keys sorted at serialisation, no floats, computed at `scene_preloaded` (so `load
 
 ## Game Feel
 
-[To be designed]
+Optional for a Core system; three feel properties follow from it and are stated so Dialogue, Paper UI and the art pipeline inherit them as targets.
+
+- **People hold still.** A figure never breathes, sways, blinks or turns while the player is in the room; the only change on it is the thicker keyline when focus rests on it, by a cut. A room with people in it is as still as a room without.
+- **A face changes only when someone decided it should.** A portrait cuts between its four states on the item that asked for it and otherwise holds; no state ever creeps, tweens or follows a number.
+- **The state is already there when you look up.** At a door, gate or post its figure is on the threshold line on the first cut, before its light; at a telephone the receiver is off its cradle and the caller's photograph is on the sheet.
 
 ## UI Requirements
 
-[To be designed]
+This system has no screen and draws nothing on a sheet. The transcript sheet, the pinned portrait, its state-light layer, the crop tightening, the "cc" overprint and the screen-reader strings (`acc.portrait.*`, resolved by Paper UI from the `PortraitSpec`) are Paper UI's; the room's person hotspots, their accessible names and focus are the Scene & Interaction Framework's. Debug builds only: an inspector that prints the current `CastPlan`, the last `PortraitSpec` per speaker and the resident figure and portrait bytes, reachable through the debug menu and absent from release (the same rule as GDDs 2, 6, 7, 8 and 9's debug surfaces).
+
+> **📌 UX Flag — Character Presentation**: no player-facing UI of its own. `design/accessibility-requirements.md` must state the two facts this system guarantees: the four portrait states are distinguishable by pose (gaze, chin, mouth) without colour or motion and are announced as `acc.portrait.<state>` when `sr_verbosity` is `full`; and the informer mark on a portrait is announced as the same filed mark the held span carries, never as a verdict.
 
 ## Cross-References
 
-[To be designed]
+| This GDD references | In | Owner | Nature |
+|---|---|---|---|
+| The sidecar (`kind: person`, `baseline_y`, `figure_band`, `hero.rect`, hit regions), availability and the idle rule, the host seam and null twin, the focus ring and its signal, navigation under `presentation.mode`, the camera, the resident-byte sheet | GDD 3 Core Rules 1, 5, 8, 10, 11, 13, 14; Formulas §7–§9; Visual/Audio §1–§3 | Scene & Interaction Framework | Consumed and extended; amendments applied (the `figures` block, person hotspots without `layer*`, `focus_changed`, W13 owner) |
+| The cast table, dialogue items (`speaker`, `register`, `tell`, `portrait`), `context`, `beat.present[]`, the validator's V31 and the lint table | GDD 2 Core Rules 5, 5c, 15 | Narrative Content Format | Consumed; amendments applied (the four-word vocabulary; `no portrait` struck; `persons[]` and the CP lints requested) |
+| `enter_scene`, the insert's first cut, the room as the player left it, the wipe into every authored plate, `hidden` and `filed` availability | GDD 8 Core Rules 6, 11, 13; Visual/Audio §3, §6 | Scene Flow | Consumed; amendments applied (`cast[]`; `hidden` from presence; `filed` for paper and objects only; the threshold's figure) |
+| The threshold light's two cuts, `figure_band` and person rects red-free, the sourceless plate and the pool, `_lit` twins | GDD 9 Core Rules 3, 7, 9; Visual/Audio §4, §5, §7 | Overlay & Surveillance Rendering | Consumed; one wording amendment applied |
+| Held facts, `has_fact`, the act-one facts (`riba_is_kastan`), the one carbon mark family | GDD 5 Core Rules 6, 12; Visual/Audio §4 | Investigation & Fact | Consumed |
+| Shape language for figures, the three protagonists, type reading and the informer tell, expression and pose, portraits in four states, LOD and the presentation decision, legibility against plates, animation, sprite sheets and budgets | Art bible §3.2, §5.1–5.6, §6.6, §7.1, §7.4, §8.7 T1–T3, T6, T8 | Art direction | Consumed; amendments C1–C10 proposed (Open Questions) |
+| Pillars 1, 2, 3, 5; the anti-pillars | design/gdd/game-concept.md | Creative direction | Player Fantasy |
+| 4.7 `CanvasItem` lines without a feather (keylines painted); `AnimationPlayer` and `AnimationMixer`, `active`; stretch defaults; typed-return overrides; `@abstract` | docs/engine-reference/godot/modules/rendering.md line 11; modules/animation.md lines 25–39; breaking-changes.md lines 17, 31, 39, 69, 109; current-best-practices.md lines 32–40 | Engine reference | Rule 6's painted twins; the walking outcome's node |
+| `AnimatedSprite2D`/`SpriteFrames`, `Sprite2D.frame/flip_h`, `y_sort_enabled` semantics, texture import options | NOT SOURCEABLE from the pinned reference | Engine reference | Open Questions; the draw order computed in the core; the walking spike |
 
 ## Acceptance Criteria
 
