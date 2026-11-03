@@ -22,7 +22,19 @@ The player meets this system directly, in that every word they read passes throu
 
 ## Player Fantasy
 
-[To be designed]
+*Framing: direct. The player reads every line this system holds; the format itself is invisible. Shaped with the creative director (three candidate framings; "the paper is the event" chosen, with the two-voice rule from "reading over the state's shoulder" folded into Detailed Design as a register tag; "paper arriving" rejected because Pillar 2 already owns the pressure).*
+
+**Nothing happens in Paper Walls that is not written down.** The emotion this system serves is dread by reading: the slow, close attention of someone who knows every word on the page was put there on purpose.
+
+The anchor moment is Vera at the desk at seven fifty. Six folders sit in the intake tray. Five are blue-tabbed. The sixth is grey-green, with a red tab, string knotted twice, serial IV/4471/R.31, and a slip in a handling officer's hand: *for reconciliation*. Nothing has happened yet, and the player already knows the act has begun. The words did it. There was no cutscene and no music sting.
+
+Every line the player meets, whether it is a leaf, a log page, a spoken sentence or the state's closing paper line, is an object the player handles and reads. None of it is narration laid over the game. The language is dry and procedural. It is in the present tense. It names things exactly: the serial, the custodian, the knot. Like Papers, Please, the document is the game. Like Pentiment, the way a line is set down (hand, carbon, stamp, strike-through) carries meaning as much as its words do.
+
+The format holds two voices and never lets them mix. The human voice is the beat prose and the dialogue: interior, specific, a hand on a dry press. The state's voice is the paper line, the form wording, the order line: clerical, agentless, stamped. The player learns to hear the gap between them, and that gap is where the game lives. *Cost accepted:* every string carries material metadata (hand, form, carbon or original, register), which makes authoring heavier and gives Paper UI more surface to render.
+
+**Pillar alignment.** Pillar 1, "every fact is a weapon": a document with a name in it beats a document with none, so the format binds documents to facts and facts to dossier uses, and the validator refuses flavour-only paper. Pillar 2, "the state is a character": the state's voice is a first-class register in the data, never a style note. Pillar 4, "consequences cross lives": the writing attaches to state, never to path.
+
+**The one rule the format must obey: the object in the room, never the branch.** A string may refer only to what is present in its own scene: objects, people and the current dossier projections. It may never refer to another beat, scene, choice or path. Content may be gated only by state (dossier reads, held facts, chapter sheet, phase); it may never be gated by history (`visited`, `chose`, `after_beat`). Three consequences follow and are enforced in Detailed Design: string ids are keyed to an owner (action class, document, form, speaker), never to a route; the condition language has no scene-id, beat-id or option-id predicate; and the validator rejects a line whose text or metadata names another beat's id or class. If a line needs the past, the past is written into the dossier and read back from it, which is Pillar 4's mechanism and the only one allowed.
 
 ## Detailed Design
 
