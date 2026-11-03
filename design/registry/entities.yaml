@@ -366,9 +366,9 @@ formulas:
       - attention
       - under_observation
       - phase
-    output_range: "[0, ATTENTION_CAP]"
-    expression: "clamp(attention + OBS_BONUS * [under_observation] + PHASE_BONUS * [phase >= 2], 0, ATTENTION_CAP); red = A_eff / ATTENTION_CAP"
-    notes: "Formulas §3. red is in [0, 1] and feeds the stamp-red bleed."
+    output_range: "[0, ATTENTION_CAP]; red_band [0, 3]"
+    expression: "clamp(attention + OBS_BONUS * [under_observation] + PHASE_BONUS * [phase >= 2], 0, ATTENTION_CAP); red_band = 0 if A_eff = 0, 1 if A_eff < ATTN_LOOK, 2 if A_eff <= ATTN_WATCHED, 3 otherwise"
+    notes: "Formulas §3. red_band (none, margin, prop, light) feeds the stamp-red reach; never a float, never shown as a number."
     added: 2026-11-03
     revised: ""
   - name: broken_count
