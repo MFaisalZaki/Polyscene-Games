@@ -40,6 +40,17 @@ off the end state: fate (fell quietly / fell in blood / held / held in blood),
 Vera's choice, Vera's fate (watched / unwatched), Jan's fate (free / arrested /
 recanted / turned), Tomas's choice (none / fired / stood down).
 
+## Act one (revision 3, from the narrative brief)
+
+`act1.pddl`, `act1-init.pddl`, `act1.lp`, `act1_topic.py`, `act1_run.py`: the first two
+weeks as a world of nine agents, 48 action classes, seven world moves, five
+unknowns, twelve laws and thirteen end-state axes with nine ending classes, written
+from `design/narrative/paper-walls-act-one-brief.md`. Run
+`/home/user/polyscene/venv/bin/python act1_run.py 14` for the coverage check
+(`act1-h14.txt`), `TOPIC=act1_topic FLOW_OUT=act1-flowchart python flowchart.py 14
+act_ending vera_ledger jan_fate tomas_gate` for the flowchart. The narrator reads
+the writer's beats from `design/narrative/dialogue/act-one-beats.md`.
+
 ## Status
 
 **Concluded.** See `REPORT.md`: PROCEED on the technical question. The

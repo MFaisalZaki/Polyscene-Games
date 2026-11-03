@@ -47,6 +47,8 @@ branches; nothing else can answer it.
 
 ## Result
 
+Revision 3 (act one from the narrative brief, horizon 14): all nine ending classes E1–E9 reachable; E0 forbidden by exactly `no_one_unchanged`; the gap law and the physics answer the brief's two other diagnoses; 136 end states on four axes exhaustive in 33 s, 600+ on thirteen. Five iterations were needed, all world-building not scripting: parameter arities, the review and the hospital as the characters' own acts, three opening world moves so chapters can open mid-act under the connected law, typed places, and motive weights so every beat nets its actor one more than it costs.
+
 Revision 2, `run.py 10` and `run.py 12` (`branches-h10.txt`, `branches-h12.txt`): 23 behaviours on five end-state axes, exhaustive in 0.4 s, identical at both horizons; every value of every axis covered; "Vera files and nothing happens to Jan" is forbidden by the topic's `paid_silence` law; "Vera warns and pays nothing" and "Tomas stands down before the regime wavers" are forbidden by the physics. Witness chains include: burn → Rybar queries → Vera gives in → Kastan paid → Kastan reports Jan → raid → Rybar turns Jan → Jan informs on Vera.
 
 Revision 1, `run.py 8` (saved in `branches-h8.txt`):

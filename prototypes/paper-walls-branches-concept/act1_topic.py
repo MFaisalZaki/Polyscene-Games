@@ -73,7 +73,7 @@ FLOW_LABELS = {'e1_complete_file': 'E1 THE COMPLETE FILE', 'e2_gap': 'E2 THE GAP
                'e7_daughters_statement': 'E7 THE DAUGHTER\'S STATEMENT', 'e8_martas_breath': 'E8 MARTA\'S BREATH',
                'e9_route_burned': 'E9 THE ROUTE BURNED', 'other': 'OTHER END STATES'}
 
-BEATS_FILE = os.path.join(HERE, '..', '..', 'production', 'narrative', 'paper-walls-act-one', 'dialogue-beats.md')
+BEATS_FILE = os.path.join(HERE, '..', '..', 'design', 'narrative', 'dialogue', 'act-one-beats.md')
 
 
 def load_beats(path=BEATS_FILE):

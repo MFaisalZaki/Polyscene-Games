@@ -89,7 +89,7 @@ in this morning. Vera uncaps her pen and does not write anything.
 ### recover_report
 
 The violet carbon of leaf 40 is still in the district, because the district keeps everything.
-Vera signs for the carbon box, finds the border report by serial, and types the leaf back onto
+Vera signs for the carbon box, finds the source report by serial, and types the leaf back onto
 office stock through two fresh carbons, with the margin slightly wrong. A folder with a missing
 leaf is a gap; a folder with a retyped leaf is a folder. She numbers it in the corner in the
 hand the index already shows, and writes the leaf count into the intake log where the line was
@@ -100,15 +100,15 @@ from her thumb.
 
 ### doctor_ledger
 
-The register is never erased. Vera lays the ruler across the line and strikes it, one stroke,
-as the handbook shows, and initials the strike. Then she writes the entry again a line lower
-with the status changed: observation becomes closed, no further action, and the tab on the
-folder goes from red to blue with a strip from the drawer. A struck line is a correction, and
-corrections are the clerk's prerogative. Anyone who reads the ledger will read the struck line
-too; the question is whether anyone reads. She blots it and squares the ruler. Her initials sit
-in the margin, legible.
+The intake log has a line with a serial and nothing after it, and the initials beside the line
+are Berta's. Vera does not strike anything; the Register is not opened. She takes the pen from
+the dish by the finger-cots, Berta's pen, and fills the line in a hand close enough to Berta's:
+leaves, forty; out, to handling officer; the initials again, B.L. Nine years at the next desk
+is long enough to learn a loop. The log now says a folder came in whole and went out whole, and
+the name on both ends of the line is not hers. She blots it and sets the pen back in the dish.
+Across the desk Berta is counting a blue tab and does not look up.
 
-> paper: Register leaf 212 line 14: struck, V.H. Line 15: IV/4471/R.31 CLOSED, no further action. V.H.
+> paper: Intake log, Mon.: IV/4471/R.31 received B.L. Leaves 40. Out: to H.O. B.L.
 
 ### warn
 
@@ -142,7 +142,7 @@ next desk, keeps her head down over a blue-tab count and does not stop counting.
 memo in the registrar's tray face up. On paper there is now one name near the gap, and it is
 hers.
 
-> paper: Memo R/IV/40: discrepancy at intake, IV/4471/R.31. Clerk responsible: HALM V., class II. Signed.
+> paper: Memo, Records IV, W40: discrepancy at intake, IV/4471/R.31. Clerk responsible: HALM V., class II. Signed.
 
 ### report_jan
 
@@ -153,19 +153,19 @@ has seen light under the chestnut. The pen does not shake. She reads the line as
 will read it, and it reads as a clerk doing her work. She turns the tab from pending to
 complete and ties the string. The card is one line heavier. The cellar is a serial now.
 
-> paper: Household card IV/7781, HALM, Vrba 9/5. Contacts: RUSEK J., Vrba 9 cellar, unregistered press. COMPLETE.
+> paper: Household card IV/7781/R.40, HALM, Vrba 9/5. Contacts: RUSEK J., Vrba 9 cellar, unregistered press. COMPLETE.
 
 ### receive_courier
 
 Two knocks on the hatch, a pause, one knock. Marek comes down the ladder backwards with the bag
 against his chest, still in the railway coat. On the bench he sets out what the staff
-compartment carried: two reams of thin Western stock, a tin of ink, and a smaller parcel in
-brown paper with a Vienna chemist's string, which is not for Jan. "Flat 3," Marek says. "Before
-she books the call." Jan weighs the reams the way the press weighs them: four hundred sheets,
-eight readers a sheet. The cellar has paper again. Marek is already on the ladder. He never
-sits.
+compartment carried for the press: two reams of thin Western stock and a tin of ink. The
+smaller parcel, brown paper and a Vienna chemist's string, stays in his coat. "Flat 3," Marek
+says. "Before she books the call." Jan weighs the reams the way the press weighs them: four
+hundred sheets, eight readers a sheet. The cellar has paper again. Marek is already on the
+ladder, and goes up by the stair. He never sits.
 
-> paper: Lis cellar tally (pencil, beam): stock in, 2 rm. Ink, 1. Parcel for 3: delivered.
+> paper: Lis cellar tally (pencil, beam): stock in, 2 rm. Ink, 1.
 
 ### print_leaflets
 
@@ -186,8 +186,7 @@ tram 11 on the loop run, in the lockers at the baths, through the parcel counter
 himself, landing by landing, one sheet a floor, the stair lights clicking off behind him every
 ninety seconds. He does not look at who reads. By the evening programme a sheet is being read
 aloud through a wall somewhere, badly. By Thursday the Vienna transmitter reads it in a better
-voice. Paper arrives where it was not sent: at a gate seventy kilometres south-west, the stamp
-cabinet gets a thirteenth stamp.
+voice.
 
 > paper: 4th Bn. order of the day: post sacks and staff compts. opened in full. Reason: hostile print in circulation.
 
@@ -206,7 +205,7 @@ not care whose name it is.
 ### ask_carbon
 
 Ilona comes down the ladder quicker than the others. Jan waits until the circle has gone up.
-"Your mother brings work home." It is not a question. "There is a report. A border report, with
+"Your mother brings work home." It is not a question. "There is a report. A source report, with
 a serial on it. The violet copy stays in the district. In a drawer, probably. In a kitchen."
 Ilona says her mother does not bring work home. Jan says all right. Then he says the sheet
 cannot print a name without the paper behind it, and that the paper is in flat 5. He does not
@@ -221,7 +220,7 @@ bottom rung. "Not you. Not any more." He says it to the wall above her head. "Go
 home by the street, not the yard." She asks why, once. He has a reason and does not give it,
 because a reason is a thing that can be repeated. The circle behind him pretends to count
 sheets. The hatch comes down. On the gallery she stands a moment with the courtyard lamp on
-her and the third-floor window dark, then goes up to flat 5 by the stair, as told.
+her and the third-floor rail empty, then goes up to flat 5 by the stair, as told.
 
 > paper: Lis cellar tally: circle, W40: 3. (Struck: 4.)
 
@@ -257,7 +256,7 @@ sat in twice, read, said nothing, set no type. He says it as a kindness and hear
 confirmation. Rybar writes attended, two sittings, and the flat number, and thanks him. The
 card is one line heavier. It is not Jan's card.
 
-> paper: Household card IV/7781, HALM, Vrba 9/5. Contacts: HALM Ilona, attended cellar, 2 sittings. Per RUSEK J.
+> paper: Household card IV/7781/R.40, HALM, Vrba 9/5. Contacts: HALM Ilona, attended cellar, 2 sittings. Per RUSEK J.
 
 ### give_vera
 
@@ -363,11 +362,11 @@ on his bunk and takes his boots off and says nothing about the clerk.
 ### join_circle
 
 The hatch under the chestnut is heavier than it looks. Ilona goes down the ladder in her
-mother's old coat and finds four people, a press, a lamp, and a smell of ink that will be on
+mother's old coat and finds three people, a press, a lamp, and a smell of ink that will be on
 the coat tomorrow. Nobody asks her name. Somebody passes her a sheet, two columns, smudged on
 the right. She reads it; it says what the radio does not. The man at the press does not look
 at her until the hour is up, and then says: Tuesdays. Above, in the courtyard, the sodium lamp
-comes on. On the third-floor gallery a window is lit. She climbs out into it.
+comes on. At the third-floor rail a cigarette is lit. She climbs out into the light.
 
 > paper: Lis cellar tally: circle, W40: 4. New: 1 (student, no. 9).
 
@@ -438,7 +437,7 @@ carbon, and puts the white in the registrar's tray beneath a blue-tab count, whe
 found in the course of things. She does not look across. Four years from pension. She sharpens
 the pencil.
 
-> paper: Memo R/IV/40, Records: intake discrepancy, IV/4471/R.31. Folder to desk 2. No leaf count. B.L.
+> paper: Memo, Records IV, W40: intake discrepancy, IV/4471/R.31. Folder to desk 2. No leaf count. B.L.
 
 ### cover_vera
 
@@ -461,7 +460,7 @@ gives it the way he keeps the building book: by the hour. The handler writes, tu
 and Kastan signs for a sum that would not buy a coat. The sum is not the point; the signature
 is. He gets two packets of cigarettes with it, which is the custom, and goes home on tram 11.
 
-> paper: Receipt book IV/S, no. 118: source RIBA, W40, paid, signed. Report filed to IV/4471 and IV/7781.
+> paper: Receipt book IV/S, no. 118: source RIBA, W40, paid, signed. Report filed to IV/4471/R.31 and IV/7781/R.40.
 
 ### report_neighbour
 
@@ -472,12 +471,12 @@ a knuckle on the door, no light. He does not write what was said, because he did
 Thursday he copies the line onto the handler's form and the handler asks nothing. The line goes
 into a folder whose subject is the widow, and across to a card whose subject is not.
 
-> paper: Source RIBA, W40: 23:10, HALM V. (5) at door of 3, approx. 1 min, no light. Cross-ref. IV/7781.
+> paper: Source RIBA, W40: 23:10, HALM V. (5) at door of 3, approx. 1 min, no light. Cross-ref. IV/7781/R.40.
 
 ### tell_archivist
 
 He waits on the second landing with the keys, where the stair is narrow. "Pani Halm." Vera has
-her bag and her coat and, under the bag, a folder she should not have. "Your girl. Evenings.
+her bag and her coat. "Your girl. Evenings.
 The hatch under the chestnut." He says it to the keys. "I haven't put it in the book." He does
 not say yet, and does not need to; he is a caretaker and she works in records, and both of them
 know what a book is. He thanks her, for nothing, and goes up to the third floor, and she stands
@@ -517,7 +516,7 @@ He telephones nobody. The card goes back to the faculty by the morning courier, 
 files it, and the faculty secretary types a note to the applicant's mother's address, which is
 also the applicant's. The note arrives on a Tuesday. It is very short and it says pending.
 
-> paper: Faculty adm. card, HALM Ilona: REVIEW HELD, pending completion of household file IV/7781, Records IV. R.
+> paper: Faculty adm. card, HALM Ilona: REVIEW HELD, pending completion of household file IV/7781/R.40, Records IV. R.
 
 ### list_route
 
@@ -553,7 +552,7 @@ it said before, and the secretary writes it. The letter is typed the same aftern
 the applicant may apply again in the next cycle. In flat 5 it is read sitting down, once, and
 left on the table.
 
-> paper: Faculty adm. review, HALM Ilona: DEFERRED, next cycle. Household file IV/7781: incomplete.
+> paper: Faculty adm. review, HALM Ilona: DEFERRED, next cycle. Household file IV/7781/R.40: incomplete.
 
 ### review_refuses
 
@@ -565,7 +564,7 @@ eligible to reapply, and the secretary writes it without looking up. The letter 
 same afternoon. In flat 5 it is read once, folded along the fold it came in, and put back in
 the envelope.
 
-> paper: Faculty adm. review, HALM Ilona: REFUSED. Household file IV/7781: adverse. Not eligible to reapply.
+> paper: Faculty adm. review, HALM Ilona: REFUSED. Household file IV/7781/R.40: adverse. Not eligible to reapply.
 
 ### ledger_called
 
@@ -591,7 +590,7 @@ sit this week. Date, room, no time. The card has a line for household file, and 
 been filled in by somebody else, in a hand from an office. Vera puts it on the table and Ilona
 reads it without picking it up.
 
-> paper: Faculty notice: adm. review to sit this week, HALM Ilona. Household file IV/7781: see attached.
+> paper: Faculty notice: adm. review to sit this week, HALM Ilona. Household file IV/7781/R.40: see attached.
 
 ### courier_arrives
 
@@ -636,12 +635,12 @@ of the window before he reaches the bar. The dogs stand up. The log is open on a
 
 Stamp: ARCHIVED
 
-IV/4471/R.31. Status: active, observation. Household file IV/7781: complete, tab blue.
+IV/4471/R.31. Status: active, observation. Household file IV/7781/R.40: complete, tab blue.
 Clerk: HALM V.
 
 Week two. The District Register balances to the line, and the inspection from Central finds
 nothing to initial. Vera is at her desk by seven fifty; Berta at the next, not looking up.
-Ilona's letter says next cycle; she has put it in the drawer. On Vrba Street the Tuesday call
+Ilona starts anatomy on Monday. On Vrba Street the Tuesday call
 is still booked, three minutes, and the son says the weather is poor, and Marta says it is
 poor here too, and a tape with a serial takes it down. Kastan has new cigarettes. At Brenava
 the sheet inside the stamp cabinet has a new line at the bottom, retyped from a telephone
@@ -655,7 +654,7 @@ before it was a line in his.
 
 Stamp: DESTROYED
 
-IV/4471/R.31. Leaves: none. Intake: received B.L. Memo R/IV/40 attached.
+IV/4471/R.31. Leaves: none. Intake: received B.L. Memo, Records IV, W40, attached.
 
 Week two. The folder is a K-1 cover with nothing inside it and a red tab nobody has the
 authority to turn blue. The memo is in the registrar's tray, typed, with a desk number on it.
@@ -678,9 +677,8 @@ IV/4471/R.31, district carbon, leaf 40: unaccounted.
 Week two. The sheet is read by eight, and one of the eight is the corridor, which has read the
 serial and knows which banking hall it came from. The call to flat 5 comes at nine and is
 polite. Kastan has no cigarettes this week and sits in the lodge with the hatch shut; a
-caretaker nobody pays is still a caretaker. Marta is in a corridor bed at Lom with a clipboard
-that has a serial, because the Tuesday train is opened in full now and the parcel went into an
-envelope. Ilona's letter says next cycle. The anatomy notes are back in her bag.
+caretaker nobody pays is still a caretaker. Marta's Tuesday parcel went into an envelope at
+Brenava, because the train is opened in full now. Ilona's letter says next cycle. The anatomy notes are back in her bag.
 
 The name on the sheet came out of a kitchen drawer in flat 5; the bar that stays down at
 Brenava came down with it.
@@ -694,10 +692,9 @@ paper 2 rm. Detained: rail staff (1). Unit commended.
 
 Week two. The envelope with the inhaler is on a shelf at the Ribbon with a serial on it. Marek
 is in a room with two chairs. The 4th Battalion has a line in the Plan bulletin, and Tomas has
-a commendation on his family card beside an uncle. At Lom hospital a nurse writes down that the
-son writes. In the cellar the press is clean, which is the worst thing a press can be; the
-circle sits on crates with nothing to pass round, and the hatch is sealed with a paper seal
-carrying the Drawer. Ilona's letter says not eligible to reapply.
+a commendation on his family card. At Lom hospital a nurse writes down that the son writes. In
+the cellar the press is clean, which is the worst thing a press can be; the circle sits on
+crates with nothing to pass round.
 
 The breath that failed on the second-floor gallery was held in a conscript's hand on a bridge,
 in brown paper, for eleven minutes.
@@ -706,15 +703,15 @@ in brown paper, for eleven minutes.
 
 Stamp: RELEASED
 
-4th Bn. report: responsible BREN T., pte.; log clerk cleared. Household file IV/7781:
+4th Bn. report: responsible BREN T., pte.; log clerk cleared. Household file IV/7781/R.40:
 complete. Contacts: RUSEK J., cellar.
 
 Week two. The sheets are on every landing in Lom, and the Vienna transmitter read one aloud on
 Thursday in a better voice. Jan is watched; the car at the tram loop has its lights off. Tomas
 is on report, which at Brenava means the dog run and the night strip; Ondra keeps the log and
-writes the date at the top of each clean page. Marta breathes. Ilona's letter says next cycle,
-and she goes home by the street now, not the yard, and does not know why. In the Records Office
-the household card for flat 5 is one line heavier and tied with the corridor's knot.
+writes the date at the top of each clean page. Marta breathes. Ilona's letter says next cycle.
+In the Records Office the household card for flat 5 is one line heavier and tied with the
+corridor's knot.
 
 The paper Tomas let through is the paper Jan printed; the name Vera wrote to keep her daughter
 out of the file is the man who printed it.
@@ -745,8 +742,8 @@ IV/4471/R.31: location in Register, reply pending. Faculty card, HALM I.: review
 Statement of Position attached; resit granted.
 
 Week two. The call from the corridor comes at nine and is polite and is about the same serial,
-and Vera says the morning again. Her line clicks. Marta is in a corridor bed at Lom and a nurse
-has written that the son writes. The hatch under the chestnut is sealed and the press is on an
+and Vera says the morning again. Her line clicks. Through the wall the cough comes in short
+sets. The hatch under the chestnut is sealed and the press is on an
 inventory, by its maker's plate. The circle does not meet. Ilona's resit is on the calendar in
 a hand from an office. She goes down the stair in the dark and does not press the light. Berta
 sharpens the pencil.
@@ -759,12 +756,11 @@ to open it again is the cellar's.
 Stamp: ARCHIVED
 
 Building book, Vrba 9, per 3: HALM I., evenings, cellar hatch. Faculty: REFUSED.
-Household file IV/7781: complete.
 
 Week two. The Tuesday parcel comes up the stair past the lodge, and Marta breathes, in long
 sets now, on the gallery at 3 a.m., where it can be heard. Kastan has cigarettes and a new
-line in the book. The cellar hatch is sealed; Jan is in a room with two chairs. Ilona's letter
-says not eligible to reapply, and she has folded it along the fold it came in. Vera is at her
+line in the book. Ilona's letter says not eligible to reapply, and she has folded it along the
+fold it came in. Vera is at her
 desk by seven fifty. The building book records the hour she knocked at flat 3 and how long she
 stood there, and it records, two lines below, what the widow paid for her breath.
 
@@ -776,15 +772,13 @@ name, in pencil.
 Stamp: DESTROYED
 
 4th Bn. report, Brenava: supply route named. Brenava list add.: Tues. intl., staff compt.,
-rail attendants: OPEN ALL. Statement RUSEK J. attached.
+rail attendants: OPEN ALL.
 
 Week two. The Tuesday train is walked car by car, and the staff compartment first now. The
 Vienna call is booked and not answered. Marta is in a corridor bed at Lom on the oxygen the
 hospital does have, and the nurse has stopped asking who sends the medicine, because nobody
 does. Ondra keeps the log. Tomas keeps the gate and reads the list at the start of every shift.
-The sheet with the caretaker's name was read by eight and the corridor was one; the folder in
-the Records Office is being traced by desk. Ilona's letter says next cycle.
+Ilona's letter says next cycle.
 
-On Vera's desk this morning, red tab, this autumn's serial: a railway attendant she has known
-since he was a boy on the gallery, named at a bridge seventy kilometres away, for her to number
-by hand.
+On Vera's desk this morning, red tab, this autumn's serial: the widow's son, who sent the
+parcel, opened from a hospital clipboard and a three-minute tape, for her to number by hand.
