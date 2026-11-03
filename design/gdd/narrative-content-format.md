@@ -214,6 +214,8 @@ F    := <record>.<field> | sheet.<field>
 
 Human review, never a rule: whether the tone is dry; whether a villain speaks as a villain; whether anyone is told what they did to the others; whether the cost appears as a person in a room; whether an epilogue's assumed facts hold across the end states that fold into it. Explicitly **not** checked by machine: tense (present-tense fragments and the paper's perfect tense would both fail any heuristic); style rules never fail the build; the checker never stops at the first error and never flags a file that did not change.
 
+**16. Amendments from Visual/Audio Requirements** (adopted into the format): sign `overprint` rows carry `hand`; stamp registry rows carry `red_class` (`red`, `carbon`, `soot`, `hatch`) and epilogue stamps may not be `carbon`; documents carry `copy: true` when they are duplicates; any `line` in a non-typewriter hand is an annotation and is capped at `ANNOTATION_CAP` characters over at most two rendered lines (V09 applies the tighter of the kind cap and the hand cap); per-container fit caps (`DOC_FIT`, `FILE_ENTRY_FIT`, `SAYS_FIT`, `STAMP_FIT`) derive each string's `max_chars` and `max_lines`; `{gap}` has `GAP_MIN`; markup is the closed set double-strike, underline, CAPS; `cap.*` strings carry `speaker` and `source` tags.
+
 ### States and Transitions
 
 **Content set** (per act):
@@ -286,7 +288,35 @@ Backward from `string_frozen` is a structural rework, allowed only through a rec
 
 ## Visual/Audio Requirements
 
-[To be designed]
+*Required for a Narrative-category system; specified with the art director from art bible §1–4, §7 and §8. Constraints and vocabulary only; asset specs follow in `/asset-spec`.*
+
+**Art-bible principles carried in the data.**
+- *One-line rule (§1.1): every content object is a paper object.* `document.kind` is a closed list art draws (below); a new kind amends the art bible, not only this GDD.
+- *Hands select letterforms (§1.2, §4.2).* The hand registry is closed; narrative decides which hand a line uses, art decides what it looks like. Each hand resolves to one of exactly four letterforms (typewriter, cursive, hand-set block, stencil) and one ink (soot, carbon, grey-green, khaki). A new hand is a variant, never a fifth face. `paper`, `record`, marginalia and **sign overprint** lines all carry `hand` (default `office`): an overprint is by definition another protagonist's ink and cannot render without one.
+- *Red is budgeted (§4.3, §4.4).* Stamps are the only red at the Confident phase. Every stamp registry row carries `red_class`: `red` (state attention), `carbon` (the copy ghost), `soot`, or `hatch` (outline only; Collapsing's "stamps unanswered"). No `ui.*` or `cap.*` string is ever red; red is never an error colour.
+- *Stamps are glyphs, never text (§4.5, §8.1).* A stamp is a greyscale mask the engine tints; the registry `label` is the screen-reader text and the glyph-missing fallback. A `stamp` line's text is the registry label, never free prose.
+- *Carbon blue means filed (§4.2).* An answer's `record` and any copied sheet render as carbon with double-strike and "cc"; documents carry `copy: true` when they are duplicates.
+- *Annotation limits (§7.2).* Any line in a non-typewriter hand is annotation: at most two rendered lines and `ANNOTATION_CAP` 80 characters, set at least 1.2× body. This is tighter than `LINE_CAP` and is a per-hand cap.
+- *No triumphant colour on any ending (§2.1, Pillar 3).* Epilogue stamps are `red`, `soot` or `hatch` only.
+
+**MVP vocabulary for act one** (registries this GDD ships; one visual note each).
+- *Hands:* `office` typewriter, soot ribbon (default); `handler_1` typewriter, carbon (handler reports arrive as copies); `rybar` typewriter, soot (the telephone's wording on the form); `typewriter_intake`, `typewriter_security` (machine hands for typed paper lines); `berta` clerk pencil, small cursive, soot tint (initials and counts only); `vera` cursive, grey-green; `jan` hand-set block, soot; `tomas` stencil capitals, khaki; `press` hand-set block, misregistered (samizdat only); `ondra` and other named people: a variant of their side's letterform (state typewriter, people block), never a new face.
+- *Forms:* `k1` intake cover sheet (gridded, tab); `district_register` ledger leaf (numbered margin, ruled); `brenava_log` gate log (ruled columns, khaki stencil header); `source_report` fond S (carbon throughout); `transfer_order`; `memo_internal` half sheet; `notice_public` state notice as a torn fragment (sign board); `leaflet_samizdat`; `calendar_leaf`; `dossier_cover` (menu and epilogue last page). Each row carries `paper_kind` and `side` (`state`/`people`).
+- *Stamps (red class):* `received` red; `archived`, `destroyed`, `released` red (epilogue closers; narrative director to confirm the E1–E9 mapping); `noted` red (handler); `passed`, `detained` red (gate); `copy` carbon; `date` red (reach by phase). UI-owned, not content: `surveillance`, `void`.
+- *Paper kinds:* `file` (bone, grid, tab), `folder` (cover, string tie), `memo` (half sheet), `slip` (narrow strip, lifted corner), `card` (ruled index card, heavier bone), `letter` (ochre-tinted bone, fold crease; the only private paper), `log_page` (ruled columns), `register_leaf` (numbered margin), `leaflet` (soot, misregistered, torn edge).
+
+**Font and rendering requirements the format must make possible.**
+- *State's voice:* one monospaced typewriter face, ribbon texture, regular weight, Latin Extended-A plus Cyrillic, no italics. It is the body for every `line`, `prose`, `label`, `invariant` and every transcript.
+- *Human voice:* not a body face (art bible §7.7 rejected hand letterforms for dialogue body). The human voice is carried by `hand` on paper lines and marginalia in the three annotation letterforms, Latin Extended-A only; an uncovered glyph falls back to typewriter in the same ink.
+- *`{gap}`:* a ruled blank of `gap_width` character cells (integer, monospace), drawn as a baseline rule in the sheet's rule colour, never underscores or a literal "[blank]"; minimum `GAP_MIN` 4 cells, default the entry's worst-case length. In the dissident view the same token renders as a torn absence, decided by the renderer, not the data.
+- *Struck line:* a single horizontal strike in the striking hand's ink through legible text; never redaction black, never red. Redaction bars are content (art bible §3.5) and act one has none.
+- *Marginalia:* `side` left or right, in the annotating hand, in the margin column outside the 55–72 column text block, never over body; cross-chapter overprints default right.
+- *Fit caps per container* (a string cap is not a fit cap; `max_chars`/`max_lines` are derived from these): documents `DOC_FIT` 72 characters per rendered line; dossier field lines `FILE_ENTRY_FIT` 40; answer `says` `SAYS_FIT` 60; stamps `STAMP_FIT` 12 per line × 2 lines. The Files entry at 40 per line is the sharpest difference from `LINE_CAP`.
+- *Misregistration* is a phase effect on plates, never a styling flag in strings. Markup is closed to double-strike, underline and literal CAPS; no italic token exists.
+
+**Audio.** This system owns no sound. `cap.*` caption strings carry a `speaker` tag (cast id or `sound`) and a `source` tag (`paper`, `stamp`, `typewriter`, `phone`, `door`, `street`); captions render as a typed bracketed line on the transcript sheet, soot, never red. Sounds the paper implies, for the Audio system to own and the audio director to specify: stamp impression (one hit matching art bible §7.4's timing), carbon sheet slide, page turn, calendar tear, typewriter on page arrival and never per character, since text never moves. The mood they match is dry, close and unmusical: paper is the loudest thing in the room.
+
+> 📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/asset-spec system:narrative-content-format` to produce per-asset visual descriptions, dimensions, and generation prompts from this section.
 
 ## Game Feel
 
