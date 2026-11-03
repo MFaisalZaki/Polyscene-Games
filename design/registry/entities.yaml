@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-03"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -65,7 +65,175 @@ last_updated: ""
 # Attribute fields: any key stats that could appear in another GDD
 #   (health, damage, drops, faction, etc.)
 
-entities: []
+entities:
+  - name: vera
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: security
+    added: 2026-11-03
+    revised: ""
+  - name: jan
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: security
+    added: 2026-11-03
+    revised: ""
+  - name: tomas
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: post
+    added: 2026-11-03
+    revised: ""
+  - name: marta
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: records_office
+    added: 2026-11-03
+    revised: ""
+  - name: ilona
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: records_office
+    added: 2026-11-03
+    revised: ""
+  - name: berta
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: records_office
+    added: 2026-11-03
+    revised: ""
+  - name: kastan
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: security
+    added: 2026-11-03
+    revised: ""
+  - name: ondra
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: post
+    added: 2026-11-03
+    revised: ""
+  - name: courier
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: person
+    custodian: post
+    added: 2026-11-03
+    revised: ""
+  - name: border
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: unit
+    custodian: post
+    added: 2026-11-03
+    revised: ""
+  - name: office
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: unit
+    custodian: records_office
+    added: 2026-11-03
+    revised: ""
+  - name: regime
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+      - "Narrative Content Format & Strings"
+    record_kind: regime
+    custodian: none
+    added: 2026-11-03
+    revised: ""
 
 # Example (remove when first real entry is added):
 #
@@ -123,7 +291,153 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: scalar_apply
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Filing & Decision"
+      - "Dialogue & Interrogation"
+    variables:
+      - v
+      - set
+      - add_i
+      - max_j
+      - min_k
+      - lo
+      - hi
+    output_range: "[lo, hi]"
+    expression: "clamp(min(max(set ?? v + sum(add_i), max_j), min_k), lo, hi)"
+    notes: "Formulas §1. One scalar per boundary batch; adds commute."
+    added: 2026-11-03
+    revised: ""
+  - name: regime_stability
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Chapter & Story Structure"
+    variables:
+      - stability_0
+      - hits
+      - relief
+      - beats_paranoid
+      - DRIFT_PERIOD_STABILITY
+    output_range: "[0, 10]"
+    expression: "clamp(stability_0 - sum(hits) + sum(relief) - floor(beats_paranoid / DRIFT_PERIOD_STABILITY), 0, STABILITY_MAX)"
+    notes: "Formulas §2."
+    added: 2026-11-03
+    revised: ""
+  - name: regime_phase
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Overlay & Surveillance Rendering"
+      - "Audio & Adaptive Surveillance Mix"
+      - "Reactive Event Rules & Story Simulator"
+    variables:
+      - phase_reached
+      - stability
+      - unrest
+      - paranoid
+    output_range: "[0, 3]"
+    expression: "max(phase_reached, band(stability, unrest)); band = 3 if stability <= T_COLLAPSE and unrest >= U_COLLAPSE; 2 if stability <= T_PANIC and unrest >= U_CROWD; 1 if stability <= T_PARANOID or paranoid; else 0"
+    notes: "Formulas §2. The Calendar owns the function; this GDD owns the aggregates and thresholds. Monotone by the phase_reached ratchet."
+    added: 2026-11-03
+    revised: ""
+  - name: attention_effective
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - attention
+      - under_observation
+      - phase
+    output_range: "[0, ATTENTION_CAP]"
+    expression: "clamp(attention + OBS_BONUS * [under_observation] + PHASE_BONUS * [phase >= 2], 0, ATTENTION_CAP); red = A_eff / ATTENTION_CAP"
+    notes: "Formulas §3. red is in [0, 1] and feeds the stamp-red bleed."
+    added: 2026-11-03
+    revised: ""
+  - name: broken_count
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+    variables:
+      - defiance_p
+      - retraction_p
+    output_range: "[0, 3]"
+    expression: "sum over protagonists p of [OR(defiance_p) and not OR(retraction_p)]"
+    notes: "Formulas §4. Lists are per-act chapter data."
+    added: 2026-11-03
+    revised: ""
+  - name: ending_select
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    variables:
+      - phase
+      - B
+      - K_1..K_n
+      - ENDING_TABLE_act
+    output_range: "one ending class"
+    expression: "first row r in ENDING_TABLE_act such that match(r, phase, B, K_1..K_n); last row is a declared fallback"
+    notes: "Formulas §5. A fallback hit in a simulator run is a build failure."
+    added: 2026-11-03
+    revised: ""
+  - name: flag_budget_ok
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    variables:
+      - R_c
+      - W_c
+      - X
+    output_range: "bool"
+    expression: "|R_c| <= READ_MAX and |W_c| <= WRITE_MAX and |R_c ∩ X| <= CROSS_READ_MAX and |W_c ∩ X| <= CROSS_WRITE_MAX"
+    notes: "Formulas §6. Authoring gate; runtime log only."
+    added: 2026-11-03
+    revised: ""
+  - name: payoff_reads
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    variables:
+      - R_c
+      - X
+      - last_source_protagonist
+    output_range: "[0, CROSS_READ_MAX]"
+    expression: "|{ f in R_c ∩ X : last_source_protagonist(f) not in {protagonist(c), null} }|"
+    notes: "Formulas §7. Warning below CROSS_READ_MIN for every chapter after the first of an act."
+    added: 2026-11-03
+    revised: ""
 
 # Example:
 #
@@ -156,7 +470,298 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: ATTENTION_CAP
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Paper UI"
+      - "Overlay & Surveillance Rendering"
+    value: 6
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: ATTN_LOOK
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    value: 3
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: ATTN_WATCHED
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Narrative Content Format & Strings"
+    value: 4
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: OBS_BONUS
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 1
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: PHASE_BONUS
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 1
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: DRIFT_PERIOD_ATTENTION
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    value: 3
+    unit: beats
+    added: 2026-11-03
+    revised: ""
+  - name: DECAY_PERIOD_ATTENTION
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    value: 0
+    unit: beats
+    added: 2026-11-03
+    revised: ""
+  - name: STABILITY_OPENING
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    value: 9
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: STABILITY_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    value: 10
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: UNREST_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    value: 12
+    unit: points
+    added: 2026-11-03
+    revised: ""
+  - name: DRIFT_PERIOD_STABILITY
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+    value: 3
+    unit: beats
+    added: 2026-11-03
+    revised: ""
+  - name: T_PARANOID
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Overlay & Surveillance Rendering"
+    value: 7
+    unit: stability
+    added: 2026-11-03
+    revised: ""
+  - name: T_PANIC
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Overlay & Surveillance Rendering"
+    value: 5
+    unit: stability
+    added: 2026-11-03
+    revised: ""
+  - name: T_COLLAPSE
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+      - "Overlay & Surveillance Rendering"
+    value: 2
+    unit: stability
+    added: 2026-11-03
+    revised: ""
+  - name: U_CROWD
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 6
+    unit: unrest
+    added: 2026-11-03
+    revised: ""
+  - name: U_COLLAPSE
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 9
+    unit: unrest
+    added: 2026-11-03
+    revised: ""
+  - name: READ_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    value: 20
+    unit: fields per chapter
+    added: 2026-11-03
+    revised: ""
+  - name: WRITE_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    value: 24
+    unit: fields per chapter
+    added: 2026-11-03
+    revised: ""
+  - name: CROSS_READ_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    value: 6
+    unit: fields per chapter
+    added: 2026-11-03
+    revised: ""
+  - name: CROSS_WRITE_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    value: 8
+    unit: fields per chapter
+    added: 2026-11-03
+    revised: ""
+  - name: CROSS_READ_MIN
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Reactive Event Rules & Story Simulator"
+      - "Chapter & Story Structure"
+    value: 1
+    unit: fields per chapter
+    added: 2026-11-03
+    revised: ""
+  - name: KEY_AXES_MAX
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    value: 5
+    unit: axes per act
+    added: 2026-11-03
+    revised: ""
+  - name: ASSUME_BUDGET
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Chapter & Story Structure"
+      - "Reactive Event Rules & Story Simulator"
+    value: 2
+    unit: assumptions per act
+    added: 2026-11-03
+    revised: ""
+  - name: SCHEMA_VERSION
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Save/Load"
+    value: 1
+    unit: version
+    added: 2026-11-03
+    revised: ""
+  - name: BEATS_PER_ACT
+    status: active
+    source: design/gdd/dossier-state-model.md
+    referenced_by:
+      - design/gdd/dossier-state-model.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Calendar, Regime Phase & Attention"
+    value: 12
+    unit: beats
+    added: 2026-11-03
+    revised: ""
 
 # Example:
 #
