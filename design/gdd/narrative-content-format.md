@@ -40,15 +40,216 @@ The format holds two voices and never lets them mix. The human voice is the beat
 
 ### Core Rules
 
-[To be designed]
+*Drafted with the game designer (primary), the narrative director, the localization lead and the writer. Where the four disagreed, the ruling is stated in the rule with the alternative it displaced. Items marked **(PROV)** rest on a dependent system whose GDD is not yet written; each becomes a reciprocal line in that GDD.*
+
+**0. Vocabulary.** A *content object* is one authored thing with an id: a chapter, scene, document, dialogue, decision, beat, epilogue, form table or cast entry. A *string* is one piece of player-visible text with a string id, resolved per locale. A *source file* is what a writer edits. A *compiled file* is what the game loads. A *class* is a polyscene action, event or ending class name (the story engine's vocabulary; this GDD never invents one). A *segment* is one string of kind `prose` (a paragraph). The *lock* is the id registry (Rule 3).
+
+**1. Two layers, one direction.** Content is authored in source files, compiled by a build tool into plain data, and loaded by the game from the compiled data only.
+
+- *Authoring sources* live under `assets/content-src/`, listed in `assets/content-src/manifest.yaml`. Prose-shaped types (beats, epilogues, chapter openings, documents, dialogue) are Markdown files with a YAML front-matter block for metadata and a line-oriented body whose syntax is fixed per type (Rule 5). Graph- and table-shaped types (chapters, scenes, decisions, the three form tables, the cast and hand registries, `ui` strings) are YAML. **Player-visible text never appears as a YAML value except in the form tables and `ui` strings, where every string is short and quoted.** The approved `design/narrative/dialogue/act-one-beats.md` is already in the beat syntax and migrates by being moved, not rewritten.
+- *The compiler* `tools/content/compile.py` (Python, so it runs beside the polyscene topic under `tools/`) parses sources, allocates ids through the lock, emits compiled structure JSON under `assets/data/content/` (one file per chapter plus `content.common.json` for forms, cast, beats and epilogues), emits one translation CSV per string domain under `assets/data/content/strings/` in the engine's CSV format (plural and context columns), snapshots the polyscene world's class list to `world_classes.json` (`{class, kind: action|event|ending}`), and writes `manifest.json` with `content_schema_version`, a content hash and `shipped_locales`. Output is deterministic: sorted keys, LF line endings, no timestamps. Compiled files are committed; CI recompiles and fails on any diff.
+- *Structure JSON holds string ids only, never text.* Text travels in the CSVs. Pure-logic systems therefore handle ids and never strings, which is what lets them stay headless.
+- *The runtime* loads `manifest.json` and the structure JSON at startup through `ContentStore` (Rule 9), and text through `StringLookup` (Rule 10). It never parses Markdown or YAML.
+- *Rationale:* writers keep writing prose in the shape they already use; diffs of compiled data are reviewable; the player's machine needs no parser and no Python. *Rejected:* compiling at game start or in an editor plugin (not reproducible across machines, and the validator could not run in CI); authoring directly in JSON or YAML (the writer's ruling: the state's wording is full of colons, brackets and hashes that break unquoted YAML, and nobody writes a 650-character paragraph in a JSON string).
+
+**2. The compiler lints; the validator validates.** Two checkers run, in this order, and both are build gates.
+
+- *Compiler lint* (Python, inside `compile.py`): everything that can be decided from the sources alone. Syntax, id grammar, duplicate ids, string caps, ASCII rule, dangling references between content objects, missing beats for a class, missing `paper` lines, missing `fallback` answers, serial mismatches against a document's front matter. It is fast (target under two seconds per changed file in watch mode, Tuning Knobs) and reports every error at once as `file:line` plus a one-line fix.
+- *Validator* `ContentValidator` (GDScript, headless, under the code root, run by `godot --headless -s`): everything that needs the dossier schema, the condition evaluator, the budget counter or another system's registry. It is the one implementation of those three things; the runtime uses the same classes. It runs over the compiled output, the lock, the CSVs, `assets/data/dossier/schema.json`, the Fact index and `world_classes.json`. Exit non-zero on any error; the release branch also runs it with warnings as errors.
+- *Rationale:* GDD 1 §9 and §11 place the budget counter and the validator in the headless model code that the simulator imports; a second Python copy of the condition evaluator would drift from the one the game runs. The lint exists because the writer needs feedback faster than an engine start-up. *Rejected:* one Python validator (two evaluators); one GDScript checker only (too slow for a watch loop).
+
+**3. The id lock.** `assets/content-src/idlock.yaml` is committed and records every content id and string id ever compiled: `{id, owner, kind, rev, state, first_shipped, replaced_by}`.
+
+- A new source slot gets its id at first compile. A sequence number takes the next unused ordinal for its owner and is never reused; file order and id order may differ.
+- A segment is matched to its lock entry by normalised-text alignment, so an inserted paragraph does not shift its neighbours. When alignment is ambiguous the lint fails and asks for an explicit anchor comment (`<!-- id: beat.read_file.3 -->`), which is the only time an id appears inside prose. Before freeze the writer never sees an id.
+- **Content ids obey the same permanence rule as string ids** (chapter, scene, action, dialogue, answer and decision ids), because GDD 1's effect `source` tags are persisted in saves and change logs. A post-ship rename of a content id is a Save/Load `migrate` job **(PROV: Save/Load)**.
+- States: `draft` (in source only) → `assigned` (in the lock; text editable; rename forbidden) → `frozen` (text locked for the localisation hand-off) → `shipped` (`first_shipped` set; no purge) → `retired` (tombstone; permanent; may carry `replaced_by`). Forward only. `idlock purge <id>` deletes only an id with no `first_shipped`.
+- A retired id referenced by live content is an error; a retired id found in a save resolves through `replaced_by` with a warning, never a blank.
+- *Rationale:* ids must survive typo fixes (so no text hashes), paragraph insertion (so no line numbers) and class renames (so the class name is copied into the owner slug once, at birth, and the lock maps class to owner thereafter). *Rejected:* content-hash ids; positional ids; hand-assigned ids.
+
+**4. String ids.**
+
+- *Grammar:* `id := seg ("." seg){2,4}`, `seg := [a-z0-9][a-z0-9_]{0,23}`, whole id at most 64 characters, ASCII lowercase only, no diacritics ever. Only the last segment may be all digits (the ordinal).
+- *Domains* (first segment, closed list; adding one amends this GDD): `beat`, `epi`, `doc`, `dlg`, `dec`, `sign`, `order`, `file`, `fact`, `cast`, `place`, `chap`, `scene`, `form`, `ui`, `cap`, `acc`. `cap` is Audio captions and `acc` accessibility text **(PROV: Audio, Paper UI)**.
+- *Semantics:* the second segment is the owner key (class slug, document slug, chapter id, scene id, form id, speaker). Ids carry no mutable in-world data: **no serials, no dates, no field values in ids.** `doc.reg_212.l14` is legal; `doc.iv_4471_r31.l14` is not, because a serial is in-world data that can be corrected. Examples: `beat.read_file.1`, `epi.e1.body.2`, `sign.car_in_street`, `dlg.a1_vera_s2.query_ledger.rybar.1`, `file.vera.discrepancy.entry`, `chap.a1_vera.open.1`.
+- *Kinds and caps.* The domain and position fix the string's kind, and the kind fixes the length rule (counted in NFC code points, markup excluded, each placeholder at its declared worst-case length):
+
+| Kind | Used for | Source cap (`en`) |
+|---|---|---|
+| `line` | dialogue lines, `says` and `record` texts, paper lines, sign, order and file-form lines, stage lines | `LINE_CAP` 120, error |
+| `label` | answer labels, UI buttons, tabs, stamps | `LABEL_CAP` 48, warning |
+| `prose` | beat paragraphs, epilogue and opening paragraphs, document leaf prose | `PROSE_WARN` 800 warning, `PROSE_CAP` 1,200 error |
+| `invariant` | cast names, place names, serials, form codes | identical in every locale, error on difference |
+
+- *Ruling on the 120-character rule:* the beats file's convention "every line is a localisation string; no line exceeds 120 characters" is read as applying to **`line` kinds**: everything that is spoken, stamped or written on a form. A prose paragraph is one string and is capped by `PROSE_CAP`. The narrative director proposed sentence segments of 120 characters each with compiler anchors; the writer, the game designer and the localization lead each argued that sentence-level units break word order and context in translation and put ids in the writer's prose. The paragraph wins; the narrative director's reading survives as `PROSE_WARN`, which flags a paragraph long enough to deserve a second look.
+- *Placeholders* are named only (`{courier_name}`, `{n}`, `{gap}`, `{title}`), declared per string with a type and a worst-case length; the set must be identical in every locale. Plurals use the engine CSV plural columns: `{n, plural, one{…} few{…} many{…} other{…}}`, `other` always required, every category of the locale's plural rules supplied. No gender `select` in MVP: a string id belongs to one speaker, and the translator inflects from the speaker and addressee metadata.
+- *Changed meaning test:* would an existing translation now be factually wrong? Yes: new id, old id retired. No (typo or same-meaning rewording): same id, `rev` bumped, other locales marked `stale`.
+- *Rejected:* one string per hard-wrapped source line (breaks sentence order in translation); source text as key (gettext style: a typo renames the key, and "Spolny." means different things in different rooms).
+
+**5. Content object types and their source syntax.** Every object has an `id`. The field lists below are complete; the *semantics owner* is the system whose GDD decides what the field means at runtime.
+
+| Type | Fields | Semantics owner |
+|---|---|---|
+| `chapter` | `act`, `protagonist`, `title` (string), `opening[]` (prose segments), `entry_scene`, `scenes[]`, `reads[]`, `writes[]`, `assumes[{field, value, settles_as}]`, `sheet[{name, type, default}]` | Chapter & Story Structure **(PROV)**; GDD 1 for `reads/writes/assumes` and the budgets |
+| `scene` | `id` (global form `a1_vera/s3`), `location` (opaque ref), `register` (`public`/`private`, the room's default address), `actions[]`, `documents[]`, `dialogues[]`, `exits[{to | chapter_end, when}]` | Scene Flow **(PROV)**; Scene & Interaction Framework for `location` and hotspots |
+| `action` (in a scene) | `action_id` (defaults to `class`), `class`, `label` (string), `when` (condition), one of `effects[]`, `dialogue`, `decision`, `document`; `hotspot` (opaque ref) | Filing & Decision for effects **(PROV)**; Scene & Interaction Framework for hotspots **(PROV)** |
+| `document` | `kind` (`file`, `folder`, `memo`, `slip`, `card`, `letter`, `log_page`, `register_leaf`, `leaflet`), `form` (form registry key), `serial` (invariant), `custodian` (GDD 1's enum; decides Files membership), `fond`, `date {plan_week, day, time?}` (display derived), `leaves[{id, lines[]}]` | Paper UI renders **(PROV)**; Investigation & Fact for `yields` **(PROV)** |
+| `line` (in a leaf) | `id`, `slug`, `text` (string, kind `line` or `prose`), `kind` (`entry`, `marginalia`, `stamp`, `slip`), `hand` (hand registry key), `bind {field | tag, struck: auto | <line id>, gap_width}` or `bind {field, at_least: <constant name>}`, `yields[]` (fact ids) | This system (format); GDD 1 §7 (how `true`/`false`/`unknown` render) |
+| `dialogue` | `id`, `scene`, `room_register`, `items[]` in forward-only order, each one of `line {speaker, register, tell, text, when}`, `stage {text}`, `ask {speaker, register, text, answers[]}`, `end` | Dialogue & Interrogation **(PROV)** |
+| `answer` (in an `ask`) | `id`, `says` (string, `line`), `record {form, hand, text}` (the other side's wording on the form), `when`, `effects[]`, `next` (forward only), `carry` (bool), `pace?` (reserved, Rule 5d) | Dialogue & Interrogation **(PROV)** |
+| `decision` | `prompt` (string), `options[{id, label, when, effects[]}]` | Filing & Decision owns the cost rule **(PROV)**; this system the format |
+| `beat` | `class` (action, event or opening key; equals the polyscene class name at birth), `kind` (`action`, `world_move`, `opening`), `pov` (`vera`, `jan`, `tomas`, `state`, `world`), `present[]` (cast ids), `objects[]`, `body[]` (prose segments), `paper {form, hand, text}` | The narrator (Reactive Event Rules & Story Simulator) **(PROV)** |
+| `epilogue` | `ending_class` (`E1`…`E9`, `act_fallback`), `act`, `title`, `stamp` (stamp registry key), `head[{form, hand, text}]`, `body[]`, `closing[]` (one or two segments; the crossing sentence, the page ends on it), `crosses[{from, to}]` (non-empty for `E1`…`E9`, empty for `act_fallback`) | Chapter & Story Structure picks the class **(PROV)**; GDD 1 `ending_select` |
+| `forms` | the sign table, order forms and file forms (Rule 7) | GDD 1 §7 for the projection rules |
+| `cast` | `id`, `name` (invariant), `initials` (invariant), `gender`, `default_register`, `titles {public, private}` | This system |
+| `registries` | `hands {id, owner}`, `stamps {id, label}`, `forms {id, label}`, `places {id, name}` | Narrative owns which hand; Art owns what it looks like |
+
+5a. *Beats carry no gates, variants, conditions or effects.* A beat that read differently by state could not stand alone in any order, and effects are the engine's. The `paper` line's blank is the protected token `{gap}`, never the literal "[blank]". `kind: opening` beats are keyed per protagonist and listed on the chapter.
+
+5b. *Documents.* Source body syntax is one line per entry: `slug | binding | text`, with `^slug` marking marginalia and an empty binding meaning "always prints". The writer writes each entry once; the compiler derives the struck form (`false`) and the gap (`unknown`) from the one string, so there is nothing to keep in sync. A scalar may be bound only as a threshold against a **constant name** (`vera.attention >= ATTN_LOOK`), never a number, matching GDD 1's rule that scalars never project. A line *yields* facts where they are first read (`@ fact parcel_was_medicine`), so there is one place to look for a fact's birth.
+
+5c. *Dialogue is a forward-only sequence, not a node graph.* Procedure is linear; a polite room has no back button. `next` may point only forward, there are no loops, and the lint proves every path reaches `end`. Every `ask` has at least one answer with no `when` (the writer's `fallback`; declining is always an answer and writes "Declined to state." with `carry: true`, so the item returns on the form). Gated answers are **hidden**, never greyed, because a greyed option leaks the dossier. Each answer shows two texts: `says`, the player's words, and `record`, the other side's dry version on the form; the gap between them is where the pressure lives. Every spoken item carries `register` (`public`/`private`) and `tell` (the wrong address is deliberate). Portrait requests are one word (`reads`, `waits`) resolved by Character Presentation **(PROV)**. *Rejected:* Ink or Yarn (a node-graph model and an external runtime, neither covered by the pinned engine reference); a general `goto` graph (nothing in the tone needs it, and it cannot be proven loop-free by a lint).
+
+5d. *The reserved `pace` field.* Pillar 5 permits timed choices only under interrogation or search, and the systems index places timers at Vertical Slice. The format reserves `pace {seconds, default_answer}` on an answer set and **does not define its semantics**; MVP content never sets it, and the lint errors on it while `content_schema_version` is the MVP version. The narrative director recommends it is never used. Dialogue & Interrogation rules **(PROV)**; see Open Questions.
+
+5e. *Source syntax for beats and dialogue* (the writer's forms, fixed here so the compiler has one grammar):
+
+```markdown
+### read_file
+pov: vera · kind: action · present: vera, berta · objects: folder_4471, string_tie, intake_tray
+
+The string tie comes undone in two pulls. Form K-1, then forty leaves numbered in the corner
+by a hand that changed twice in nine years. (…)
+
+> paper [form=k1 hand=handler_1]: IV/4471/R.31 leaf 40. Source report, fond S. Stated: medicine, foreign.
+@ fact parcel_was_medicine from reg_212.l14
+```
+
+```markdown
+== query_ledger  [scene: a1_vera/s2 | speaker: rybar | register: public | context: telephone, no portrait]
+rybar: Intake, Spolny. Serial IV/4471/R.31 shows received and no leaves. Explain the blank.
+
+? blame_clerk: "The folder came in light. The count is Berta's line."
+  if: is_true vera.discrepancy
+  record [hand=rybar]: Blank attributed to intake clerk B.L.
+  rybar: The line is initialled B.L. I will ask the clerk. Thank you, Spolny.
+  @ add berta.attention 1
+
+? whole: "Forty leaves, Spolny. In and out."
+  if: is_true office.ledger_reconciled
+  record [hand=rybar]: Count confirmed by archivist.
+  rybar: Forty. Then the blank is a clerk's habit. Good day.
+
+fallback decline: "I would rather check before I answer."
+  record [hand=rybar]: Declined to state.
+  carry: true
+```
+
+**6. Conditions are a closed data grammar, with one evaluator.**
+
+```
+cond := {is_true: F} | {is_false: F} | {is_unknown: F}
+      | {at_least: [F, n]} | {at_most: [F, n]}          # scalars only; n may be a constant name
+      | {has_fact: fact_id} | {was_assumed: F} | {phase_at_least: 0..3}
+      | {all: [cond…]} | {any: [cond…]} | {not: cond}
+F    := <record>.<field> | sheet.<field>
+```
+
+- Depth at most 4 (error); at most 8 leaves per condition (warning).
+- `not` is boolean negation, so `not is_true(x)` is true on `false` and on `unknown` (GDD 1 §6.7, closed world).
+- **There is no `visited`, `chose`, `after_beat`, scene-id, beat-id or option-id leaf**, and none will be added: content is gated by state, never by history (Player Fantasy's one rule). If a line needs the past, the past is written into the dossier or the chapter sheet and read back.
+- `Condition.evaluate(cond, reader)` is one shared headless implementation owned here; `reader` is injected with `read(target, field)`, `has_fact(id)` and `phase()`. Consumers never re-implement it. `Condition.fields_in(cond)` feeds the budget counts.
+- *Budget accounting* (GDD 1 Formulas §6: `R_c` is the set of distinct dossier, sheet and calendar fields read): dossier and sheet fields count as distinct reads; `has_fact` counts zero (held facts are not dossier state); `phase_at_least` counts as one virtual read `regime.phase` **(PROV: confirm with GDD 1's owner; the alternative is four regime fields)**.
+- The Rules system may need `changed:` or `contradicted:` leaves for the current boundary's change records; it adds them in its own wrapper, never by editing this grammar **(PROV: Rules)**.
+- *Rejected:* an embedded expression language (code in data; the validator could not count reads exactly); the orchestrator's `{sheet: burned}` shorthand (GDD 1 reads the sheet through the same `read(target, field)`, so it is `{is_true: sheet.burned}`).
+
+**7. Effect batches and `source`.** Authored effects live in four places: a scene action's `effects`, a decision option's `effects`, a dialogue answer's `effects`, and a chapter's `assumes`. Authors write `@ set vera.discrepancy true` and **never write `source`**; the compiler derives it from position and container: decision or action → writer `filing`; dialogue → `dialogue`; `assumes` → `assume`. The derived form is GDD 1's `writer:chapter_id/scene_id:action_id`, with `action_id = <dialogue_id>_<ask_id>_<answer_id>` for dialogue; the compiled JSON stores the full string and the validator re-parses it with GDD 1's parser. Rules batches are not authored here; Rules data cites `rules:chapter/scene:rule_id` under its own format **(PROV)**. *Rationale:* GDD 1 makes `source` mandatory and parsed, and a hand-written tag drifts. *Rejected:* authors write `source` by hand. **(PROV: confirm with GDD 1 that `action_id` is `[a-z0-9_]+` with no cap below 64.)**
+
+**8. Form tables.** Their row ids are the `form id` values that `schema.json`'s `projections` attribute references, so GDD 1 and this GDD meet at the id.
+
+- *Sign table:* rows `{id, fields[] (any-of), at_least?, lag (default SIGN_LAG_DEFAULT), text, overprint {text}}`. Two rows may share one `text` id (`sign.paper_not_come` for `border.courier_detained` and `border.route_burned`). Deliberate silence is an explicit row `{field, no_sign: true}`; act one declares `kastan.rewarded`, `vera.reported_jan`, `jan.source_traced`. The overprint text is the sign's second line when GDD 1's overprint condition holds (another protagonist's hand).
+- *Order forms:* rows `{id, field, value, text, form}`; text may carry named placeholders (`{courier_name}` from the cast table); `border.log_gap` is `{field, no_order: true}`.
+- *File forms:* live on document lines (Rule 5b), not in a table: the `entry` text is the `true` form, the compiler derives struck and gap. Scalar threshold lines `{field, at_least: <constant>, text}` and marginalia templates `{tag_prefix, text, hand, side, values {tag_value: cast id}}` are the only table-shaped file forms.
+- *Blank safety:* a blank means `unknown` in the Files view, so a missing or failed string must **never** render as blank (Rule 10).
+
+**9. Lookup API.** `ContentStore` is a headless `RefCounted`, injected, never an autoload: `load(manifest_path) → errors[]`; `chapter(id)` with its declarations; `scene(chapter_id, scene_id)`; `document(id)`, `dialogue(id)`, `decision(id)`, `cast(id)`; `beat(class) → beat | null`; `epilogue(ending_class)` falling back to `act_fallback` with a logged warning; `sign_table()`, `order_forms()`, `file_forms()`; `fact_index()` (every `yields` by document line and answer); `string_ids()`; `content_version()`. Returned objects are read-only views; a test asserts that mutating one does not alter the store.
+
+**10. String lookup.** `StringLookup` is an interface with two implementations and one contract: `text(id, params) → String`, `text_n(id, n, params)`, `has(id)`, `locale()`. Fallback order in every build: current locale → `en` → the literal `⟦id⟧`. **Never blank** (Rule 8). The *engine implementation* lives in the presentation layer, is the only class that calls `tr()`, and loads the compiled CSVs through the engine's translation system (the sourced path: `tr()`, CSV with plural and context columns, live translation preview in the editor). The *headless implementation* reads the same CSVs' `en` column directly and serves the story simulator, the validator's messages and the unit tests. Locale choice comes from Settings Store **(PROV: Settings Store's index row lists no `locale`; raised in Open Questions)**. **NOT SOURCEABLE** from the pinned reference, and gated to an ADR spike before the engine implementation is designed: the `TranslationServer` 4.7 API shape and missing-key behaviour; whether `tr()` works without a scene tree; whether the CSV importer tolerates our extra metadata columns and the exact plural and context column names; PO import mapping; per-script font fallback; `JSON.parse_string` size and precision limits. *Rejected:* a custom JSON string table bypassing `tr()` for everything (loses the editor's live preview, the one translation workflow the pinned reference documents); PO consumed directly by the engine (makes the simulator depend on unsourced behaviour). PO remains the *translator exchange* format: the compiler exports PO per locale per domain from the CSVs and ingests translated PO back, so agencies see a standard format and the game sees CSV.
+
+**11. Localisation.** The source locale is `en`; its CSV column is derived-only (the compiler regenerates it and merges the other locales by key). The compiler also emits a dev-only `pseudo` locale (`PSEUDO_EXPANSION` longer, accented Latin, bracketed, protected spans untouched) to catch overflow and unlocalised literals. **Completeness is judged per content object**: if any string of a beat, document or dialogue is missing in a locale, the whole object falls back to `en`, because a single sheet of paper must never be half in one language. Targets are not capped at `LINE_CAP`; they are capped by `TARGET_LINE_HARD` and the string's `max_chars`, and warned above a banded expansion factor (Formulas §3). Invariants: cast and place names are never translated and stay ASCII; serials and form codes are data, never in translatable text; `Spolny`/`Sp.`, `pan`, `pani` are invariant glossary terms, `{title}` resolves from the cast table to a protected id; dates are stored ISO with two renderers, a `form` style (fixed numeric, in-world, no month names) and a `ui` style (locale-formatted, save slots only); "Plan Week {n}" is a template; no thousands separators in-world. The no-diacritics rule applies to Zelmavian names, not to target-language prose. MVP ships `en` only, with the `pseudo` locale and a `de`+`ru` sample of `SAMPLE_STRINGS` strings as non-shipping proof (Acceptance Criteria). Stamps are stored already cased; nothing is uppercased at runtime.
+
+**12. Freeze.** Two stages. *Id freeze* (at `validated`, Rule 13): ids may be added, never renamed, retired only by tombstone, which protects saves, tests and evidence screenshots even for an `en`-only MVP. *Text freeze*, `TEXT_FREEZE_LEAD_WEEKS` before translation hand-off: CI compares every string against a frozen `id → hash` manifest. Post-freeze change classes: (a) typo or punctuation, same id, `rev` bump, no retranslation; (b) same-meaning rewording, same id, `rev` bump, other locales `stale`, the old translation ships as fallback; (c) meaning change, new id, old retired. Classes (b) and (c) need the narrative director's and the localization lead's approval; a gate or effect change on a frozen line is a behaviour change and goes through normal review, not the string process.
+
+**13. Hot reload is editor and debug only.** `ContentStore.reload()` runs only between scene boundaries, emits `content_reloaded`, refuses if the open chapter's `reads`, `writes` or `assumes` changed (a chapter restart is required), and is absent from release builds. Patches ship as a new `content_version`, never a live swap. The writer's author-time tools (`content preview doc <id> --set field=value [--matrix]`, dialogue preview under a given state, the budget footer `reads 14/20 writes 19/24 xread 3/6 xwrite 5/8 (+2 vs last)` naming the edit that moved each count, the longest-string readout per kind, watch mode) are part of `tools/content/` and are specified in Acceptance Criteria.
+
+**14. Headless rule.** `ContentStore`, `Condition`, `ContentValidator`, the headless `StringLookup` and the lock reader import nothing from the scene tree, from `tools/` or from `tests/`. Only the engine `StringLookup` may call `tr()`. The story simulator and the unit tests load content through the same `ContentStore`. A CI path check enforces the direction, as GDD 1 §11 does for the dossier.
+
+**15. The validator's rule list.** Severity `E` fails the build; `W` prints; the release branch treats `W` as `E`. Rules marked **(PROV)** run in "registry absent" mode (warning only) until the owning GDD exists.
+
+| # | Check | Sev |
+|---|---|---|
+| V01–V04 | Duplicate id; id grammar, charset or length; retired id referenced or redefined; compiled id absent from the lock | E |
+| V05–V06 | Dangling reference of any kind (scene exit, `next`, document, fact, cast, hand, stamp, form id); scene with no exit and not `chapter_end`; dialogue path that does not reach `end`; a backwards `next` | E |
+| V06b | Unreachable scene, item or answer under every state (lint: structurally; validator: by condition satisfiability over the schema's ranges) | W |
+| V07–V08 | String referenced but absent from `en` (E); defined but unreferenced (W) | E/W |
+| V09–V11 | Kind caps (Rule 4); non-ASCII letters in `en` source, straight quotes required; placeholder set differs between locales; `invariant` string differs between locales; text not NFC; control or bidi characters | E (caps per Rule 4) |
+| V12–V15 | Effect target, field or op missing from the schema or illegal for the field type; field not in the chapter's `writes` (filing, dialogue); writer not in the field's allow-list or ratchet violated; non-cross-life field written from another protagonist's chapter | E |
+| V16 | Compiled `source` fails GDD 1's parse | E |
+| V17 | Declared write never referenced | W |
+| V18–V19 | Condition grammar or depth; condition field missing from `reads`; a forbidden history leaf; read declared but never used (W) | E/W |
+| V20 | The four budget counts (GDD 1 §9) over limit, naming the fields; counts content-owned references plus the Rules export when present **(PROV: Rules)** | E |
+| V21 | `assumes` field missing, not a flag, or over `ASSUME_BUDGET`; `settles_as` missing | E |
+| V22–V24 | Every `action` and `event` class in `world_classes.json` has a beat; a beat's class not in the world (typo); every beat has a `paper` line with `form` and `hand`; every ending class and `act_fallback` has an epilogue; `crosses` non-empty for E1…E9 and matching the branches table | E |
+| V25–V27 | A schema projection form id with no row; a form row's field or view mismatched; a sign- or order-projected field with no row and no explicit `no_sign`/`no_order`; `lag` below 0 | E/W |
+| V28–V29 | `yields` or `has_fact` names an unknown fact; a fact with no yielding source; a fact with no dossier use (Pillar 1) **(PROV: Fact; W until then)** | E |
+| V30–V32 | Speaker or named person not in `present` or the cast table; initials differ from the cast table; portrait request not in Character Presentation's vocabulary **(PROV: skipped until it exists)**; an `ask` with no ungated answer; `pace` present at the MVP schema version; a decision option with no effect | E |
+| V32b | Filing's cost-rule hook (every option writes at least one cost effect) **(PROV: W until Filing registers it)** | W |
+| V33 | A beat or epilogue body that contains another class id or an `E#` id; a `register` conflicting with the room's without `tell: true` | E/W |
+| V34 | `Spolny` inflected; `Sp.` outside paper; `pan`/`pani` in a `public` item without `tell` | E |
+| V35 | A serial or date pattern inside translatable text; a serial in a string that matches no document's front matter | W/E |
+| V36 | Past-tense and anaphora wordlist hits in beat or epilogue bodies ("earlier", "again", "as before"); unknown capitalised token not in the glossary or cast | W |
+| V37 | A hard-coded visible string literal under the code root or in a scene file, outside `# loc-ignore: <reason>` | E |
+| V38–V40 | Non-source locale: missing ids (W; E for a shipped locale); target over `TARGET_LINE_HARD` or `max_chars` (E); over the banded expansion budget (W); missing plural category or `other`; malformed message syntax; protected-term mismatch (E shipped, W partial); code point outside the locale's font matrix; fallback chain cycle or not ending at `en` | E/W |
+| V41 | Post-id-freeze string missing its translator context fields (speaker, form, `max_chars`, note) | E |
+
+Human review, never a rule: whether the tone is dry; whether a villain speaks as a villain; whether anyone is told what they did to the others; whether the cost appears as a person in a room; whether an epilogue's assumed facts hold across the end states that fold into it. Explicitly **not** checked by machine: tense (present-tense fragments and the paper's perfect tense would both fail any heuristic); style rules never fail the build; the checker never stops at the first error and never flags a file that did not change.
 
 ### States and Transitions
 
-[To be designed]
+**Content set** (per act):
+
+| State | Entered when | Allowed | Leaves to |
+|---|---|---|---|
+| `draft` | Sources exist | Free renames and deletions; `idlock purge` | `validated` when lint and validator pass with 0 errors in CI |
+| `validated` | CI green; compiled output and lock committed | Text and structure edits (revalidate); ids now permanent (id freeze) | `string_frozen` |
+| `string_frozen` | Act content-complete; narrative director signs off; `freeze` command writes the hash manifest | Text changes only through `revise` (classes a/b/c, Rule 12); new ids allowed; removals tombstone | `shipped` |
+| `shipped` | Release tag sets `first_shipped` on every lock entry | New ids; `revise`; tombstone | `patched` (same rules, new `content_version`) |
+
+Backward from `string_frozen` is a structural rework, allowed only through a recorded decision, and it leaves tombstones.
+
+**Locale** (per locale): `absent` → `partial` (object-level fallback to `en`) → `complete` → `stale` (a source string was revised; the old translation ships as fallback) → `reviewed` (linguistic QA and the layout test passed, screenshots retained). Only `reviewed` locales are listed in `manifest.shipped_locales`; `en` must be `reviewed` to ship.
+
+**String id**: `draft` → `assigned` → `frozen` → `shipped` → `retired` (Rule 3). Forward only; `retired` may carry `replaced_by`.
+
+**A dialogue at runtime** (the format's view; Dialogue & Interrogation owns the rest): `items` are visited in order; a `line` with a false `when` is skipped; an `ask` shows its ungated answers plus those whose `when` holds; an answer applies its `effects` (batched for the scene boundary), appends its `record` to the transcript, and moves to `next`; `carry` re-queues the `ask` after the next item; `end` closes.
 
 ### Interactions with Other Systems
 
-[To be designed]
+| System | Data in (to this system) | Data out (from this system) | Interface owner |
+|---|---|---|---|
+| **Dossier State Model** | `assets/data/dossier/schema.json` at build time (the vocabulary the validator joins against; no runtime import either way) | Effect records in GDD 1's format with derived `source`; chapter `reads/writes/assumes` declarations; the form tables whose row ids the schema's `projections` reference | GDD 1 owns the schema, effect and change formats and the projection rules; this system owns form strings, the condition grammar and the validator joins |
+| **Investigation & Fact (PROV)** | The Fact registry's semantics (unlock rules, dossier uses) at build time | `fact_index()` built from `yields`; the `has_fact` leaf; the `fact.*` namespace; V28–V29 | Fact owns held-fact meaning and the board; this system owns the declaration syntax |
+| **Reactive Event Rules & Story Simulator (PROV)** | `world_classes.json` from the polyscene topic; the Rules export's budget contribution for V20 | `ContentStore`, `Condition.evaluate` with an injected reader, `beat(class)` and `epilogue(class)` for the narrator, the `rules:` source citation grammar | Rules owns rule format and cascade; this system owns the condition grammar and evaluator |
+| **Dialogue & Interrogation (PROV)** | Transcript, `carry` and `pace` semantics | `dialogue(id)`: forward-only items, answers with `says`/`record`, effects with derived `source` | Dialogue owns transcript logic; this system owns the item format and `source` derivation |
+| **Filing & Decision (PROV)** | The cost-rule predicate (V32b) | `decision(id)` with option effect batches, writer `filing` | Filing owns the cost rule; this system owns the format |
+| **Chapter & Story Structure (PROV)** | Chapter order; the ending table | `chapter(id)` with declarations and `sheet`; the scene graph; `epilogue(ending_class)` | Chapter Structure owns progression; this system owns the graph and declaration format |
+| **Scene Flow (PROV)** | `scene_id` at each boundary | `scene(chapter_id, scene_id)` with conditional exits; content ids used in `source` | Scene Flow owns the boundary sequence; this system owns scene data |
+| **Paper UI (PROV)** | Nothing | `document(id)`, the form tables, `StringLookup.text()` with params, `max_chars`/`max_lines` per string, `{gap}` width | This system owns ids and form data; Paper UI owns rendering, layout and font coverage |
+| **Character Presentation (PROV)** | The portrait-request vocabulary (V31) | One-word portrait requests on dialogue items | Character Presentation |
+| **Scene & Interaction Framework (PROV)** | Hotspot and location id vocabulary | Opaque `hotspot` and `location` refs on scenes and actions | Scene & Interaction Framework |
+| **Settings Store (PROV)** | `locale` (not yet in its index row) | Nothing | Settings Store |
+| **Save/Load (PROV)** | `migrate` jobs for any renamed content id | `content_version()`; the id permanence rule | Save/Load owns migration; this system owns id permanence |
+| **Audio (PROV)** | Whether captions exist | `cap.*` strings | Audio |
 
 ## Formulas
 
@@ -60,7 +261,24 @@ The format holds two voices and never lets them mix. The human voice is the beat
 
 ## Dependencies
 
-[To be designed]
+*Hard* means the system cannot function without the other; *soft* means it works without it and is improved by it. Every row below except the first names a system whose GDD is not yet written; the interface stated here is this GDD's offer and is **provisional** until that GDD reciprocates. Reciprocity check: GDD 1's Dependencies table already lists this system ("Content depends on this (schema); this depends on Content at authoring time only"), so the first row is bidirectional today; the others become bidirectional when each dependent is designed.
+
+| System | Direction | Hard/Soft | Interface |
+|---|---|---|---|
+| Dossier State Model | This depends on it at build time only | Hard (authoring) | `assets/data/dossier/schema.json` is the vocabulary the validator joins effect targets, condition fields, `writes`/`reads` and projection form ids against; GDD 1's `source` parser re-parses every compiled `source`; GDD 1 Formulas §6 and §9 define the budgets V20 and V21 enforce. No runtime import in either direction |
+| Investigation & Fact | Depends on this (PROV) | Hard | Consumes `fact_index()` (fact id → yielding document line or answer), the `fact.*` display strings and the `has_fact` condition leaf; supplies the Fact registry's semantics for V28–V29 |
+| Reactive Event Rules & Story Simulator | Depends on this (PROV) | Hard | Loads content through `ContentStore`; evaluates `Condition.evaluate` with its injected reader; narrates with `beat(class)` and `epilogue(class)`; supplies `world_classes.json` from the polyscene topic and its rule export for V20 |
+| Dialogue & Interrogation | Depends on this (PROV) | Hard | `dialogue(id)`: forward-only items, `ask`/`answer` with `says`, `record`, `when`, `effects`, `next`, `carry`; the reserved `pace` field is Dialogue's to define |
+| Filing & Decision | Depends on this (PROV) | Hard | `decision(id)` and scene-action effect batches with derived writer `filing`; registers the cost-rule predicate for V32b |
+| Chapter & Story Structure | Depends on this (PROV) | Hard | `chapter(id)` with `reads/writes/assumes/sheet`, `opening[]`, `entry_scene`; `epilogue(ending_class)` with `act_fallback` fallback |
+| Scene Flow | Depends on this (PROV) | Hard | `scene(chapter_id, scene_id)` with conditional `exits`; content ids for `begin_boundary(scene_id)` and `source` tags |
+| Paper UI | Depends on this (PROV) | Hard | `document(id)` with leaves, lines, `hand`, `bind`, `{gap}` and `gap_width`; the form tables; `StringLookup.text()` with params; `max_chars` and `max_lines` per string; the hand, stamp, form and place registries |
+| Character Presentation | Depends on this (PROV) | Soft | One-word portrait requests on dialogue items; Character Presentation supplies the vocabulary V31 checks |
+| Scene & Interaction Framework | Depends on this (PROV) | Soft | Opaque `location` and `hotspot` refs on scenes and actions; the framework supplies the vocabulary the lint checks for dangling refs |
+| Settings Store | This depends on it (PROV) | Soft | `locale` for the engine `StringLookup`; absent, the lookup serves `en`. Settings Store's index row does not yet list `locale` (Open Questions) |
+| Save/Load | Depends on this (PROV) | Soft | `content_version()` in the save header; the id permanence rule; `replaced_by` resolution for a retired id found in a save; `migrate` jobs for renamed content ids |
+| Audio | Depends on this (PROV) | Soft | `cap.*` caption strings with speaker and sound-source context, if Audio decides captions exist |
+| polyscene topic (story engine, under `tools/`) | This depends on it at build time | Hard (authoring) | The class list snapshot `world_classes.json` (`{class, kind}`), produced by the Rules/Simulator tooling from the topic; V22–V24 join against it |
 
 ## Tuning Knobs
 
@@ -72,15 +290,39 @@ The format holds two voices and never lets them mix. The human voice is the beat
 
 ## Game Feel
 
-[To be designed]
+Not applicable as a feel target: this system has no input, no motion and no timing of its own. Two feel properties it must not break are stated for the systems that own them: Paper UI's reveal and page turn must never wait on a string lookup (every `text()` call is a dictionary read after load; Acceptance Criteria set the budget), and Dialogue's pace must come from `stage` lines and `carry`, never from a timer this format defines (Rule 5d).
 
 ## UI Requirements
 
-[To be designed]
+This system has no screen of its own. It supplies Paper UI and the HUD with what a screen needs from a string, and it owns three author-time tools that are command-line, not in-game.
+
+- **Per string, for every screen:** `max_chars` and `max_lines` (from the kind and the container Paper UI declares), the placeholder set with worst-case lengths, the `hand`, `form` or `stamp` key, the register, and `{gap}` with `gap_width` so a ruled blank is sized like the missing entry.
+- **Never-blank guarantee:** a failed lookup renders `⟦id⟧`, so a blank on screen always means `unknown` on paper and never a missing string.
+- **Object-level locale fallback:** a sheet, a beat or an exchange is in one language or the other, never mixed.
+- **Author-time tools (CLI under `tools/content/`):** `content preview doc <id> --set field=value [--matrix]` prints a document as plain text with entry, struck and gap forms; `content preview dlg <id> --set …` prints which answers show under a state; `content validate` ends with the budget footer and the longest-string readout per kind; `content watch` re-lints the changed file within `LINT_WATCH_MS`.
+- **Accessibility inputs this format carries** (implemented by Paper UI, recorded project-wide by `/ux-design`): the `acc.*` namespace for alt text on stamps and hands; `register` and `speaker` on every spoken string for screen-reader prefixes; nothing in the format assumes spaces, hard-wrapped lines or byte counts.
+
+> **📌 UX Flag — Narrative Content Format & Strings**: this system contributes string metadata to every Paper UI screen and the HUD. In Pre-Production, run `/ux-design` for the dossier view, document sheet, transcript sheet and sign board **before** writing epics; stories that reference those screens cite `design/ux/[screen].md`, not this GDD.
 
 ## Cross-References
 
-[To be designed]
+| This GDD references | In | Owner | Nature |
+|---|---|---|---|
+| Effect record format, `source` grammar, writer enum | GDD 1 Core Rules 4, 4a | Dossier State Model | Format consumed; `source` derived by the compiler (Rule 7) |
+| Chapter declarations `reads/writes/assumes`; budgets `READ_MAX`, `WRITE_MAX`, `CROSS_READ_MAX`, `CROSS_WRITE_MAX`, `ASSUME_BUDGET` | GDD 1 Core Rules 6, 8, 9; Formulas §6, §7, §9 | Dossier State Model | V18–V21 enforce; `R_c` includes sheet reads per GDD 1 §6 |
+| Projection rules and form ids; scalars never project; threshold lines by constant name (`ATTN_LOOK`, `ATTN_WATCHED`) | GDD 1 Core Rule 7; CD-GDD-ALIGN concern 1 | Dossier State Model | Form tables (Rule 8), document binds (Rule 5b) |
+| Sign `lag` default (`SIGN_LAG_DEFAULT`) and overprint condition | GDD 1 Tuning Knobs; Core Rule 7 | Dossier State Model | Sign table rows default to it; not duplicated here |
+| Read semantics `is_true/is_false/is_unknown`, closed-world `not`, sheet reads through `read(target, field)` | GDD 1 Core Rules 2, 6.7 | Dossier State Model | Condition grammar (Rule 6) |
+| Headless rule and CI path check | GDD 1 Core Rule 11 | Dossier State Model | Rule 14 mirrors it |
+| Assumption settlement as tags (`settles_as`) | GDD 1 Core Rule 8; Edge Case 11 | Dossier State Model | Chapter `assumes` carry `settles_as`; V21 |
+| Ending classes E1–E9 and `act_fallback`; `ending_select` | GDD 1 Formulas §5; Open Questions | Dossier State Model | Epilogue keys; V24 |
+| Beat and epilogue conventions; narrator keyed on class | design/narrative/paper-walls-act-one-branches.md; design/narrative/dialogue/act-one-beats.md header | Narrative | Beat syntax (Rule 5, 5e) migrates the approved file unchanged |
+| Tone rules; nobody is told what they did to the others | design/narrative/paper-walls-act-one-brief.md §8 | Narrative | Human-review checklist (Edge Cases) |
+| Naming language, no diacritics, `Spolny`/`pan` address | design/narrative/lore/naming.md | Narrative | V11, V34; cast registry |
+| Pillars 1, 2, 4, 5 | design/gdd/game-concept.md | Creative direction | Player Fantasy; V29; Rule 5d |
+| Carbon Copy visual identity; hands, stamps, red budget | design/art/art-bible.md | Art | Visual/Audio Requirements; registries |
+| `tr()`, CSV plural and context columns, live translation preview, `FileAccess.store_*` returns bool | docs/engine-reference/godot/modules/ui.md; breaking-changes.md | Engine reference | Rule 10 (sourced path); NOT SOURCEABLE items listed there |
+| Systems index row 2 and dependency map | design/gdd/systems-index.md | /map-systems | Scope and dependents |
 
 ## Acceptance Criteria
 
