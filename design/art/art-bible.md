@@ -170,15 +170,94 @@ Text contrast: soot on bone ≥ 7:1; carbon blue on UI bone ≈ 7.6:1. An access
 
 ## 5. Character Design Direction
 
-[To be designed] — the player character's visual archetype, how players tell
-enemies, NPCs and allies apart at a glance, expression and pose style, and how
-much detail survives at game camera distance (LOD philosophy).
+### 5.1 The three protagonists
+
+Each protagonist keeps the one silhouette trait of §3.2 and adds exactly one costume accent in their own ink (§4.2); the rest of the costume is a tint of bone or concrete so the figure never merges with a wall of its own ink colour (the archivist works in grey-green rooms). *Checkable:* ink accent ≤ 15% of costume area; costume dominant differs from the plate's dominant neutral by ≥ 20% value. Names and ages below are proposals for narrative-director to confirm.
+
+- **Archivist** (woman, ~40). Buttoned paper-grey cardigan, skirt below the knee, flat shoes, hair pinned flat; accent: grey-green sleeve protectors. Props: the file held to the chest with both hands, pencil behind the ear. Face: tired, precise, mouth closed; she looks at the lens.
+- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: soot-stained fingers (ink is his trade, visible in portrait only). No props carried openly; hands in pockets except when handing over. Face: unshaven, eyes slightly off-lens by default — the only character whose neutral portrait does not meet the camera.
+- **Conscript** (boy, ~19). Greatcoat one size too big, cap peak level; accent: khaki stencilled number on the collar tab. Prop: a folded order sheet, one corner showing from the breast pocket. Face: unlined, too open.
+
+All three traits are bilaterally symmetric (file centred, scarf even, cap frontal) so a 2-direction sprite set can mirror to 4 without a prop changing hands.
+
+### 5.2 Telling types apart at a glance
+
+One straight-edge count per type, checkable on the 64 px fill: officials ≥ 2 straight edges (hat brim, briefcase, a straight column of visible coat buttons — no load carried low); conscript exactly 1 (§3.2); protagonists, citizens and informers 0. Citizens always carry something below the hip (bag, bucket, bundle) and wear a headscarf or flat cap; protagonists never carry below the hip. **Informers are drawn as citizens with no variation at all** (§3.2); the tell is applied in-engine, never painted: once the player holds the fact, the portrait receives a carbon-blue duplicate of its own outline offset 2–3 px down-right plus a "cc" mark in the lower-right corner — the same filed mark as §4.5 — so "informer" and "filed" are literally one mark. The plate-scale figure is never marked: the walking city cannot be read, only the file can.
+
+Background figures painted into a plate (queues) are permitted only as non-interactive, still, and inside the plate's midtone band; an interactive figure sits at second-highest contrast (§3.4) and is always a separate layer.
+
+### 5.3 Expression and pose
+
+Target: **stiff bodies, restrained faces** — not stylised-exaggerated (rejected in §3.6: a comic figure cannot look ashamed), not photoreal (invites photographic drift). Bodies use only the §3.2 vocabulary plus standing idle; no gesture above the shoulder except handing over; weight always on both feet. Faces change through gaze, chin angle and mouth only; brows move one notch; no drawn tears, no open-mouth shouting. Pillar 3 is carried by the eyes looking away, not by acting.
+
+### 5.4 Portraits
+
+ID-photo framing (§3.2): frontal, cropped at the collar, head 60–70% of frame height, eyes on the upper-third line, bone background, stapled corner, drawn scanner-flat. State lighting (interrogation overhead, reactive torch) and the §2.1 crop tightening are layers applied by technical-artist, never repainted, so every portrait is painted with 20% bleed beyond its crop. **Four states per named character, protagonists included**, each defined by a checkable pose, not an adjective:
+
+| State | Gaze | Chin | Mouth |
+|---|---|---|---|
+| Neutral | to lens | level | closed |
+| Guarded | to lens | down 5° | tightened |
+| Evasive | off-lens, side | level | closed |
+| Exposed | down | down | parted |
+
+Budget: 12 × 4 = 48 portraits core, 72 at stretch; the informer overprint is a layer, not a fifth state.
+
+### 5.5 LOD philosophy and the presentation decision
+
+On a plate a standing figure is 15–20% of plate height. At that size only the silhouette trait, costume dominant, ink accent, head direction and hands survive; eyes are two marks, mouths are absent, buttons are one line. No fact lives on a figure at plate scale — facts are read in portraits and documents (Pillar 1). Figures and hero objects carry a 1 px soot keyline (people are drawn, so printed); supporting props carry none.
+
+Rules that hold under **both** MVP outcomes: §5.1–5.4, keyline, contrast position, symmetry. Rules that change:
+
+- **Walking avatars (2–4 directions):** protagonists get walk × directions (mirroring allowed), idle, sit, hand-over, page-turn; named NPCs get idle (one facing) and sit only — nobody but the player walks. Symmetry (§5.1) becomes a hard rule.
+- **Hotspot plates with cuts and portraits:** no walk cycles; each named character is a per-scene plate layer (standing or seated, one pose per scene state) that can be removed when dossier state says they are absent; the player's own figure is never shown; portraits carry all expression. Symmetry becomes advisory. Plate-scale detail stays identical in both so a later switch costs nothing.
+
+### 5.6 Alternatives considered
+
+- **A full expression sheet (8–12 states).** Rejected: doubles the largest unbudgeted cost (Risks) for differences the four-state table already reads.
+- **Marking informers on the plate figure.** Rejected: "you cannot see it" (§3.2) is the point.
+- **Per-character colour accents beyond the inks.** Rejected: any new hue breaks §4.1.
 
 ## 6. Environment Design Language
 
-[To be designed] — architectural style and its tie to the world's culture,
-texture philosophy (painted, PBR or stylised, and why), prop density rules per
-area type, and environmental storytelling guidelines.
+### 6.1 Architecture and the city's history
+
+An invented city of a late-socialist state in its last six weeks: real texture, fictional facts (anti-pillar). Three strata, read as three kinds of filing: an imperial-era core of stucco tenements and courtyards, now grey, with former ballrooms and banks holding archives — shelving rows inside moulded ceilings; an inter-war modernist ministry block, the state's own shape — ribbon windows, numbered doors; and prefab panel estates at the edge, drawers stacked ten high. History shows as overpainting, never as plaques: old shop lettering under state paint, a filled bullet pock, a church with its tower demolished and the stump roofed. Technology allow-list: rotary phones, typewriters, carbon paper, microfiche, reel-to-reel, tube radio, trams, boxy cars; forbidden: any screen, barcode, real brand, real flag, star, eagle, hammer or sickle, real script in any language. The state's device is a rectangular seal containing a filed rectangle with a tab (narrative-director to name it). **All text is a string**: no lettering is ever painted into a plate; text areas are left blank for the engine's typeset layer, so AI-generated pseudo-text is a defect, not texture.
+
+### 6.2 Texture philosophy
+
+Plates are flat printed surfaces, not paintings. Shading is **three steps and a pool**: at most three flat values per surface (§4.1 midtone band), and the only gradient is lamp or sodium falloff. The paper language is applied as three layers above the base plate: (1) one tileable bone grain at 8–12% opacity, uniform across the whole frame, so everything sits on one sheet; (2) carbon — the §4.5 double-strike ghost, offset 2–3 px, on objects the state has a copy of, driven by dossier state; (3) stamp — bordered, hatched red impressions placed by phase reach (§2.2). Layers 2 and 3 are engine layers owned by technical-artist, so **the base plate export contains no pixel within stamp-red tolerance and no carbon blue except painted carbon paper itself** — this makes the §4.3 red budgets measurable. The paint-over must reject: photographic drift (depth of field, bokeh, specular highlights, bloom, perspective lines, cast shadows from any light but the state's one source); painterly brushwork (visible strokes, impasto, soft blended edges); renders (corner occlusion gradients, metal, reflections, glass refraction). Reviewer test: every edge is hard, every surface is ≤ 3 values, and the only curves pass the §3.1 fill test.
+
+### 6.3 Prop density by area
+
+Density is counted in distinct objects per plate and a repeat ratio (share of furniture that is a repeated identical unit), per §3.3 and the §2.2 phase axis.
+
+| Area | Distinct props | Repeat ratio | Note |
+|---|---|---|---|
+| State space | ≤ 12 at Confident, doubling per phase to ≤ 48 | ≥ 70% | Grid first; leaning stacks and shredder strips only from Panicking. |
+| Private space | 20–35, constant across phases | ≤ 30% | Accumulation does not change; only red and carbon reach do. |
+| Street | ≤ 10 | ≥ 60% (poles, windows, doors) | Sparse; loose paper only at Collapsing. |
+| Print shop | 35–50, the densest plate | ≤ 20%, all misregistered | The one place the people's paper language dominates. |
+
+Every plate has exactly one hero (§3.4) and 3–8 hotspots regardless of density.
+
+### 6.4 Hotspot legibility without glow
+
+A hotspot is an object **disturbed from the grid by one unit**: a lifted paper corner, a drawer out one notch, a door ajar, a receiver off its cradle, a cord across a threshold. Hotspots and figures are the only keylined objects on a plate; every hotspot sits with a clear margin of plate midtone at least half its width on all sides, and no hotspot stands directly behind a figure's head. After its fact is filed the object loses its keyline and gains the carbon ghost, so a read room looks read. Hover feedback is the §3.5 corner lift and cursor bracket (ux-designer, §7). *Checkable:* keylined objects = hotspots + figures + hero.
+
+### 6.5 Environmental storytelling
+
+Documents never tell flavour story (Principle B, Pillar 1), so plates tell it through absence, duplication and wear: a lighter rectangle on wallpaper where a photograph was removed; two identical state pens on a private desk; a worn path to the telephone; a chair under the door handle; curtains closed at noon; a queue and what it queues for; a poster overpainted twice. The rule that keeps this on Pillar 1: **if a detail makes the player say "so X happened", X must be filable** — a hotspot or document must let them hold it. A detail that implies an unfilable fact is cut.
+
+### 6.6 Legibility of figures against plates
+
+Figures sit at second-highest contrast (§3.4). This forbids, in the band where figures stand (walkable floor plus one figure-height of wall): any hero object, any keyline, any value outside the midtone band (darkness is behind people, never under them), and any texture repeat finer than a figure's head width. *Checkable:* block the figure's bounding box; the plate inside it must contain no keyline and no value outside 20–60%.
+
+### 6.7 Alternatives considered
+
+- **Hand-painted textured plates (Disco Elysium register).** Rejected: brushwork is the first thing AI drift produces and the hardest to review; flat steps are checkable.
+- **Painted-in text for atmosphere.** Rejected: no flavour paper, and generated lettering is always wrong.
+- **Real-city architecture quoted directly.** Rejected by the anti-pillar; strata are invented from real building types, not real buildings.
 
 ## 7. UI/HUD Visual Direction
 
