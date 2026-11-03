@@ -17,22 +17,22 @@ Six flats, numbered 1–6, two to a floor: odd numbers are the rear flats, enter
 
 | Apt | Floor | Side | Tenant |
 | --- | --- | --- | --- |
-| 11 | 1 | front | **Novak** family: Josef (tram depot fitter), Ruzena, daughter **Eva** (17, kiosk girl at Kalenov Main Station) |
-| 12 | 1 | rear, gallery | **Halm**: Vera and Ilona; one of the building's two telephones, allocated with Vera's post |
-| 13 | 2 | front | **vacant since June**: the Brom couple left on a tourist visa and did not return; door carries a paper seal with the Drawer; key with the caretaker [D: the seal has been lifted and re-glued once] |
-| 14 | 2 | rear, gallery | **Marta Dusek**, widow, asthma; son Pavel in Vienna |
-| 15 | 3 | front | **Kastan**, caretaker since 1984; the building's other telephone, installed in 1985 (a caretaker waits eight years; he waited one) |
-| 16 | 3 | rear, gallery | **Sedlak**, retired Crown-era bookbinder, deaf in one ear, mends the Leaf's type cases [H] |
+| 1 | 1 | rear, gallery | **Sedlak**, retired Crown-era bookbinder, deaf in one ear, mends the Leaf's type cases [H] |
+| 2 | 1 | front | **Novak** family: Josef (tram depot fitter), Ruzena, daughter **Eva** (17, kiosk girl at Kalenov Main Station; tenant only) |
+| 3 | 2 | rear, gallery | **Marta Sokol**, widow, asthma; son in Vienna (unnamed) |
+| 4 | 2 | front | **vacant since June**: the Brom couple left on a tourist visa and did not return; door carries a paper seal with the Drawer; key with the caretaker [D: the seal has been lifted and re-glued once] |
+| 5 | 3 | rear, gallery | **Halm**: Vera and Ilona; one of the building's two telephones, allocated with Vera's post |
+| 6 | 3 | front | **Kastan**, caretaker since 1984; the building's other telephone, installed in 1985 (a caretaker waits eight years; he waited one); by day at the lodge on the ground floor |
 
 ## Sightlines [K]
 
-Kastan has three. From the **lodge hatch** he sees everyone who enters the passage and the stair. From **15's front window** he sees Vrba Street in both directions and the tram stop. From the **third-floor gallery rail** he looks straight down onto the second-floor gallery and Marta's door at 14, and across the courtyard well onto 12's kitchen window. The stair has an open well: a light switched on at any landing is visible from the top. Nobody reaches 14 without crossing two of these lines. The only blind spot is the cellar hatch under the chestnut, which 16 overlooks and 15 does not. [D]
+Kastan has three. From the **lodge hatch** he sees everyone who enters the passage and the stair. From **6's front window** he sees Vrba Street in both directions and the tram stop. From the **third-floor gallery rail** he looks straight down onto the second-floor gallery and Marta's door at 3, and along his own gallery to 5's door and kitchen window. The stair has an open well: a light switched on at any landing is visible from the top. Nobody reaches 3 without crossing two of these lines. The only blind spot is the cellar hatch under the chestnut, which 1 overlooks and 6 does not. [D]
 
 ## The medicine route [D]
 
-Tuesdays. Pavel Dusek, in Vienna, buys a Western inhaler (blue plastic; the Lom pharmacy lists it and has never stocked it) and gives it to a sleeping-car attendant on the international train. The train is inspected on the Brenava bridge at **14:10** by the 4th Battalion — Tomas's company on alternate weeks — where a sealed parcel in the staff compartment is or is not opened. The train reaches Kalenov Main Station at 16:40; the attendant passes the parcel across the kiosk counter to **Eva Novak**, who brings it home on tram 11 and up the stair, past the lodge, to 14, by 17:30. Marta books the **Vienna call** at Lom post office for 18:00 the same evening, three minutes. If the call is missed, Pavel's next letter says "the weather here is poor", which means the parcel was taken.
+Tuesdays. Marta's son, in Vienna, buys a Western inhaler (blue plastic; the Lom pharmacy lists it and has never stocked it) and gives it to a sleeping-car attendant on the international train, **Marek**. The train is inspected on the Brenava bridge at **14:10** by the 4th Battalion — Tomas's company on alternate weeks — where a sealed parcel in the staff compartment is or is not opened. The train reaches Kalenov Main Station at 16:40; Marek carries the parcel himself, on tram 11 and up the stair, past the lodge, to 3, by 17:30. This is what Kastan reported as 4471. Marta books the **Vienna call** at Lom post office for 18:00 the same evening, three minutes. If the call is missed, her son's next letter says "the weather here is poor", which means the parcel was taken.
 
-The inhaler is the dossier use: it is smuggled medicine, it implicates Eva, the attendant and the garrison, and it is the one thing in the house that can be bargained.
+The inhaler is the dossier use: it is smuggled medicine, it implicates the attendant and the garrison, and it is the one thing in the house that can be bargained.
 
 ## The building at 21:10 [K]
 
