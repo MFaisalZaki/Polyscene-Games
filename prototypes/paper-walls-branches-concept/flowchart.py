@@ -6,10 +6,15 @@ single HTML flowchart in the art bible's paper language, plus a JSON export the
 game could read. Usage:  python flowchart.py [horizon] [axes...]"""
 import json, os, sys, html, time
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-from topic import engine, PROSE
+import importlib
+TOPIC = importlib.import_module(os.environ.get('TOPIC', 'topic'))
+engine, PROSE = TOPIC.engine, TOPIC.PROSE
 
 H = int(sys.argv[1]) if len(sys.argv) > 1 else 10
-AXES = sys.argv[2:] or ['fate', 'vera_choice', 'vera_fate', 'jan_fate', 'tomas_choice']
+AXES = sys.argv[2:] or getattr(TOPIC, 'FLOW_AXES', ['fate', 'vera_choice', 'vera_fate', 'jan_fate', 'tomas_choice'])
+GROUP = getattr(TOPIC, 'FLOW_GROUP', 'fate')
+LABELS = getattr(TOPIC, 'FLOW_LABELS', {})
+OUT = os.environ.get('FLOW_OUT', 'flowchart')
 
 e = engine(horizon=H, assume_min=0)
 t0 = time.time(); found = e.classes(AXES, budget=600, limit=200); dt = time.time() - t0
@@ -30,16 +35,17 @@ records = []
 for s in found:
     records.append({'behaviour': s.behaviour, 'assumes': [v for v, b in s.assumed], 'beats': beats(s)})
 json.dump({'horizon': H, 'axes': AXES, 'domains': domains, 'exhausted': found.exhausted, 'behaviours': records},
-          open(os.path.join(HERE, 'branches.json'), 'w'), indent=1)
+          open(os.path.join(HERE, OUT + '.json'), 'w'), indent=1)
 
 # --- the flowchart ---
 FATE_ORDER = ['fell_quiet', 'fell_bloody', 'held_bloody', 'held']
 FATE_LABEL = {'fell_quiet': 'THE REGIME FALLS — NOBODY FIRES', 'fell_bloody': 'THE REGIME FALLS — AFTER THE SHOOTING',
-              'held_bloody': 'THE REGIME HOLDS — AFTER THE SHOOTING', 'held': 'THE REGIME HOLDS'}
+              'held_bloody': 'THE REGIME HOLDS — AFTER THE SHOOTING', 'held': 'THE REGIME HOLDS', **LABELS}
 def cell(v): return ', '.join(v) if isinstance(v, list) else str(v)
 groups = {}
 for r in records:
-    groups.setdefault(r['behaviour'].get('fate', 'held'), []).append(r)
+    g = r['behaviour'].get(GROUP, 'other'); g = g[0] if isinstance(g, list) and g else g
+    groups.setdefault(str(g), []).append(r)
 coverage = []
 for ax in AXES:
     seen = {cell(r['behaviour'].get(ax)) for r in records}
@@ -77,7 +83,7 @@ for fate in FATE_ORDER + [f for f in groups if f not in FATE_ORDER]:
         b = r['behaviour']
         parts.append(f"<div class='card'><div class='tab'>{html.escape(fate.upper())} {i}</div><div class='state'>")
         for ax in AXES:
-            if ax == 'fate': continue
+            if ax == GROUP: continue
             parts.append(f"<span><b>{html.escape(ax)}</b><br>{html.escape(cell(b.get(ax, '')))}</span>")
         parts.append("</div>")
         if r['assumes']:
@@ -86,5 +92,5 @@ for fate in FATE_ORDER + [f for f in groups if f not in FATE_ORDER]:
         parts.append("<div class='stamp'></div></div>")
     parts.append("</div>")
 parts.append("</main></body></html>")
-open(os.path.join(HERE, 'flowchart.html'), 'w').write('\n'.join(parts))
-print(f'{len(records)} behaviours, exhausted={found.exhausted}, {dt:.1f}s -> flowchart.html, branches.json')
+open(os.path.join(HERE, OUT + '.html'), 'w').write('\n'.join(parts))
+print(f'{len(records)} behaviours, exhausted={found.exhausted}, {dt:.1f}s -> {OUT}.html, {OUT}.json')

@@ -66,12 +66,18 @@ PROSE = {
     'marta-collapses':  'Marta is taken to hospital. The hospital asks for papers.',
 }
 
+FLOW_AXES = ['act_ending', 'vera_ledger', 'vera_reach', 'ilona_review', 'jan_fate', 'tomas_gate', 'marta_fate']
+FLOW_GROUP = 'act_ending'
+FLOW_LABELS = {'e1_complete_file': 'E1 THE COMPLETE FILE', 'e2_gap': 'E2 THE GAP', 'e3_carbon': 'E3 THE CARBON',
+               'e4_seized_parcel': 'E4 THE SEIZED PARCEL', 'e5_open_gate': 'E5 THE OPEN GATE', 'e6_mothers_trade': 'E6 THE MOTHER\'S TRADE',
+               'e7_daughters_statement': 'E7 THE DAUGHTER\'S STATEMENT', 'e8_martas_breath': 'E8 MARTA\'S BREATH',
+               'e9_route_burned': 'E9 THE ROUTE BURNED', 'other': 'OTHER END STATES'}
 AXES = ['vera_ledger', 'vera_reach', 'vera_fate', 'ilona_review', 'jan_press', 'jan_fate',
         'tomas_gate', 'tomas_cost', 'marta_fate', 'marta_watched', 'berta_fate', 'regime', 'kastan']
 
 
 class ActOneScenario(Scenario):
-    multi_valued_axes = Scenario.multi_valued_axes | {'ending_class'}
+    multi_valued_axes = Scenario.multi_valued_axes | {'act_ending'}
 
     def opening(self):
         return ('Friday, Plan Week 40. Report 4471 on Vera\'s desk, a month old. The household file '
@@ -83,7 +89,7 @@ class ActOneScenario(Scenario):
         for (t, _, is_world), ai in zip(self.beats, self.plan.actions):
             name = self._base(ai.action.name)
             lines.append(f'  {t:>2}. {PROSE.get(name, name)}{"  [world]" if is_world else ""}')
-        end = {k: self.features.get(k) for k in AXES + ['ending_class']}
+        end = {k: self.features.get(k) for k in AXES + ['act_ending']}
         lines.append('  — ' + ', '.join(f'{k}={v}' for k, v in end.items() if v is not None))
         return '\n'.join(lines)
 
@@ -103,6 +109,6 @@ class ActOneTopic(Topic):
         return ''
 
 
-def engine(horizon=12, assume_min=None):
+def engine(horizon=14, assume_min=None):
     args = ['-c', 'min_len=1'] + ([] if assume_min is None else ['-c', f'assume_min={assume_min}'])
     return ScenarioEngine(ActOneTopic(), horizon=horizon, solver_args=args)

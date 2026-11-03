@@ -7,11 +7,10 @@
   (:objects vera - archivist  jan - dissident  tomas - conscript  ondra - bunkmate  rybar - officer
             kastan - informer  marta - widow  ilona - daughter  berta - colleague
             marek - person
-            vrba border city - place)
+            border - crossing  city - town)
   (:init (report-received vera) (review-pending ilona)
-         (= (unrest city) 1) (= (stability city) 9) (= (breath marta) 2)
+         (= (unrest city) 1) (= (stability city) 9) (= (breath marta) 3)
          (= (attention vera) 0) (= (attention jan) 1) (= (attention tomas) 0) (= (attention ondra) 0)
          (= (attention rybar) 0) (= (attention kastan) 0) (= (attention marta) 1) (= (attention ilona) 0)
-         (= (attention berta) 0) (= (attention marek) 0)
-         (= (unrest vrba) 0) (= (unrest border) 0) (= (stability vrba) 0) (= (stability border) 0))
+         (= (attention berta) 0) (= (attention marek) 0))
   (:goal (and)))

@@ -9,3 +9,106 @@
   e6_mothers_trade         REACHABLE
   e7_daughters_statement   REACHABLE
   e8_martas_breath         REACHABLE
+  e9_route_burned          REACHABLE
+
+E0 nothing moved -> forbidding laws: ['no_one_unchanged']
+Vera burns and nobody notices for a week -> None
+Tomas lets the courier through and nobody pays -> ['review_sits']
+
+=== witness tellings per class ===
+
+--- e2_gap
+   1. A slip on the desk: the District Register is to be reconciled before the inspection.  [world]
+   2. Vera slips the carbon of 4471 to Jan. Berta's count is one short.
+   3. Jan prints the caretaker's name. The file is traced to the Records Office.
+   4. The courier is at the gate with a parcel.  [world]
+   5. Tomas waves the courier through. The gap is in Ondra's log.
+   6. The courier reaches the cellar: paper and ink for Jan, the inhaler for Marta.
+   7. Vera burns 4471. The intake log now has a gap, and Berta's initials sit beside it.
+   8. A card arrives: the admissions review sits this week.  [world]
+   9. Vera re-writes the intake line. There is no gap now, only a forged line under Berta's initials.
+  10. Berta files a memo about the gap. On paper, never aloud.
+  11. Vera reads 4471 to the end. The parcel was medicine. Marta Sokol, flat 3.
+  12. The review sits: Ilona Halm, admitted.
+  — vera_ledger=['burned', 'doctored'], vera_reach=leaked, vera_fate=watched, ilona_review=admitted, jan_press=named_kastan, jan_fate=free, tomas_gate=passed, tomas_cost=ondra, marta_fate=supplied, marta_watched=no, berta_fate=reporter, regime=confident, kastan=exposed, ending_class=['at_horizon', 'e2_gap']
+
+--- e4_seized_parcel
+   1. The last ream is gone. The circle meets without a sheet to show.  [world]
+   2. The courier is at the gate with a parcel.  [world]
+   3. Ilona sits in on the circle in the cellar.
+   4. Marta, at one breath, tells Kastan where the Halm girl goes in the evenings.
+   5. Kastan stops Vera on the stairs: I saw your girl go down to the cellar.
+   6. Vera closes the household file on a different name: the cellar's.
+   7. Marta is taken to hospital. The hospital asks for papers.
+   8. A card arrives: the admissions review sits this week.  [world]
+   9. Jan signs the statement. The watch on him is lifted; the press goes quiet.
+  10. Tomas holds the courier. The parcel goes to the desk; the unit is commended.
+  11. The review sits: Ilona Halm, admitted.
+  12. Rybar telephones Vera: report 4471, where is it?
+  — vera_ledger=pending, vera_reach=reported_jan, vera_fate=watched, ilona_review=admitted, jan_press=silent, jan_fate=recanted, tomas_gate=held, tomas_cost=none, marta_fate=hospital, marta_watched=yes, berta_fate=clean, regime=confident, kastan=hidden, ending_class=['at_horizon', 'e4_seized_parcel']
+
+--- e6_mothers_trade
+  assuming rybar vindictive
+   1. The last ream is gone. The circle meets without a sheet to show.  [world]
+   2. The courier is at the gate with a parcel.  [world]
+   3. Tomas waves the courier through. The gap is in Ondra's log.
+   4. Ilona sits in on the circle in the cellar.
+   5. Marta, at one breath, tells Kastan where the Halm girl goes in the evenings.
+   6. The courier reaches the cellar: paper and ink for Jan, the inhaler for Marta.
+   7. Kastan stops Vera on the stairs: I saw your girl go down to the cellar.
+   8. Vera closes the household file on a different name: the cellar's.
+   9. A card arrives: the admissions review sits this week.  [world]
+  10. Rybar raids the cellar. Jan is taken.
+  11. Ilona signs the renunciation and gives the cellar's address. A second sitting is granted.
+  12. The review sits: Ilona Halm, admitted.
+  — vera_ledger=pending, vera_reach=reported_jan, vera_fate=unwatched, ilona_review=renounced, jan_press=silent, jan_fate=arrested, tomas_gate=passed, tomas_cost=ondra, marta_fate=supplied, marta_watched=no, berta_fate=clean, regime=confident, kastan=hidden, ending_class=['at_horizon', 'e6_mothers_trade', 'e7_daughters_statement']
+
+--- e7_daughters_statement
+  assuming in circle
+   1. The last ream is gone. The circle meets without a sheet to show.  [world]
+   2. The courier is at the gate with a parcel.  [world]
+   3. Jan asks Ilona for her mother's carbon.
+   4. Ilona takes her mother's carbon from the desk drawer.
+   5. Tomas waves the courier through. The gap is in Ondra's log.
+   6. The courier reaches the cellar: paper and ink for Jan, the inhaler for Marta.
+   7. Jan prints the caretaker's name. The file is traced to the Records Office.
+   8. A card arrives: the admissions review sits this week.  [world]
+   9. The review sits: Ilona Halm, deferred.
+  10. More paper arrives at every desk. The regime is paranoid.  [world]
+  11. Ilona signs the renunciation and gives the cellar's address. A second sitting is granted.
+  12. Rybar raids the cellar. Jan is taken.
+  — vera_ledger=pending, vera_reach=leaked, vera_fate=unwatched, ilona_review=renounced, jan_press=named_kastan, jan_fate=arrested, tomas_gate=passed, tomas_cost=ondra, marta_fate=supplied, marta_watched=no, berta_fate=clean, regime=paranoid, kastan=exposed, ending_class=['at_horizon', 'e7_daughters_statement']
+
+--- e8_martas_breath
+  assuming in circle
+  assuming rybar vindictive
+   1. A slip on the desk: the District Register is to be reconciled before the inspection.  [world]
+   2. The courier is at the gate with a parcel.  [world]
+   3. Tomas waves the courier through. The gap is in Ondra's log.
+   4. Marta, at one breath, tells Kastan where the Halm girl goes in the evenings.
+   5. Kastan stops Vera on the stairs: I saw your girl go down to the cellar.
+   6. The courier reaches the cellar: paper and ink for Jan, the inhaler for Marta.
+   7. Vera closes the household file on a different name: the cellar's.
+   8. A card arrives: the admissions review sits this week.  [world]
+   9. Rybar raids the cellar. Jan is taken.
+  10. Vera reads 4471 to the end. The parcel was medicine. Marta Sokol, flat 3.
+  11. The review sits: Ilona Halm, refused.
+  12. Vera knocks at flat 3 at 23:10 and says: not on Tuesdays. Kastan's building book records the hour.
+  — vera_ledger=pending, vera_reach=reported_jan, vera_fate=unwatched, ilona_review=refused, jan_press=silent, jan_fate=arrested, tomas_gate=passed, tomas_cost=ondra, marta_fate=supplied, marta_watched=no, berta_fate=clean, regime=confident, kastan=hidden, ending_class=['at_horizon', 'e8_martas_breath']
+
+--- e9_route_burned
+   1. A slip on the desk: the District Register is to be reconciled before the inspection.  [world]
+   2. The courier is at the gate with a parcel.  [world]
+   3. Vera enters 4471 in the ledger. Marta is watched; the household file is complete; Kastan is paid.
+   4. Rybar puts the Vienna route on the list at Brenava.
+   5. Vera slips the carbon of 4471 to Jan. Berta's count is one short.
+   6. Jan prints the caretaker's name. The file is traced to the Records Office.
+   7. Marta is taken to hospital. The hospital asks for papers.
+   8. A card arrives: the admissions review sits this week.  [world]
+   9. Tomas waves the courier through. The gap is in Ondra's log.
+  10. A captain comes to the post about the log.  [world]
+  11. Under inquiry, Tomas names the Vienna route. Ondra clear; the route burned.
+  12. The review sits: Ilona Halm, admitted.
+  — vera_ledger=filed, vera_reach=leaked, vera_fate=unwatched, ilona_review=admitted, jan_press=named_kastan, jan_fate=free, tomas_gate=passed, tomas_cost=route, marta_fate=hospital, marta_watched=yes, berta_fate=clean, regime=confident, kastan=exposed, ending_class=['at_horizon', 'e9_route_burned']
+
+=== the raw behaviour space on the 13 axes (limit 400) ===

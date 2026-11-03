@@ -8,6 +8,7 @@
 (define (domain paper-walls-act1)
   (:requirements :strips :typing :numeric-fluents :conditional-effects :disjunctive-preconditions)
   (:types agent person place - object
+          crossing town - place
           archivist dissident conscript bunkmate officer informer widow daughter colleague - agent)
   (:predicates
     ;; Vera
@@ -38,13 +39,13 @@
     ;; everyone
     (under-observation ?x - object)
     ;; the office and the city
-    (ledger-reconciled ?v - archivist) (paranoid ?l - place)
+    (ledger-reconciled ?v - archivist) (paranoid ?l - town)
     ;; the border
     (courier-at-gate ?l - place) (courier-through ?l - place) (courier-detained ?l - place)
     (courier-listed ?l - place) (log-gap ?l - place) (log-covered ?l - place) (inquiry ?l - place)
     (border-tightened ?l - place) (family-at-gate ?l - place) (family-through ?l - place)
     (family-detained ?l - place) (route-burned ?l - place) (unit-commended ?l - place))
-  (:functions (unrest ?l - place) (stability ?l - place) (attention ?x - object) (breath ?m - widow))
+  (:functions (unrest ?l - town) (stability ?l - town) (attention ?x - object) (breath ?m - widow))
 
   ;; ===== Vera (9) =====================================================================
   (:action read-file
@@ -91,22 +92,22 @@
 
   ;; ===== Jan (8, give-name split in three) ============================================
   (:action receive-courier
-    :parameters (?j - dissident ?m - widow ?l - place)
+    :parameters (?j - dissident ?m - widow ?l - crossing)
     :precondition (and (courier-through ?l) (not (courier-sheltered ?j)) (not (arrested ?j)))
     :effect (and (courier-sheltered ?j) (has-paper ?j) (has-medicine ?m) (increase (breath ?m) 3)
                  (increase (attention ?j) 1)))
   (:action print-leaflets
-    :parameters (?j - dissident ?i - daughter ?c - place)
+    :parameters (?j - dissident ?i - daughter ?c - town)
     :precondition (and (has-paper ?j) (not (press-raided ?j)) (not (leaflets-printed ?j)) (not (arrested ?j)) (not (recanted ?j)))
     :effect (and (leaflets-printed ?j) (increase (unrest ?c) 1)
                  (when (in-circle ?i) (at-risk ?i))))
   (:action distribute
-    :parameters (?j - dissident ?i - daughter ?c - place ?l - place)
+    :parameters (?j - dissident ?i - daughter ?c - town ?l - crossing)
     :precondition (and (leaflets-printed ?j) (not (leaflets-distributed ?j)) (not (arrested ?j)) (not (recanted ?j)))
     :effect (and (leaflets-distributed ?j) (increase (unrest ?c) 2) (decrease (stability ?c) 1)
                  (border-tightened ?l) (increase (attention ?j) 1) (when (in-circle ?i) (at-risk ?i))))
   (:action expose-informer
-    :parameters (?j - dissident ?k - informer ?v - archivist ?c - place)
+    :parameters (?j - dissident ?k - informer ?v - archivist ?c - town)
     :precondition (and (has-file ?j) (not (exposed ?k)) (not (arrested ?j)) (not (recanted ?j)))
     :effect (and (exposed ?k) (source-traced ?j) (increase (attention ?v) 2) (increase (unrest ?c) 1)
                  (decrease (stability ?c) 1)))
@@ -123,53 +124,53 @@
     :precondition (and (under-observation ?j) (not (arrested ?j)) (not (recanted ?j)))
     :effect (and (recanted ?j) (not (under-observation ?j)) (decrease (attention ?j) 2) (not (at-risk ?i))))
   (:action give-courier
-    :parameters (?j - dissident ?l - place ?c - place)
+    :parameters (?j - dissident ?l - crossing ?c - town)
     :precondition (and (or (arrested ?j) (and (under-observation ?j) (paranoid ?c))) (not (gave-courier ?j)) (not (route-burned ?l)))
     :effect (and (gave-courier ?j) (not (arrested ?j)) (route-burned ?l)))
   (:action give-ilona
-    :parameters (?j - dissident ?i - daughter ?c - place)
+    :parameters (?j - dissident ?i - daughter ?c - town)
     :precondition (and (or (arrested ?j) (and (under-observation ?j) (paranoid ?c))) (not (gave-ilona ?j)) (not (under-observation ?i)))
     :effect (and (gave-ilona ?j) (not (arrested ?j)) (under-observation ?i)))
   (:action give-vera
-    :parameters (?j - dissident ?v - archivist ?c - place)
+    :parameters (?j - dissident ?v - archivist ?c - town)
     :precondition (and (or (arrested ?j) (and (under-observation ?j) (paranoid ?c))) (not (gave-vera ?j)) (has-file ?j) (not (under-observation ?v)))
     :effect (and (gave-vera ?j) (not (arrested ?j)) (under-observation ?v)))
 
   ;; ===== Tomas (4, crosser split) =====================================================
   (:action let-pass-courier
-    :parameters (?t - conscript ?o - bunkmate ?l - place)
+    :parameters (?t - conscript ?o - bunkmate ?l - crossing)
     :precondition (and (courier-at-gate ?l) (not (courier-through ?l)) (not (courier-detained ?l)))
     :effect (and (courier-through ?l) (log-gap ?l) (liable ?o)
                  (when (courier-listed ?l) (increase (attention ?t) 2))))
   (:action detain-courier
-    :parameters (?t - conscript ?m - widow ?l - place)
+    :parameters (?t - conscript ?m - widow ?l - crossing)
     :precondition (and (courier-at-gate ?l) (not (courier-through ?l)) (not (courier-detained ?l)))
     :effect (and (courier-detained ?l) (border-report ?l) (unit-commended ?l)
                  (increase (attention ?m) 2)))
   (:action let-pass-family
-    :parameters (?t - conscript ?o - bunkmate ?l - place)
+    :parameters (?t - conscript ?o - bunkmate ?l - crossing)
     :precondition (and (family-at-gate ?l) (border-tightened ?l) (not (family-through ?l)) (not (family-detained ?l)))
     :effect (and (family-through ?l) (log-gap ?l) (liable ?o) (increase (attention ?t) 2)))
   (:action detain-family
-    :parameters (?t - conscript ?l - place ?c - place)
+    :parameters (?t - conscript ?l - crossing ?c - town)
     :precondition (and (family-at-gate ?l) (not (family-through ?l)) (not (family-detained ?l)))
     :effect (and (family-detained ?l) (unit-commended ?l) (line-held ?l) (increase (unrest ?c) 1)))
   (:action confess-gap
-    :parameters (?t - conscript ?o - bunkmate ?l - place)
+    :parameters (?t - conscript ?o - bunkmate ?l - crossing)
     :precondition (and (log-gap ?l) (inquiry ?l) (liable ?o) (not (confessed ?t)))
     :effect (and (confessed ?t) (on-report ?t) (not (liable ?o)) (not (log-gap ?l))))
   (:action name-route
-    :parameters (?t - conscript ?o - bunkmate ?m - widow ?l - place)
+    :parameters (?t - conscript ?o - bunkmate ?m - widow ?l - crossing)
     :precondition (and (inquiry ?l) (or (log-gap ?l) (on-report ?t)) (not (named-route ?t)) (not (route-burned ?l)))
     :effect (and (named-route ?t) (route-burned ?l) (not (liable ?o)) (not (on-report ?t)) (increase (attention ?m) 2)))
 
   ;; ===== Ondra (2) ====================================================================
   (:action cover-log
-    :parameters (?o - bunkmate ?l - place)
+    :parameters (?o - bunkmate ?l - crossing)
     :precondition (and (log-gap ?l) (not (inquiry ?l)) (not (log-covered ?l)))
     :effect (and (log-covered ?l) (not (log-gap ?l)) (liable ?o)))
   (:action report-tomas
-    :parameters (?o - bunkmate ?t - conscript ?l - place)
+    :parameters (?o - bunkmate ?t - conscript ?l - crossing)
     :precondition (and (or (log-gap ?l) (log-covered ?l)) (inquiry ?l) (not (reported-tomas ?o)))
     :effect (and (reported-tomas ?o) (on-report ?t) (not (liable ?o))))
 
@@ -238,7 +239,7 @@
                        (or (discrepancy ?v) (and (border-report ?l) (not (filed ?p))) (>= (attention ?v) 3)))
     :effect (and (under-observation ?v) (increase (attention ?v) 2)))
   (:action raid
-    :parameters (?r - officer ?j - dissident ?i - daughter ?c - place)
+    :parameters (?r - officer ?j - dissident ?i - daughter ?c - town)
     :precondition (and (under-observation ?j) (not (press-raided ?j)) (not (recanted ?j)))
     :effect (and (press-raided ?j) (arrested ?j) (increase (unrest ?c) 2) (when (in-circle ?i) (under-observation ?i))))
   (:action hold-review
@@ -264,21 +265,21 @@
     :precondition (and (review-pending ?i) (not (review-called ?i)))
     :effect (review-called ?i))
   (:action courier-arrives
-    :parameters (?l - place ?m - widow)
+    :parameters (?l - crossing ?m - widow)
     :precondition (and (not (courier-at-gate ?l)) (not (route-paused ?m)) (not (route-burned ?l)))
     :effect (courier-at-gate ?l))
   (:action inquiry-at-post
-    :parameters (?l - place)
+    :parameters (?l - crossing)
     :precondition (and (not (inquiry ?l)) (or (log-gap ?l) (log-covered ?l) (courier-listed ?l)))
     :effect (inquiry ?l))
   (:action regime-paranoid
-    :parameters (?c - place ?v - archivist ?j - dissident)
+    :parameters (?c - town ?v - archivist ?j - dissident)
     :precondition (not (paranoid ?c))
     :effect (and (paranoid ?c) (decrease (stability ?c) 1)
                  (when (>= (attention ?v) 1) (increase (attention ?v) 1))
                  (when (>= (attention ?j) 1) (increase (attention ?j) 1))))
   (:action family-arrives
-    :parameters (?l - place ?m - widow)
+    :parameters (?l - crossing ?m - widow)
     :precondition (and (not (family-at-gate ?l)) (or (border-tightened ?l) (route-paused ?m)))
     :effect (family-at-gate ?l))
   (:action review-admits

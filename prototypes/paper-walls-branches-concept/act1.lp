@@ -15,7 +15,7 @@ agent(A) :- has(A, type("agent")).
 c(vera, constant("vera")).   c(jan, constant("jan")).     c(tomas, constant("tomas")).
 c(ondra, constant("ondra")). c(rybar, constant("rybar")). c(kastan, constant("kastan")).
 c(marta, constant("marta")). c(ilona, constant("ilona")). c(berta, constant("berta")).
-c(marek, constant("marek")). c(vrba, constant("vrba")).   c(border, constant("border")).
+c(marek, constant("marek")). c(border, constant("border")).
 c(city, constant("city")).
 v1(N, X, variable((N, C))) :- c(X, C), variable(variable((N, C))).
 
@@ -26,11 +26,11 @@ happening(A) :- action(A), actClass(A, N), worldClass(N).
 worldAction(A) :- happening(A).
 window(A, 2, 4)  :- actClass(A, "courier_arrives").
 window(A, 1, 2)  :- actClass(A, ("ledger_called"; "press_runs_dry")).
-window(A, 8, 9)  :- actClass(A, "review_convened").
-window(A, 5, 10) :- actClass(A, "inquiry_at_post").
-window(A, 6, 12) :- actClass(A, "regime_paranoid").
-window(A, 7, 11) :- actClass(A, "family_arrives").
-window(A, 9, 12) :- actClass(A, ("review_admits"; "review_defers"; "review_refuses")).   % the review sits in week two
+window(A, 9, 11) :- actClass(A, "review_convened").
+window(A, 5, 12) :- actClass(A, "inquiry_at_post").
+window(A, 6, 14) :- actClass(A, "regime_paranoid").
+window(A, 7, 13) :- actClass(A, "family_arrives").
+window(A, 10, 14) :- actClass(A, ("review_admits"; "review_defers"; "review_refuses")).   % the review sits at the end of week two
 % the state's phase is read, never spontaneous (law no_panic_before_crowd, act-one form)
 licence(A, leaflets, is(V, true))  :- actClass(A, "regime_paranoid"), v1("leaflets_distributed", jan, V).
 licence(A, gap, is(V, true))       :- actClass(A, "regime_paranoid"), v1("discrepancy", vera, V).
@@ -47,8 +47,6 @@ numBound(V, 0, 12) :- v1("unrest", city, V).
 numBound(V, 0, 10) :- v1("stability", city, V).
 numBound(V, 0, 4)  :- v1("breath", marta, V).
 numBound(variable(("attention", X)), 0, 6) :- variable(variable(("attention", X))).
-numBound(V, 0, 0)  :- v1("unrest", vrba, V).   numBound(V, 0, 0) :- v1("unrest", border, V).
-numBound(V, 0, 0)  :- v1("stability", vrba, V). numBound(V, 0, 0) :- v1("stability", border, V).
 
 % --- how each class reads -------------------------------------------------------------------
 actionIntensity("raid",3). actionIntensity("query_ledger",2). actionIntensity("hold_review",2).
@@ -169,7 +167,7 @@ licence(A, watched,  is(V, true)) :- actClass(A, "inquiry_at_post"), premiseFlue
 
 % --- the game's laws (§6) ---------------------------------------------------------------------
 law(costless_courage). law(unprotected_cowardice). law(licensed_silence). law(cost_is_a_person).
-law(crossing_read). law(no_one_unchanged). law(gap_is_noticed). law(review_sits). law(breath_is_a_clock).   % the review is the act's closing bell
+law(crossing_read). law(no_one_unchanged). law(gap_is_noticed). law(review_sits). law(breath_is_a_clock). law(gate_decides).   % the review is the act's closing bell
 courageClass("burn_report"; "warn"; "leak_file"; "take_blame"; "print_leaflets"; "distribute";
              "expose_informer"; "ask_carbon"; "let_pass_courier"; "let_pass_family"; "confess_gap";
              "cover_log"; "join_circle"; "take_carbon"; "send_word"; "cover_vera").
@@ -205,7 +203,8 @@ liveKastan(t)  :- holds(V, value(V, true), t), v1("rewarded", kastan, V), not ho
 liveKastan(t)  :- holds(V, value(V, true), 0), premiseFluent(V), V = variable(("kastan_loyal", _)), not holds(E, value(E, true), t), v1("exposed", kastan, E).
 kastanFact(t)  :- holds(V, value(V, true), t), v1("household_flagged", vera, V), not holds(U, value(U, true), t), v1("under_observation", vera, U).
 kastanFact(t)  :- holds(V, value(V, true), t), v1("courier_sheltered", jan, V), not holds(U, value(U, true), t), v1("under_observation", vera, U).
-kastanFact(t)  :- not holds(U, value(U, true), t), v1("under_observation", jan, U), not holds(R, value(R, true), t), v1("recanted", jan, R).
+kastanFact(t)  :- holds(S, value(S, true), t), v1("courier_sheltered", jan, S), not holds(U, value(U, true), t), v1("under_observation", jan, U), not holds(R, value(R, true), t), v1("recanted", jan, R).
+kastanFact(t)  :- holds(S, value(S, true), t), v1("leaflets_printed", jan, S), not holds(U, value(U, true), t), v1("under_observation", jan, U), not holds(R, value(R, true), t), v1("recanted", jan, R).
 kastanDue(t)   :- liveKastan(t), kastanFact(t).
 kastanFiled(t) :- eventName(("inform"; "report_neighbour"), t).
 bertaDue(t)    :- holds(V, value(V, true), t), v1("knows_gap", berta, V), holds(I, value(I, true), t), v1("implicated", berta, I).
@@ -228,14 +227,17 @@ crossRead(t) :- supports(t, T2), agentActed(T2), T2 <= t + 4.
 broken(crossing_read, T) :- query(t), crossSet(T), T + 4 <= t, not crossRead(T).
 changed(P)  :- query(t), protagonist(P), turnFlag(P, V), holds(V, value(V, true), t).
 broken(no_one_unchanged, t) :- query(t), protagonist(P), not changed(P).
-broken(review_sits, t) :- query(t), t >= 10, v1("review_sat", ilona, V), not holds(V, value(V, true), t).
+broken(review_sits, t) :- query(t), t >= 12, v1("review_sat", ilona, V), not holds(V, value(V, true), t).
+atGate(T, courier) :- timePoint(T), holds(G, value(G, true), T), v1("courier_at_gate", border, G), not holds(A, value(A, true), T), v1("courier_through", border, A), not holds(B, value(B, true), T), v1("courier_detained", border, B).
+atGate(T, family)  :- timePoint(T), holds(G, value(G, true), T), v1("family_at_gate", border, G), not holds(A, value(A, true), T), v1("family_through", border, A), not holds(B, value(B, true), T), v1("family_detained", border, B).
+broken(gate_decides, T) :- query(t), atGate(T, X), atGate(T+1, X), atGate(T+2, X), T + 2 <= t.
 noBreath(T) :- timePoint(T), numval(V, 0, T), v1("breath", marta, V), not holds(H, value(H, true), T), v1("hospitalised", marta, H).
 broken(breath_is_a_clock, T) :- query(t), noBreath(T), noBreath(T+1), noBreath(T+2), T + 2 <= t.
 
 % --- the branch space (§7): twelve axes read off the end state, and the ending classes --------
 #program base.
 featureAxis(vera_ledger; vera_reach; vera_fate; ilona_review; jan_press; jan_fate; tomas_gate;
-            tomas_cost; marta_fate; marta_watched; berta_fate; regime; kastan; ending_class).
+            tomas_cost; marta_fate; marta_watched; berta_fate; regime; kastan; act_ending).
 axisDomain(vera_ledger, (filed; burned; doctored; pending)).
 axisDomain(vera_reach, (none; warned; leaked; reported_jan)).
 axisDomain(vera_fate, (unwatched; watched; blamed)).
@@ -249,7 +251,7 @@ axisDomain(marta_watched, (yes; no)).
 axisDomain(berta_fate, (clean; implicated; liable; reporter)).
 axisDomain(regime, (confident; paranoid)).
 axisDomain(kastan, (hidden; exposed)).
-axisDomain(ending_class, (e1_complete_file; e2_gap; e3_carbon; e4_seized_parcel; e5_open_gate;
+axisDomain(act_ending, (e1_complete_file; e2_gap; e3_carbon; e4_seized_parcel; e5_open_gate;
                     e6_mothers_trade; e7_daughters_statement; e8_martas_breath; e9_route_burned; other)).
 
 #program check(t).
@@ -305,14 +307,14 @@ feature(regime, confident) :- query(t), not on("paranoid", city).
 feature(kastan, exposed) :- on("exposed", kastan).
 feature(kastan, hidden)  :- query(t), not on("exposed", kastan).
 % ending classes (§7): a telling may belong to several; `other` when to none
-feature(ending_class, e1_complete_file)       :- on("filed", marta), on("courier_listed", border), on("courier_through", border), on("family_detained", border).
-feature(ending_class, e2_gap)                 :- on("burned", marta), on("reported", berta), on("under_observation", vera), on("courier_through", border), not on("leaflets_printed", jan).
-feature(ending_class, e3_carbon)              :- on("took_carbon", ilona), on("exposed", kastan), on("under_observation", vera), on("family_detained", border).
-feature(ending_class, e4_seized_parcel)       :- on("courier_detained", border), on("border_report", border), on("hospitalised", marta), not on("leaflets_printed", jan).
-feature(ending_class, e5_open_gate)           :- on("courier_through", border), on("confessed", tomas), on("leaflets_distributed", jan), on("reported_jan", vera).
-feature(ending_class, e6_mothers_trade)       :- on("reported_jan", vera), on("press_raided", jan), on("renounced", ilona), on("admitted", ilona), not on("under_observation", vera).
-feature(ending_class, e7_daughters_statement) :- on("renounced", ilona), on("press_raided", jan), not on("filed", marta), not on("burned", marta), not on("doctored", vera).
-feature(ending_class, e8_martas_breath)       :- on("pleaded", marta), on("has_medicine", marta), on("warned", marta), on("review_refused", ilona).
-feature(ending_class, e9_route_burned)        :- on("route_burned", border), not on("has_medicine", marta), not on("arrested", jan).
-anyEnding :- feature(ending_class, E), E != other.
-feature(ending_class, other) :- query(t), not anyEnding.
+feature(act_ending, e1_complete_file)       :- on("filed", marta), on("courier_listed", border), on("courier_through", border), on("family_detained", border).
+feature(act_ending, e2_gap)                 :- on("burned", marta), on("reported", berta), on("under_observation", vera), on("courier_through", border), not on("leaflets_printed", jan).
+feature(act_ending, e3_carbon)              :- on("took_carbon", ilona), on("exposed", kastan), on("under_observation", vera), on("family_detained", border).
+feature(act_ending, e4_seized_parcel)       :- on("courier_detained", border), on("border_report", border), on("hospitalised", marta), not on("leaflets_printed", jan).
+feature(act_ending, e5_open_gate)           :- on("courier_through", border), on("confessed", tomas), on("leaflets_distributed", jan), on("reported_jan", vera).
+feature(act_ending, e6_mothers_trade)       :- on("reported_jan", vera), on("press_raided", jan), on("renounced", ilona), on("admitted", ilona), not on("under_observation", vera).
+feature(act_ending, e7_daughters_statement) :- on("renounced", ilona), on("press_raided", jan), not on("filed", marta), not on("burned", marta), not on("doctored", vera).
+feature(act_ending, e8_martas_breath)       :- on("pleaded", marta), on("has_medicine", marta), on("warned", marta), on("review_refused", ilona).
+feature(act_ending, e9_route_burned)        :- on("route_burned", border), not on("has_medicine", marta), not on("arrested", jan).
+anyEnding :- feature(act_ending, E), E != other.
+feature(act_ending, other) :- query(t), not anyEnding.
