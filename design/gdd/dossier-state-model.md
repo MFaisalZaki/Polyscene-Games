@@ -107,7 +107,7 @@ Writers (fixed enum): `filing` (Filing & Decision), `dialogue` (Dialogue & Inter
 ```yaml
 change:
   id: 418                     # monotonic per save; survives serialize
-  day: 9                      # calendar day
+  day: 9                      # calendar day: the scene's authored day for writers filing/dialogue/assume; for writer rules (clocks, world moves, drift) the Calendar's high-water day `day_high`, the latest day any played scene has reached, so a file dates what the state did by receipt and never earlier than a page already read (GDD 7 Core Rule 1; amendment applied)
   beat: 7                     # scene-boundary index within the act
   boundary: a1_vera/s3        # the scene whose boundary applied the batch
   target: vera
