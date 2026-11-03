@@ -153,7 +153,9 @@ Lint rules on `exits[]`, run by GDD 2's validator with this system as semantics 
 | SF-E7 | A sidecar exit hotspot carries no content action (cross-check in `tools/`, beside GDD 3's X01) | E |
 | SF-W1 | Same-scene read-after-write (Rule 5) | W |
 | SF-W2 | A `person`/`phone` hotspot whose actions can all be false under some state | W |
-| SF-W3 | More than one `decision` action in one scene, or a `decision` and a dialogue with effectful answers in one scene (GDD 6 Rule 7 amendment: the solver's beat is one player action) | W |
+| SF-W3 | More than `PLAYER_ACTIONS_PER_SCENE_MAX` (3) effectful player actions in one scene, or two `decision` actions (GDD 6 Rule 7 amendment: the solver's beat advances on the generated `close_scene` action, and the boundary's player actions occur at that beat as steps; the generator caps them) | W |
+| SF-W4 | Two `threshold` hotspots in a scene whose `exits[]` carry no `via` (Edge Case 2) | W |
+| SF-E9 | A `kind: calendar` scene as a chapter's `entry_scene` (Edge Case 11) | E |
 
 The path-length invariant, which the Calendar's beat spans and GDD 6's windows both assume:
 
@@ -302,7 +304,7 @@ Dialogue and Filing are *systems*, not sink calls: Scene Flow calls `dialogue.ru
 
 ---
 
-**14. Save points are the closed reveal; Scene Flow serialises the cursor and nothing staged.** The only save point is Rule 8 step 13, after `on_continue` closes the reveal and before the insert plays or the next scene is entered. At that moment the dossier and the Calendar are outside their brackets (GDD 1 Rule 10, GDD 7 Edge Case 15), the fact system is at a boundary (GDD 5 Rule 6's `at_boundary: true`), the rules evaluator is idle (GDD 6 States), and `cursor.staged` is empty by construction (an insert's effects are staged only when it plays, and it plays *after* the save point). `serialize() → {sf_schema_version, act, chapter_id, cursor: {next: scene_id | chapter_end, pending_insert: scene_id | null}, phase ∈ {in_chapter, act_close}}` — plain data, no resource, no string, no availability (re-derived, Rule 6), no focus or camera (GDD 3 Interactions), no staged effects, ever. `deserialize(data)` accepts only the current `SF_SCHEMA_VERSION`, whole or not at all (GDD 1 Edge Case 13's shape), and is legal only before `run_act` has entered a scene. Load order, which Save/Load owns **(PROV)** but which this system requires: content, then `dossier.deserialize`, `calendar.deserialize`, `rules.deserialize`, `facts.deserialize(data, at_boundary = true)`, then Scene Flow's; then Scene Flow calls `calendar.open_chapter(chapter_id)` again (GDD 7 Rule 1 amendment), `reader.bind`, rebuilds `writer`, and runs `play_insert(pending_insert)` if set, else `enter(next)` — the same path as an unloaded game, which is what makes "re-derived on load" (GDD 3 Rule 5) a single function. The dossier's own `chapter_id` and beat come from its payload; Scene Flow does not call `chapter_open` again (it would re-apply the assumptions).
+**14. Save points are the closed reveal; Scene Flow serialises the cursor and nothing staged.** The only save point is Rule 8 step 13, after `on_continue` closes the reveal and before the insert plays or the next scene is entered. At that moment the dossier and the Calendar are outside their brackets (GDD 1 Rule 10, GDD 7 Edge Case 15), the fact system is at a boundary (GDD 5 Rule 6's `at_boundary: true`), the rules evaluator is idle (GDD 6 States), and `cursor.staged` is empty by construction (an insert's effects are staged only when it plays, and it plays *after* the save point). `serialize() → {sf_schema_version, act, chapter_id, cursor: {next: scene_id | chapter_end, pending_insert: scene_id | null}, phase ∈ {in_chapter, act_close}}` — plain data, no resource, no string, no availability (re-derived, Rule 6), no focus or camera (GDD 3 Interactions), no staged effects, ever. `deserialize(data)` accepts only the current `SF_SCHEMA_VERSION`, whole or not at all (GDD 1 Edge Case 13's shape), and is legal only before `run_act` has entered a scene. Load order, which Save/Load owns **(PROV)** but which this system requires: content, then `dossier.deserialize`, `calendar.deserialize`, `rules.deserialize`, `facts.deserialize(data, at_boundary = true)`, then Scene Flow's; then Scene Flow calls `calendar.open_chapter(chapter_id, resumed = true)` (GDD 7 Rule 1 amendment), `reader.bind`, rebuilds `writer`, and runs `play_insert(pending_insert)` if set, else `enter(next)` — the same path as an unloaded game, which is what makes "re-derived on load" (GDD 3 Rule 5) a single function. The dossier's own `chapter_id` and beat come from its payload; Scene Flow does not call `chapter_open` again (it would re-apply the assumptions).
 A quit inside a scene resumes at that scene's start: the documents already read in the abandoned scene are re-read, facts held there are not restored (GDD 5 Edge Case 13 forbids a mid-dialogue load, and a mid-scene held set with no board-to-sheet synchrony is what it forbids it for). This is a player-experience ruling for the creative director to confirm (Open Questions); the alternative is in "Rejected".
 Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way: `SceneFlow.reload_window() → bool` is true exactly at the save point, and `ContentStore.reload()` is legal only then; a reload inside a scene would change the action table under the player's cursor.
 *Rationale:* every stateful system already refuses a mid-bracket load; choosing the closed reveal makes "at a boundary" one instant every GDD agrees on, and makes the cursor two ids.
@@ -381,11 +383,272 @@ Hot reload (GDD 2 Rule 13, "between scene boundaries") is answered the same way:
 
 ## Formulas
 
-[To be designed]
+*Proposed by the systems designer over Section C as spliced into `design/gdd/scene-flow.md`, with the main session's rulings applied: the solver's beat advances on a generated `close_scene` action per authored boundary (GDD 6 Rule 7 as amended) and a scene carries at most `PLAYER_ACTIONS_PER_SCENE_MAX` (3) effectful player actions; `dossier.beat()` exists (GDD 1 Rule 4a); `calendar.open_chapter(chapter_id, resumed)` exists (GDD 7 Rule 1); one `chapter` batch is admitted after the rules step at the act's last boundary (GDD 1 Rule 4a). Every constant appears by its registry name; the act-one value is quoted in the table. Nothing below is numeric balance: this system tunes nothing and every formula is a predicate, a sequence or a partition that the simulator asserts and the content validator runs. Indices: `b` is the beat (the boundary in progress, GDD 1's counter + 1), `s` a scene, `h` a hotspot, `f` a firing, `c` the open chapter. Square brackets `[P]` are the Iverson bracket. Nothing below reads a wall clock, a float or a string.*
+
+### 1. The boundary procedure as an ordered sequence, and its invariants
+
+The boundary is defined as the ordered call sequence `B(s)` of Core Rule 8, written here as the list the simulator diffs against the `NullPresentationSink` and null-twin call logs:
+
+`B(s) = ⟨ push_block, date_for, beat_read, cal_begin, dos_begin, dos_apply(staged), run_boundary, [dos_apply(archive)], dos_end, cal_end, snapshot, route, stage_firings, [preload], rule_fired(paper)*, reveal, continue, pop_block, record ⟩`
+
+with the bracketed calls conditional (`archive` only at the act's last boundary; `preload` only when the next id names a plate) and `rule_fired(paper)*` repeated once per visible paper firing. Four invariants hold over every `B(s)` and are asserted by the unit tests on the recorded call logs:
+
+- **I1 (once):** `count(B(s), x) = 1` for every `x ∈ {cal_begin, dos_begin, dos_apply(staged), run_boundary, dos_end, cal_end, snapshot, route, stage_firings, reveal, continue}`; `count(B(s), dos_apply(archive)) = [s = last(act_close)]`.
+- **I2 (beat):** `dossier.beat()` read at `beat_read` equals `b − 1`; `dossier.beat()` read after `dos_end` equals `b`; `ctx.beat = b` throughout; the beat changes at `dos_end` and nowhere else in `B(s)`.
+- **I3 (staging):** `|staged|` read before `dos_apply(staged)` is `n ≥ 0`; read after it, `0`; no `writer.submit` succeeds between `push_block` and `pop_block` (the room is suspended and no runner is open), so `|staged| = 0` at `record`, which is the save point.
+- **I4 (steps):** `ctx.step` takes the values `decision, rules, phase_attention, reveal` in that order, each assigned once, `rules` before `run_boundary`, `phase_attention` before `snapshot`, `reveal` before `reveal`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `s` | scene id | one of the chapter's `authored`/`calendar` rows | ctx | The scene whose boundary this is |
+| `b` | int | 1–`HORIZON_ACT` (14) | calculated (`dossier.beat() + 1`) | GDD 1's post-increment beat; GDD 7's `ctx.beat` |
+| `staged` | list of effect records | 0–unbounded (lint SF-W3 bounds the sources) | cursor | The decision batch in staging order |
+| `archive` | list of effect records | writer `chapter` | `ActPlan.archive_batch` | Applied once per act, at `last(act_close)` |
+| `last(act_close)` | scene id | — | `ActPlan.act_close[-1]` | The act's final boundary |
+| `count(B, x)` | int | 0–unbounded | calculated over the call log | Occurrences of call `x` in the sequence |
+| `ctx.step` | enum | `decision, rules, phase_attention, reveal` | ctx | GDD 7 Rule 1's four step names |
+
+**Output Range:** `B(s)` has between 18 calls (no archive, no preload, no paper, a calendar scene before another calendar scene) and `20 + |paper|` calls; I1–I4 are booleans that must all be true; any false value is a Scene Flow defect, asserted through the `DebugSink`, and the simulator fails the telling naming the invariant and `s`. `b` is bounded by `HORIZON_ACT` because the content lint (§2, SF-E4b) proves the act closes exactly `HORIZON_ACT` boundaries.
+**Example:** `v_turn` in the MVP fixture, `dossier.beat() = 2` at `beat_read` (after `v_office` and `v_cal_weekend`), so `b = 3`; `staged = [V3's three effects]`, `n = 3`; `run_boundary` fires R1; no archive; `route = v_person`; `stage_firings` queues `rybar_query_ledger`; `preload(rybar_query_ledger)`; no paper; `reveal`; `continue`; `dossier.beat() = 3` after `dos_end`; `|staged| = 0` at `record`. Call count 19. *Rejected:* letting `cal_end` precede `dos_end` (the Calendar's `day_high` could then be read by `dos_end`'s records before the Calendar closed; GDD 7 Rule 1 wants the Calendar told first and closed last).
+
+### 2. The exit-graph lints
+
+The chapter's exit graph is defined as the directed graph `G_c = (V_c, E_c)` with `V_c = {s ∈ c.scenes : kind(s) ∈ {authored, calendar}} ∪ {chapter_end}` and `E_c = {(s, e.to) : s ∈ V_c, e ∈ s.exits}`. The lints are the predicates:
+
+- `SF-E1(s) = |s.exits| ≥ 1 ∧ when(last(s.exits)) = ∅`
+- `SF-E2(s) = ∀ e ∈ s.exits : e.to = chapter_end ∨ (e.to ∈ V_c ∧ e.to ≠ s)`
+- `SF-E3(s) = ∀ e ∈ s.exits : has_fact ∈ leaves(e.when) ⇒ ∃ e' ∈ s.exits : has_fact ∉ leaves(e'.when)`
+- `SF-E4(c) = acyclic(G_c) ∧ ∀ v ∈ V_c : reachable(entry_scene, v) ∧ |{path_len(p) : p ∈ paths(entry_scene, chapter_end)}| = 1 ∧ path_len(any p) = c.beats`, where `path_len(p) = |{s ∈ p : kind(s) ∈ {authored, calendar}}|`
+- `SF-E4b(act) = Σ_{c ∈ play_order} c.beats + HORIZON_SLACK = HORIZON_ACT`
+- `SF-E5(s) = ∀ e ∈ s.exits : e.via = ∅ ∨ (e.via ∈ sidecar(s).exits[].hotspot ∧ threshold(e.via))`
+- `SF-E6(s) = kind(s) = calendar ⇒ (s.exits ≠ ∅ ∧ s.location = s.actions = s.documents = s.dialogues = ∅)`
+- `SF-E7(s) = ∀ h ∈ sidecar(s).exits[].hotspot : ∄ a ∈ s.actions : a.hotspot = h`
+- `SF-E8(c) = ∀ class : |{s ∈ c.scenes : kind(s) = insert ∧ s.class = class}| ≤ 1`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `c.scenes` | list of scene rows | 1–unbounded | data file (GDD 2 `chapter`) | Every row, all three kinds |
+| `kind(s)` | enum | `authored, calendar, insert` | data file (GDD 2 `scene.kind`, amended) | Row kind; default `authored` |
+| `s.exits` | list of `{to, when?, via?}` | 0–unbounded | data file (GDD 2 `scene.exits`) | Routes in authored order |
+| `leaves(cond)` | set of leaf names | GDD 2 Rule 6 grammar | calculated (`Condition.fields_in` extended to leaf kinds) | Leaf kinds present in a condition |
+| `sidecar(s).exits[].hotspot` | set of hotspot ids | 0–8 | data file (GDD 3 `scene.json`) | The exit hotspots, all `threshold: true` by E09 |
+| `c.beats` | int | 1–`BEATS_PER_ACT` (12); act one 4, 4, 4 | data file (`ActPlan`/timetable spans) | The chapter's beat span length |
+| `HORIZON_SLACK`, `HORIZON_ACT` | int | 2; 14 | constants (GDD 6, registry) | The act-close beats; the act's beat horizon |
+| `paths(a, z)` | set of paths | finite iff `acyclic` | calculated | Every simple path in `G_c` from `a` to `z` |
+| `SF-E1…E8`, `SF-E4b` | bool | — | calculated | Build gates; false fails the build naming `s` or `c` |
+
+**Output Range:** all booleans; the build passes iff every predicate is true for every scene and chapter of the act. `SF-E4`'s path-length set is computed only when `acyclic` holds (a cycle makes `paths` infinite), so the lint reports the cycle first and the lengths second. `path_len` ranges `1–BEATS_PER_ACT`; `SF-E4b` fixes the act's authored boundary count at exactly `HORIZON_ACT − HORIZON_SLACK = BEATS_PER_ACT`.
+**Example:** act one under `play_order [a1_vera, a1_jan, a1_tomas]`: Vera's `G` is the chain `v_office → v_cal_weekend → v_turn → v_person → chapter_end` (the MVP fixture) or, in the act file, `v_office → v_night → v_turn → v_person → chapter_end`; each has one path of length 4, `c.beats = 4`; Jan and Tomas likewise; `4 + 4 + 4 + 2 = 14 = HORIZON_ACT`, SF-E4b passes. A draft of `v_turn` with `exits: [{to: v_person, when: is_true sheet.burned}, {to: chapter_end}]` has paths of length 4 and 3; SF-E4 fails naming both paths. `rybar_query_ledger` (`kind: insert`) is not in `V_c`, so an exit naming it fails SF-E2. *Rejected:* allowing variable `path_len` with per-telling re-based windows (GDD 6's windows and GDD 7's spans are authored over the beat; the solver would need the route in its domain to prove `review_sits`).
+
+### 3. `stage_firings`: the one-insert rule as a function over `fired[]`
+
+The staging of firings is defined as the fold over `fired[]` in selection order:
+
+`stage_firings(fired, c, route) = (insert, insert_firing, paper, degraded)` where, walking `f_1 … f_n`:
+`admit(f_i) = [f_i.beat = insert] · [insert_i−1 = ∅] · [insert_scene_for(c, f_i.class) ≠ ∅] · [route ≠ chapter_end] · [c ≠ ⟨act⟩_close]`
+`insert_i = insert_scene_for(c, f_i.class) if admit(f_i) else insert_{i−1}`;
+`paper_i = paper_{i−1} ++ [f_i] if f_i.beat = paper ∨ (f_i.beat = insert ∧ ¬admit(f_i)) else paper_{i−1}`;
+`degraded_i = degraded_{i−1} ++ [f_i.rule_id] if f_i.beat = insert ∧ ¬admit(f_i) else degraded_{i−1}`;
+`f_i.beat = none` changes nothing.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `fired` | list of firings | 0–(`RULES_PER_BOUNDARY_MAX` + world moves + drift rows) | `RulesResult.fired[]` (GDD 6 Rule 9) | Selection order; never re-sorted here |
+| `f.beat` | enum | `insert, paper, none` | data file (rule row `beat`) | What the firing presents as |
+| `f.class` | class id | `world_classes.json` | data file (rule row `class`) | The beat key; the only field bound |
+| `insert_scene_for(c, class)` | scene id or `∅` | 0–1 per class (SF-E8) | calculated over `c.scenes` | The chapter's insert row for the class |
+| `route` | scene id or `chapter_end` | — | calculated (§2's `route`, Core Rule 7) | This boundary's route |
+| `c` | chapter id | `play_order ∪ {⟨act⟩_close}` | ctx | The open chapter |
+| `insert` | scene id or `∅` | 0–1 | calculated | The one queued insert |
+| `paper` | list of firings | 0–`|fired|` | calculated | Handed to the reveal through §7 |
+| `degraded` | list of rule ids | 0–`|fired|` | calculated | Inserts that became paper; trace and report |
+
+**Output Range:** `|insert| ≤ 1` always; `|paper| + |insert| + |{f : f.beat = none}| = |fired|` (nothing fired is lost; nothing is invented); `|degraded| ≤ |{f : f.beat = insert}|`. The function is pure over its three arguments and order-stable, so the simulator's replay produces the same tuple from the same trace line.
+**Example:** GDD 6 Rule 13's MVP boundary: `fired = [R1]`, `R1.beat = insert`, `insert_scene_for(a1_vera, query_ledger) = rybar_query_ledger`, `route = v_person` → `(rybar_query_ledger, R1, [], [])`. A hypothetical `fired = [R1, B1]` with both `insert`: `admit(B1) = 0` because `insert_1 ≠ ∅` → `(rybar_query_ledger, R1, [B1], [B1])`; Berta's memo is a paper line in the reveal after the call. The same `fired = [R1]` at `v_person`'s boundary, where `route = chapter_end` → `(∅, ∅, [R1], [R1])`: the query arrives as a slip, not a call. *Rejected:* `admit` preferring the higher-priority firing over the first in order (selection order already is priority order, GDD 6 Rule 5.3; a second sort here would be a second policy).
+
+### 4. Availability derivation
+
+Availability is defined as the predicates over the pre-boundary dossier (through the chapter's reader at entry) and `facts.filed_documents()`:
+
+`void(h) = [kind(h) ∈ {paper, object}] · [A_free(h) ≠ ∅] · ∏_{a ∈ A_free(h)} [¬eval(a.when)]` where `A_free(h) = {a ∈ s.actions : a.hotspot = h ∧ has_fact ∉ leaves(a.when)}` and `eval(∅) = true`
+`filed(h) = [¬void(h)] · [∃ a ∈ s.actions : a.hotspot = h ∧ a.document ∈ filed_documents()]`
+`hidden(h) = 0` (MVP; reserved)
+`availability(h) = hidden if hidden(h); void if void(h); filed if filed(h); unfiled otherwise`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `h` | hotspot id | 3–8 per scene | `host.hotspot_ids(s)` | Every registered hotspot of the scene |
+| `kind(h)` | enum | `paper, object, door, phone, person` | data file (`scene_vocab.json`) | Sidecar kind |
+| `s.actions` | list | 0–unbounded | data file (GDD 2 `scene.actions`) | The content action table |
+| `eval(cond)` | bool | — | calculated (`Condition.evaluate` with the chapter reader, at entry) | Pre-boundary dossier and sheet; `has_fact` never consulted here by construction |
+| `filed_documents()` | set of document ids | 0–`|documents(c)|` | GDD 5 Rule 6 | Documents with at least one fact held from them |
+| `void`, `filed`, `hidden` | bool | — | calculated | Exclusive by the evaluation order |
+| `availability(h)` | enum | `unfiled, filed, void, hidden` | calculated | GDD 3 Rule 5's axis, set before `activate_scene` |
+
+**Output Range:** total and exclusive: exactly one of the four per hotspot. `void` never reads a held fact, so it is constant for the scene's life; `filed` is monotone within a scene (`unfiled → filed` only, on `on_document_filed`); after a load the same function with the restored `filed_documents()` yields the same values as the unloaded game at the same cursor. Hotspots with `A_free(h) = ∅` (no actions, or every action `has_fact`-gated, which GDD 5 Edge Case 9 already fails at build) are never `void`.
+**Example:** Vera's office at entry on a fresh chapter: six `paper` hotspots with unconditional document actions → all `unfiled`; the telephone (`phone`, threshold, in the sidecar's `exits[]`, no action by SF-E7) → `unfiled`; Kastan at the door (`person`) → `unfiled`. After `hold(serial_4471)` from folder 4471, `document_filed(folder_4471)` → `filed(folder_4471_hotspot) = 1`. In a later scene where the household card's only action carries `when: is_false vera.household_complete` and the file has been closed, `void(household_card) = 1`, and if the player held `household_card_halm` earlier the hotspot still reads `void` (void is tested first). *Rejected:* `void` tested after `filed` (a removed document would keep its ghost, and the read count would count a struck paper as read).
+
+### 5. The composite apply: partition and record order
+
+The composite apply is defined as the partition and concatenation:
+
+`apply(batch) = dossier.apply(D) ++ calendar.apply_calendar(K, ctx)` where `D = [r ∈ batch : r.target ≠ calendar]` and `K = [r ∈ batch : r.target = calendar]`, each sub-list in `batch` order; `calendar_records := calendar_records ++ apply_calendar(K, ctx)` is accumulated per boundary for the trace.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `batch` | list of effect records | 0–unbounded | Rules (one per cascade step) | GDD 1 Rule 4's records; `source` parses to writer `rules` |
+| `D`, `K` | lists | `|D| + |K| = |batch|` | calculated | The dossier/sheet part; the calendar part |
+| `ctx` | boundary context | — | §1 | Closed over at construction; stamps the beat on calendar records |
+| `apply(batch)` | list of change records | 0–`|batch|` | calculated | Dossier records first, then calendar records, each in application order |
+| `calendar_records` | list | 0–unbounded per boundary | calculated | Trace only; never handed to the reveal |
+
+**Output Range:** `|apply(batch)| ≤ |batch|` (no-ops emit nothing, GDD 1 Rule 5, GDD 7 Rule 6); the dossier's records are compacted per boundary by `end_boundary` while the calendar's are one per field per batch (GDD 7 Formulas §7's stated divergence), which is why the composite's return, not `end_boundary`'s, feeds the Rules evaluator's boundary-local list. The decision batch never passes through this function (`D` would be all of it; `K` is empty by GDD 7 Edge Case 6's validator rule).
+**Example:** a cascade step 0 batch `[drift calendar.breath_marta add −1, drift vera.attention add 1]`: `D = [vera.attention add 1]`, `K = [calendar.breath_marta add −1]`; return `[{vera.attention 0→1}, {calendar.breath_marta 2→1, store: calendar}]`; the evaluator's `{changed: calendar.breath_marta}` holds at step 1. *Rejected:* a stable merge preserving the original interleaving (no consumer can observe it, the two stores share no field, and the merge would need a per-record index both stores would have to return).
+
+### 6. `BoundaryRecord`, `StepResult` and the digest
+
+The boundary record is defined as the plain-data tuple returned by `step` when a boundary closed, and the step result as its envelope:
+
+`BoundaryRecord = {ctx, decision_batch, result: RulesResult, records, calendar_records, route, insert: {scene_id, class} | ∅, paper: [class], degraded: [rule_id], transition: {kind, days_elapsed} | ∅, snapshot_digest}`
+`snapshot_digest = H(canonical(BoundaryView))` with `canonical` = sorted keys, integers and booleans only, LF-joined; `H` the same 32-bit FNV-1a both the GDScript and the Python twin implement (the engine's hashing functions are **NOT SOURCEABLE** for cross-platform stability, GDD 6 Rule 14's argument for its RNG).
+`StepResult = {accepted: bool, reason: string | ∅, at: {chapter_id, scene_id, open ∈ {none, document, dialogue, decision, reveal, transition, card, epilogue}, beat}, boundary: BoundaryRecord | ∅}`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `ctx` | context | §1 | calculated | `{beat, scene_id, chapter_id, day, slot, day_high, step = reveal}` at record time |
+| `decision_batch` | list | 0–unbounded | the consumed `staged` | GDD 6 Rule 11's trace field |
+| `result` | `RulesResult` | — | GDD 6 Rule 9 | `fired[]`, `cascade_steps`, `truncated`, `calendar_effects[]` |
+| `records` | list of change records | 0–unbounded | `dossier.end_boundary()` | What the reveal showed |
+| `route` | scene id or `chapter_end` | — | §2 | The resolved exit |
+| `transition` | record or `∅` | `kind ∈ {none, slot, day}`; `days_elapsed` 0–`DAYS_PER_ACT − 1` | GDD 7 `transition_between`, as played before this scene | For the trace's date continuity check |
+| `snapshot_digest` | uint32 | 0–2³²−1 | calculated | Parity on the `BoundaryView` without copying it per line |
+| `accepted`, `reason` | bool; string | — | calculated | Refusals pass through unchanged from the owning system (`NOT_YIELDED_HERE`, `ROUTE_MISMATCH`, `INTENT_ILLEGAL(state)`) |
+| `at.open` | enum | eight values | cursor | What the player is looking at; the precondition set of Core Rule 15's intent table |
+
+**Output Range:** `boundary ≠ ∅` iff the intent was the `leave` that closed a boundary or the `continue` that ran a calendar scene's boundary; otherwise `∅`. `snapshot_digest` is uniformly a 32-bit integer; two boundaries with equal `BoundaryView`s have equal digests, and the Python twin recomputes it from the Calendar's own serialised view in the parity suite. `reason` is `∅` iff `accepted`.
+**Example:** `step(leave())` at `v_turn` returns `{accepted: true, reason: ∅, at: {a1_vera, v_turn, reveal, 3}, boundary: {ctx{beat 3, day 3, slot day, …}, decision_batch [V3 ×3], result{fired [R1], cascade_steps 1, truncated false}, records [vera.discrepancy, berta.implicated, vera.attention, vera.under_observation, …], calendar_records [], route v_person, insert {rybar_query_ledger, query_ledger}, paper [], degraded [], transition {day, 3} (the Monday tear-off that preceded `v_turn`), snapshot_digest 0x9A3F…}}`. *Rejected:* embedding the whole `BoundaryView` per line (the trace is read by writers as prose and by CI as parity; a digest serves CI and keeps the line short) and a content-hash of the records (GDD 6 already carries `changes` per step).
+
+### 7. `paper_visible`
+
+Visibility of a paper firing in the reveal is defined as:
+
+`paper_visible(f, p) = [p = ∅] + [p ≠ ∅] · [∃ r ∈ f.changes : view(p) ∈ r.projections]` with `view = {vera ↦ files, jan ↦ signs, tomas ↦ orders}`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `f` | firing | — | §3's `paper` | A paper-presented firing |
+| `f.changes` | list of change records | 0–unbounded | `RulesResult.fired[].changes` (the composite's returns for that rule) | What the firing wrote |
+| `r.projections` | set | ⊆ `{files, signs, orders}` | GDD 1 Rule 5 (`schema.projections`) | Which views carry the field |
+| `p` | protagonist id or `∅` | `vera, jan, tomas, ∅` | calculated (`chapter.protagonist`; `∅` for `⟨act⟩_close`) | Whose chapter the reveal belongs to |
+| `view(p)` | enum | `files, signs, orders` | constant map (GDD 1 Rule 7) | The protagonist's one dossier form |
+| `paper_visible` | bool | — | calculated | Whether the firing's `paper` line is handed to the reveal |
+
+**Output Range:** boolean; at the act close every paper firing is visible; a firing whose every change record projects to no view (a `calendar.*`-only firing, a tag-only write on a record outside every view) is invisible in every protagonist's chapter and reaches the player only as overprinted ink in the chapter that owns the field (GDD 6 Visual/Audio §1). `rule_fired(class, paper)` is emitted only for visible firings, so Audio never cues paper that is not in the frame (GDD 6 Visual/Audio §7).
+**Example:** K1 `inform` fires in Vera's chapter, writing `jan.under_observation` and `jan.attention`; `jan`'s fields project to `signs` (and to `files` only once his record is in the office's section, GDD 1 Rule 7); on a fresh act `projections = [signs]`, `view(vera) = files` → invisible: Kastan's slip reaches Jan's chapter as a sign with a cross-life overprint, never Vera's desk. The same K1 after `office.border_report` put Jan's name in the Section: `projections = [files, signs]` → visible to Vera as a line in her Files. *Rejected:* visibility by the beat's `pov` field (a `state`-pov beat would show on every desk; the projection is the one rule GDD 1 already makes about who sees what).
+
+### 8. The save-point predicate and the load order
+
+The save point is defined as the predicate over the four stateful systems and the cursor:
+
+`save_ok = [dossier.in_bracket = 0] · [calendar.state ∈ {idle, snapshotted}] · [rules.state = idle] · [facts.at_boundary] · [|staged| = 0] · [host.block_count = 0 ∨ open = reveal_closing] · [cursor.at = revealed]`
+
+and the load order as the fixed sequence `L = ⟨ content.load, dossier.deserialize, calendar.deserialize, rules.deserialize, facts.deserialize(·, at_boundary = true), scene_flow.deserialize, calendar.open_chapter(chapter_id, resumed = true), reader.bind(chapter_id), writer := new, (play_insert(pending_insert) | enter(next)) ⟩`, every element refusing whole on its own `SCHEMA_MISMATCH` and `L` aborting at the first refusal with nothing after it run.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `dossier.in_bracket` | int | 0–1 | GDD 1 (between `begin_boundary` and `end_boundary`) | Must be 0 (GDD 1 Rule 10) |
+| `calendar.state` | enum | `idle, in_boundary, snapshotted` | GDD 7 States | Must not be `in_boundary` (GDD 7 Edge Case 15) |
+| `rules.state` | enum | `idle, evaluating` | GDD 6 States | Must be `idle` |
+| `facts.at_boundary` | bool | — | calculated by Scene Flow, passed to GDD 5 | True exactly when `cursor.at = revealed` |
+| `staged` | list | 0 at the save point (§1 I3) | cursor | Nothing pending |
+| `cursor.at` | enum | `entering, active, suspended, leaving, revealed` | cursor | Core Rule 8 step 13, after `on_continue` |
+| `save_ok` | bool | — | calculated | Save/Load may serialise iff true |
+| `L` | sequence | 10 elements | this GDD, Save/Load owns the call | The one load path |
+
+**Output Range:** `save_ok` is true at exactly one instant per authored boundary (after the reveal closes, before the insert or the next scene starts) and false everywhere else, including inside an insert and on the calendar screen before its boundary runs; it is a conjunction of facts each owning system already exposes, so no system is asked a new question. `L` either completes (the game resumes at the cursor by the same `enter`/`play_insert` path as unloaded play) or stops at one named refusal with every earlier system restored to its pre-call contents (each `deserialize` is whole-or-nothing by its own GDD).
+**Example:** quit after the reveal of `v_turn` with R1 queued: `save_ok = 1`, Scene Flow serialises `{act a1, chapter_id a1_vera, cursor {next v_person, pending_insert rybar_query_ledger}, phase in_chapter}`; on load, `L` runs through `facts.deserialize` (held set with `serial_4471`, …), `scene_flow.deserialize`, `calendar.open_chapter(a1_vera, resumed = true)` (no `PLAY_ORDER_MISMATCH`), then `play_insert(rybar_query_ledger)`: the call comes, as it would have. A quit while Rybar's transcript is open: `save_ok = 0` (`cursor.at = active/suspended`, `host.block_count > 0`); Save/Load holds the last save point, which is the same one, so the load replays the insert from its start. *Rejected:* `save_ok` true at `entering` as well (the transition screen would be a second save point whose restore would replay a tear-off the player already watched; and `facts.at_boundary` would be ambiguous between the two).
+
+### 9. The lints SF-W1–W3
+
+The three warnings are defined as predicates over one scene `s` of chapter `c`:
+
+- `SF-W1(s) = ∃ (a, g) : a ∈ effects_in(s) ∧ g ∈ gates_in(s) \ s.exits ∧ a.target.field ∈ fields_in(g.when)` — a same-scene read-after-write; `effects_in(s)` is every effect record of `s`'s actions, decision options and dialogue answers; `gates_in(s)` is every `when` on `s`'s actions, options, answers and dialogue lines (exits excluded: they are read post-boundary).
+- `SF-W2(s) = ∃ h : kind(h) ∈ {person, phone} ∧ h ∉ sidecar(s).exits[].hotspot ∧ satisfiable(∏_{a : a.hotspot = h} ¬a.when)` — a person or telephone that can have nothing to say, decided by GDD 2 V06b's satisfiability check over the schema's ranges, skipped above `COND_LEAVES_WARN` with "not checked".
+- `SF-W3(s) = player_actions(s) > PLAYER_ACTIONS_PER_SCENE_MAX ∨ decisions(s) > 1`, where `player_actions(s) = decisions(s) + |{d ∈ s.dialogues : ∃ answer ∈ d with effects ≠ ∅}|` and `decisions(s) = |{a ∈ s.actions : a.decision ≠ ∅}|`; an insert's one dialogue counts toward the *next* authored scene's `player_actions` on every path that reaches it (computed over §2's `G_c` with the chapter's insert rows attached to every boundary they may fire at, which is every boundary in the chapter, so the bound is conservative).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `effects_in(s)`, `gates_in(s)` | sets | 0–unbounded | calculated over GDD 2's objects of `s` | Writes and reads authored inside one scene |
+| `fields_in(cond)` | set of field ids | — | GDD 2 Rule 6 (`Condition.fields_in`) | Dossier and sheet fields a condition reads |
+| `satisfiable(cond)` | bool | — | GDD 2 V06b | Whether some state makes the condition true |
+| `COND_LEAVES_WARN` | int | 8 | constant (GDD 2, registry) | Satisfiability skip threshold |
+| `decisions(s)`, `player_actions(s)` | int | 0–unbounded | calculated | Effectful player actions the solver will see at this beat |
+| `PLAYER_ACTIONS_PER_SCENE_MAX` | int | 1–4; 3 | constant (GDD 6 as amended, registry) | The generator's per-beat player-action cap |
+| `SF-W1…W3` | bool | — | calculated | Warnings; `E` on the release branch (GDD 2 Rule 15's rule for `W`) |
+
+**Output Range:** booleans; `SF-W3` is also the only one of the three that becomes a hard build failure elsewhere — the generator (GDD 6 as amended) refuses a beat with more than `PLAYER_ACTIONS_PER_SCENE_MAX` player actions, so SF-W3 is the writer's early notice of a failure the simulator would otherwise report. `player_actions(s) ≥ decisions(s)`; a calendar scene has both at 0.
+**Example:** `v_turn` has one decision (V2/V3/V5) and no effectful dialogue → `player_actions = 1`, SF-W3 false; `v_person` after the insert: its own V4/V8 decision plus Rybar's call's effectful answers → `player_actions = 2 ≤ 3`, false. A draft `v_turn` with the decision and a Berta dialogue whose answer writes `tag berta: heard_vera_knows_sokol` and a second option `when: is_true sheet.burned` → SF-W1 fires on the gate (`sheet.burned` is written by V3 in the same scene and the gate can never see it) and `player_actions = 2`. A `person` hotspot for Kastan whose only dialogue is `when: is_true vera.household_flagged` → SF-W2 fires (satisfiable that it is false; the player would click a man who says nothing). *Rejected:* making SF-W1 an error (a writer may want a line that reads a field this scene *also* writes for a different branch, where the pre-boundary value is the intended read; the warning names the pair and the human review decides).
 
 ## Edge Cases
 
-[To be designed]
+*From the systems designer over Core Rules 1–17 and Formulas §1–§9. Each case states what happens, who logs it and what the player sees. "Logged" means through the injected `DebugSink` (a recording twin in tests, an assert in debug builds, a logger in release); "build fails" means GDD 2's validator running this GDD's lints (Formulas §2, §9) refuses the content. Scene Flow never repairs content, never invents a scene, a route or an effect, and never skips a boundary to put a case right; when a collaborator refuses a call, the refusal is recorded in the `BoundaryRecord` and the procedure continues to its end, because a half-run boundary is worse than a logged one.*
+
+1. **If every entry of a scene's `exits[]` has a `when` and all evaluate false at the route step:** this cannot pass the build (SF-E1 requires the last entry to have no `when`), so at runtime it is a content load of a file the validator never saw. Scene Flow routes to the **last** entry's `to` regardless of its `when`, logs `ROUTE_FALLBACK(scene_id)`, records `route_fallback: true` in the `BoundaryRecord`, and debug builds assert. The player sees the wipe to the last-listed scene; nothing else differs. *The last exit is the ungated one by construction; treating it as ungated in a broken file is the only reading that keeps the chapter's path length (SF-E4) and the beat count intact, and a chapter that could not leave a room would be a crash in a story game.*
+
+2. **If a scene's sidecar declares two or more exit hotspots and its content `exits[]` carries no `via`:** every exit hotspot resolves the same `exits[]` list in the same order (Core Rule 7); which door the player took is not state and changes nothing but the wipe direction (`exits[].wipe_from`, GDD 3's presentation field). Nothing is logged; the content lint (SF-W4, a warning this case adds) names a scene with ≥ 2 exit hotspots and no `via` on any entry, so the writer confirms the doors are meant to be equivalent. The player sees the door they chose open onto the same next scene either way. *A door that led somewhere different would be history under another name unless `via` says so in content; GDD 2 Rule 6 forbids history leaves, and `via` is the one authored way to make the door matter.*
+
+3. **If `host.activate_scene(route)` returns `{ok: false, errors}` (a structural sidecar failure in release, GDD 3 Edge Case 8) at `enter`:** the current scene stays `active` with input restored by the host; Scene Flow does not retry, does not route around (a different route would change the path length), and does not re-run the boundary. It logs `ACTIVATE_FAILED(route, errors)`, pops its own `enter:` block, and re-issues `activate_scene(route)` once more only after `ContentStore.reload()` in a debug session; in release it shows `presentation.chapter_card`'s error variant **(PROV: Paper UI)**, a typed slip reading that the file could not be opened, and the player can only quit to the last save point, whose cursor already names `route`, so the next launch tries again. *The failure is a shipped-asset defect no runtime branch can mend; the honest options are a dead scene or a crash, and the save point makes the dead scene recoverable.*
+
+4. **If `scene_ready` arrives synchronously inside `activate_scene` (the `NullSceneHost`, GDD 3 Rule 8) rather than a frame later (the engine host):** `on_scene_ready` runs before `activate_scene` returns, so Core Rule 3 step 5 (focus, `pop_input_block`) executes while step 4 is still on the stack. Scene Flow is written for this: step 4 sets `cursor.at = entering` *before* calling `activate_scene`, step 5 checks `cursor.at == entering` and the id, and `cursor.scene_id` is assigned in step 5 rather than after step 4, so the order of observable calls in the sink and host logs is identical under both hosts. A `scene_ready` for an id other than the one being entered is logged `READY_UNEXPECTED(id)` and ignored. Nothing is visible to the player. *The simulator's whole claim is that the same code runs under both hosts; re-entrancy is the one place that claim is easy to break, so the state transition is made before the call that may complete it synchronously, and the contract suite runs the sequence against both hosts.*
+
+5. **If `hotspot_activated(id)` arrives while the host's block count is above zero (a sheet open, a wipe in progress, an insert playing):** the host should not emit it (GDD 3 Rule 13 disables scene input recursively), so Scene Flow treats it as a host defect: logged `ACTIVATED_UNDER_BLOCK(id, reasons)`, nothing dispatched, nothing staged, debug asserts. The player sees nothing happen, which is what a blocked room does. *A hotspot event under a block would let a document open under a decision sheet, and the staging order would then depend on frame timing; refusing is the only replayable answer.*
+
+6. **If `on_document_filed(document_id)` names a document that no hotspot of the current scene opens (a document reached through a dialogue answer's `documents[]`, an insert's document, or a `filed` carried from an earlier scene whose hotspot is in another room):** `hotspot_of(document_id)` is empty for this scene; no `set_hotspot_state` call is made; nothing is logged (this is the normal case for a dialogue-opened paper). The document's filed state is still in `facts.filed_documents()`, so when the player next enters the scene whose hotspot opens it, Formulas §4 derives `filed` there. The player sees the ghost on that hotspot the next time they are in that room. *Filed-ness is the fact system's; the hotspot is only one window onto it, and a window that is not in this room is not drawn.*
+
+7. **If a rule fires with `beat: insert` and the open chapter has no `kind: insert` row for its class:** `admit(f) = 0` (Formulas §3), the firing is paper, its beat's `paper` line goes to the reveal through `paper_visible`, `degraded[]` carries the rule id, and the simulator's per-chapter "what fired" report prints `insert → paper (no room in <chapter>)`. Logged at `W` once per (chapter, class) per run. The player sees the query slip in the tray rather than the telephone ringing. *A person who cannot reach this protagonist's room sends paper instead; "more paper, not more police" is the game's own rule for the state's reach (GDD 6 Visual/Audio §1), and content, not Scene Flow, decides where a person can go.*
+
+8. **If a rule fires with `beat: insert` at a boundary whose route is `chapter_end`, or at either act-close beat:** the same degradation as case 7 (`route = chapter_end` or `c = ⟨act⟩_close` zero `admit`), recorded with `degraded_reason: chapter_end | act_close`. For `chapter_end` the firing's `paper` line is in that last reveal, so the chapter closes on the state's slip; at the act close every paper firing is visible (Formulas §7, `p = ∅`), so the review card and the closing bell's slips pin onto the held calendar screen. Nothing is logged beyond the trace field. The player sees paper, not a person, on the last page of the chapter. *An insert's effects ride the next authored boundary of the same chapter (Core Rule 11); at `chapter_end` there is none, and carrying them across the edge is the stale batch GDD 1 Edge Case 18 rejects.*
+
+9. **If two or more rules fire with `beat: insert` at one boundary:** the first in selection order with an insert row is queued; every later one is paper (Formulas §3), in selection order after it in the reveal. `degraded[]` names them; the simulator's report line is "second person at one boundary became paper: <rule>". The player sees one person through the threshold and finds the second's paper after the person has left (GDD 6 Visual/Audio §3). Nothing is logged at runtime; the simulator's pacing report counts the occurrence because two state moves at one beat is the pacing smell the narrative brief names. *The presentation rule is Scene Flow's and is data-free: the order Rules chose is the order the state spoke in, and paper is how the second voice is kept without a second room.*
+
+10. **If an insert's dialogue stages an effect whose target is `sheet` and the next authored boundary's route is `chapter_end`:** the effect lands in that boundary's decision batch as normal (the sheet is still open during the bracket; GDD 1 wipes it at `chapter_close`, which runs after the reveal), is applied, emits its change record, and is wiped with the sheet moments later; a rule at that boundary may read it in between (`changed: sheet.<field>` is legal in rule data). Nothing is logged; the player sees the sheet's change in the reveal if its field projects (sheet fields do not project, so usually nothing). *A private flag written in the last scene of a chapter is still true in the world for one boundary and the state may react to it then; "dies with the chapter" is `chapter_close`'s wipe, not an earlier refusal.*
+
+11. **If a chapter's `entry_scene` is a `kind: calendar` scene, or `transition_between` is called across a chapter edge:** the first is a build failure (SF-E9, added here: a calendar scene must have a predecessor in the chapter, because `transition_between` needs two consecutive authored scenes and a chapter opens cold, GDD 7 Rule 4). The second cannot be reached from Core Rules 3 and 12 (`prev_authored_id` is cleared at chapter open) and is therefore a Scene Flow defect if it occurs: the Calendar returns `TRANSITION_ILLEGAL` (GDD 7 Edge Case 2), Scene Flow plays nothing, stamps the next scene cold, logs `TRANSITION_ILLEGAL_CALLER(a, b)` and debug asserts. The player sees the chapter card and a cold date, which is the correct screen. *The chapter edge is the one place the date goes backwards and the tear-off has no gesture for it; the Calendar refuses and Scene Flow must never have asked.*
+
+12. **If the `ActPlan.archive_batch` would be applied at a boundary other than the act's last act-close id (a plan whose `act_close` list is empty, or a debug jump that ends the act early):** Scene Flow applies it only when `scene_id == last(plan.act_close)` (Formulas §1, I1); with an empty `act_close` list the archive is never applied, `select_ending` runs over un-archived records (which read identically), `ENDING_WITHOUT_ARCHIVE(act)` is logged and the simulator fails the run (assumptions are settled only at archive, GDD 1 Edge Case 11, so an un-archived act cannot have its unknowns answered). The player sees the epilogue; the save after it would carry live records. *The archive is the act's full stop; a plan without one is a plan the writers have not finished, and the simulator says so before a build does.*
+
+13. **If `writer.submit(batch)` receives a record whose `source` parses to a chapter other than the open one (a runner handed a stale writer; a content patch that renamed a chapter id):** the whole `submit` is refused, `STALE_BATCH(source, open_chapter)` is logged, nothing is staged, and the calling runner receives `{ok: false}`; the dialogue or decision continues (the runner owns its sheet) but writes nothing. Debug asserts. The player sees the answer or option taken and, at the reveal, no change from it. *GDD 1 Edge Case 18 would reject the batch at `apply`; refusing at `submit` keeps the stale write out of the trace's `decision_batch` so the simulator's "player action" list stays truthful.*
+
+14. **If `run_boundary` returns `truncated: true`:** the boundary completes normally with the firings it did produce; `stage_firings` reads `fired[]` only, so nothing of the unfired remainder is presented (GDD 6 Visual/Audio §3); `BoundaryRecord.result.truncated` carries it; Scene Flow logs `CASCADE_TRUNCATED(scene_id, cascade_steps)` at `W` in release. The simulator fails the telling (GDD 6 Rule 5.5: a build failure in the simulator). The player sees a reveal with what fired and nothing to mark what did not. *A truncated cascade is a pacing bug the writers fix; the runtime's duty is to show exactly what landed and nothing that did not.*
+
+15. **If `run_boundary` refuses with `CTX_INCOMPLETE` (GDD 6 Edge Case 24: the context lacks a chapter or scene id):** this is a Scene Flow defect, since `ctx` is assembled from the cursor at Formulas §1's `beat_read` and both ids are mandatory there; Scene Flow treats the refusal as an empty `RulesResult` (`fired []`, `cascade_steps 0`, `truncated false`), continues to `end_boundary` and the reveal so the beat is still spent and the save point reached, logs `CTX_INCOMPLETE_FROM_SCENE_FLOW(ctx)`, and debug asserts. The simulator fails the telling. The player sees a reveal with the decision's changes and no state reaction. *Skipping `end_boundary` would leave the dossier open and every later call illegal; a spent beat with no reaction is recoverable from the save point, an unclosed bracket is not.*
+
+16. **If Save/Load asks `save_ok` while a scene is active or a sheet is open:** `save_ok = 0` (Formulas §8); Save/Load serialises nothing new and keeps the last save point, which is the cursor of the scene in progress (its start) or the pending insert; logged nothing (this is the normal "save on quit" path). On the next launch the player is at the scene's start with the documents unread again and the facts held in that scene gone; the save-slot screen shows the save point's date, not the quit time **(PROV: Paper UI)**. The creative director rules at the gate (Core Rule 14's Open Question). *Every stateful system refuses a mid-bracket or mid-dialogue load; a save that could not be loaded consistently would be a lie in a slot.*
+
+17. **If a save is loaded into a content build in which the saved chapter's content changed (`content_version` differs; a scene id in the cursor is `retired` in the lock; a chapter's `reads/writes/assumes` changed):** `scene_flow.deserialize` checks the cursor's `scene_id`, `pending_insert` and `chapter_id` against `ContentStore`: a `retired` id resolves through `replaced_by` with a warning (GDD 2 Rule 3) and the cursor is rewritten to it; an id with no replacement refuses whole with `CURSOR_CONTENT_MISSING(id)`; a changed chapter declaration is the dossier's refusal (GDD 1 Edge Case 13 / GDD 2 Rule 13's "a chapter restart is required") and `L` stops there. A `rev` bump on strings (GDD 2 Formulas §9) changes nothing here: Scene Flow holds no string. The player sees either the game resume at the cursor (renamed ids) or the save-slot screen's "this save needs an older version" line **(PROV: Save/Load, Paper UI)**. *Ids are permanent by GDD 2 Rule 3 precisely so a cursor survives a patch; what cannot survive is a chapter whose budget declarations moved under a live sheet.*
+
+18. **If `ContentStore.reload()` is requested while `reload_window()` is false (mid-scene, inside an insert, on a held calendar screen):** the store refuses (GDD 2 Rule 13 defers to this window) and the tool reports "reload pending: leave the scene"; Scene Flow queues nothing and polls nothing; the author leaves the room and the reload runs at the next save point, before `enter`. Debug-only; release builds have no reload. The author sees the old action table until the door. *A reload inside a scene would change the action table under the cursor and could remove the exit hotspot the scene needs to end.*
+
+19. **If the injected `ChoiceSource` forces a rule that is not a candidate at this boundary (a witness telling whose NPC move the runtime's state does not license):** `run_boundary` fails the boundary with `CHOICE_NOT_ADMISSIBLE {rule, failing_leaves}` (GDD 6 Rule 12); Scene Flow records it in the `BoundaryRecord`, completes the boundary with the firings Rules did admit (the forced one excluded), and `step` returns `accepted: false, reason: CHOICE_NOT_ADMISSIBLE(...)` so the replay runner stops the telling there as the parity signal. In release there is no forcing path (GDD 6 Rule 14). No player ever sees this. *Parity is the point of forcing; a Scene Flow that quietly realised an inadmissible move would hide the one failure the suite exists to find.*
+
+20. **If `step(intent)` receives an intent illegal in the current state (`decide` with no decision open; `hold` with no document open; `leave` while a sheet is open; `continue` with nothing to continue; `activate` during a block):** `step` returns `accepted: false, reason: INTENT_ILLEGAL(intent, at.open)`, performs nothing, changes nothing, and the cursor is unchanged; the runner treats it as a script error and fails the telling naming the line. Not logged through the `DebugSink` (it is the runner's error, not the game's). *A script that gets ahead of the room is the commonest replay bug; refusing with the state in the reason is what makes it a one-line fix.*
+
+21. **If a boundary produces no dossier change records and no visible paper (a calendar beat on which nothing moved; a scene whose only action was reading):** `presentation.reveal([], snapshot, [], counts)` is still called, the save point is still reached, the beat is still spent. Paper UI shows the dossier sheet with the read count and one typed line, "No files changed." (string id `ui.reveal.no_change`, the creative director's recommendation), with the snapshot's stamps in force **(PROV: Paper UI)**; Audio receives the snapshot and no `rule_fired`. Nothing is logged. *A boundary with no change is still a boundary: the beat passed, the date may have moved, and the player should learn that the state was quiet as surely as they learn when it was not.*
+
+22. **If `on_continue()` never arrives after a sink call that waits for it (`chapter_card`, a `day` transition, `reveal`, `epilogue`):** Scene Flow waits forever, by design; it owns no clock and no timeout (Core Rule 17). In the engine this means the player has not dismissed the sheet, which is the correct behaviour. `NullPresentationSink` calls `on_continue` synchronously at the end of each such call unless constructed with `hold: true`, in which case the runner's `continue` intent delivers it; a test that forgets `continue` under `hold: true` sees `step` returning `INTENT_ILLEGAL` for everything else and the `at.open` field saying why. *A wait that times out would be a Scene Flow clock, which three GDDs forbid; the null twin continues at once so the simulator never blocks, and `hold` exists for tests of the wait itself.*
+
+23. **If the main scene frees Scene Flow (or the game is closed) between `push_block` and `record` of a boundary (Formulas §1), or during an insert:** nothing is written anywhere: Scene Flow has no file I/O, the save point was not reached (`save_ok = 0`), so Save/Load's last save is the previous boundary's cursor. The dossier's and the Calendar's brackets die with the process; on the next launch every system deserialises from the last save point and `L` replays from there, so the boundary runs again from its decision batch — which is empty in the save, so the player replays the scene from its start (case 16). Nothing is logged (there is no process to log). *Determinism makes this safe: the boundary that was interrupted will produce the same records when it runs again from the same inputs, and the save point is what makes "the same inputs" true.*
+
+24. **If a `kind: calendar` scene is entered with a `slot` or `none` transition (GDD 7 Edge Cases 3 and 21) and no plate is resident (the previous scene was itself a calendar scene and the calendar screen is held):** the reveal pins onto the held calendar screen beside the earlier notices (Core Rule 12); if instead the previous scene had a plate (a mis-dated calendar row that passed no lint, GDD 7 Edge Case 3's degraded path), the reveal is a sheet over the suspended plate and no calendar is shown; logged by the Calendar as `CALENDAR_BEAT_NO_DAY`, nothing further here. The player sees paper arrive with no tear-off. *The beat is a beat whatever the date says (GDD 7 Rule 2); the screen it lands on is the one already up, and Scene Flow draws nothing to fill the gap.*
 
 ## Dependencies
 
