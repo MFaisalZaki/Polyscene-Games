@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE - NOT FOR PRODUCTION -->
+<!-- Question: Does reading six documents, connecting two facts and deciding what to file about a neighbour feel tense without a timer, and does the dossier change read unaided? -->
+<!-- Date: 2026-11-03 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Walls — archivist scene prototype</title>
+<style>
+  :root{--bone:#D8CDB2;--uibone:#EDE4CC;--concrete:#585A57;--ochre:#8F7748;--green:#6B7664;--carbon:#434C7C;--carbontext:#2E3559;--red:#B5241C;--soot:#1B1917;--amber:#DDB065;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--concrete);font-family:"Courier New",Courier,monospace;color:var(--soot);}
+  #stage{position:relative;width:1280px;height:720px;margin:0 auto;background:var(--bone);overflow:hidden}
+  /* the office plate */
+  #plate{position:absolute;left:0;top:0;width:860px;height:720px;background:var(--green);}
+  #floor{position:absolute;left:0;top:420px;width:860px;height:300px;background:#8e8a78;}
+  #desk{position:absolute;left:120px;top:380px;width:460px;height:150px;background:var(--ochre);border:2px solid var(--soot)}
+  #lamp{position:absolute;left:540px;top:290px;width:40px;height:90px;background:var(--soot)}
+  #lamppool{position:absolute;left:380px;top:360px;width:300px;height:200px;background:radial-gradient(ellipse at center,rgba(221,176,101,.55),rgba(221,176,101,0) 70%);pointer-events:none}
+  #shelf{position:absolute;left:640px;top:120px;width:200px;height:300px;background:#4f5648;border:2px solid var(--soot)}
+  .shelfrow{position:absolute;left:0;width:100%;height:2px;background:var(--soot)}
+  #cabinet{position:absolute;left:20px;top:200px;width:90px;height:230px;background:#5a6155;border:2px solid var(--soot)}
+  .drawerline{position:absolute;left:0;width:100%;height:2px;background:var(--soot)}
+  #window{position:absolute;left:260px;top:60px;width:220px;height:180px;background:var(--bone);border:6px solid var(--soot)}
+  #berta{position:absolute;left:700px;top:430px;width:60px;height:150px;}
+  #berta .head{width:34px;height:40px;background:#c9b89a;border-radius:16px 16px 12px 12px;margin:0 auto;border:2px solid var(--soot)}
+  #berta .body{width:60px;height:108px;background:#7a7566;border-radius:22px 22px 4px 4px;border:2px solid var(--soot);margin-top:-2px}
+  #phone{position:absolute;left:150px;top:395px;width:46px;height:28px;background:var(--soot);border-radius:4px}
+  /* hotspots: paper rectangles with keyline, lifted corner on hover */
+  .hot{position:absolute;background:var(--bone);border:2px solid var(--soot);cursor:pointer;transition:transform .12s ease-out;padding:4px;font-size:10px;line-height:1.1;overflow:hidden}
+  .hot:hover,.hot:focus{transform:translate(-2px,-3px);border-width:3px;outline:none}
+  .hot.read{border-color:var(--carbon);box-shadow:3px 3px 0 var(--carbon);color:var(--carbon)}
+  .hot.red{border-color:var(--red)}
+  .fig{position:absolute;cursor:pointer}
+  .fig:hover .body{border-width:3px}
+  /* right-hand paper UI */
+  #ui{position:absolute;left:860px;top:0;width:420px;height:720px;background:var(--uibone);border-left:2px solid var(--soot);padding:14px 16px;overflow-y:auto;font-size:13px}
+  #ui h2{font-size:13px;letter-spacing:2px;margin:0 0 6px 0;border-bottom:2px solid var(--soot);padding-bottom:4px}
+  .tab{position:absolute;right:0;top:-12px;background:var(--uibone);border:2px solid var(--soot);border-bottom:none;padding:2px 8px;font-size:10px;letter-spacing:2px}
+  #facts{min-height:150px;border:2px dashed var(--concrete);padding:6px;margin-bottom:12px;background:#f3ecd8}
+  .fact{display:inline-block;margin:3px;padding:3px 6px;border:2px solid var(--carbon);color:var(--carbontext);background:var(--uibone);cursor:pointer;font-size:12px}
+  .fact.sel{background:var(--carbon);color:var(--uibone)}
+  .fact.linked{border-style:double}
+  .link{margin:4px 0;padding:4px 6px;border-left:4px solid var(--carbon);background:#e4ddc6;font-size:12px}
+  #dossier{margin-top:8px}
+  .sheet{border:2px solid var(--soot);background:var(--uibone);padding:8px;margin-bottom:10px;position:relative;font-size:12px}
+  .sheet .stamp{position:absolute;right:10px;top:8px;width:34px;height:34px;border:3px solid var(--red);background:repeating-linear-gradient(45deg,transparent 0 3px,var(--red) 3px 4px);opacity:.25}
+  .sheet .stamp.on{opacity:.9;background:var(--red)}
+  .line{margin:2px 0;white-space:pre-wrap}
+  .line.new{color:var(--carbontext);text-shadow:1px 1px 0 var(--carbon)}
+  .line.red{color:var(--red);font-weight:bold}
+  #hint{margin-top:10px;padding-top:6px;border-top:2px dashed var(--concrete);font-size:11px;color:var(--concrete)}
+  #facts{min-height:90px}
+  /* full-frame document overlay */
+  #doc{position:absolute;left:0;top:0;width:1280px;height:720px;background:rgba(216,205,178,.92);display:none;padding:40px 120px}
+  #doc .paper{background:var(--uibone);border:2px solid var(--soot);padding:28px 36px;max-width:900px;margin:0 auto;font-size:15px;line-height:1.5;position:relative;max-height:640px;overflow:auto}
+  #doc .paper h3{margin:0 0 10px 0;font-size:14px;letter-spacing:3px}
+  .f{color:var(--carbontext);text-decoration:underline;text-decoration-style:dotted;cursor:pointer;font-weight:bold}
+  .f.got{text-decoration:none;text-shadow:1px 1px 0 var(--carbon)}
+  .closebtn,.btn{display:inline-block;border:2px solid var(--soot);padding:4px 10px;cursor:pointer;background:var(--uibone);margin:6px 6px 0 0;font-family:inherit;font-size:13px}
+  .btn.void{color:#9a9480;border-color:#9a9480;text-decoration:line-through;cursor:default}
+  .btn:hover:not(.void){transform:translate(-1px,-2px)}
+  .staple{position:absolute;left:16px;top:10px;width:14px;height:5px;background:var(--concrete)}
+  /* red bleed overlay: the state's attention */
+  #bleed{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none;box-shadow:inset 0 0 0 0 var(--red);transition:box-shadow .8s ease-out,background .8s}
+  #bleed.a1{box-shadow:inset 0 0 0 6px var(--red)}
+  #bleed.a2{box-shadow:inset 0 0 0 14px var(--red);background:rgba(181,36,28,.06)}
+  #bleed.a3{box-shadow:inset 0 0 0 26px var(--red);background:rgba(181,36,28,.16)}
+  #datestamp{position:absolute;left:14px;top:10px;font-size:12px;letter-spacing:2px;color:var(--soot);background:var(--uibone);padding:2px 8px;border:2px solid var(--soot)}
+  #debug{width:1280px;margin:6px auto;color:var(--bone);font-size:11px;font-family:inherit}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="plate">
+    <div id="window"></div>
+    <div id="cabinet"><div class="drawerline" style="top:56px"></div><div class="drawerline" style="top:112px"></div><div class="drawerline" style="top:168px"></div></div>
+    <div id="shelf"><div class="shelfrow" style="top:70px"></div><div class="shelfrow" style="top:140px"></div><div class="shelfrow" style="top:210px"></div></div>
+    <div id="floor"></div>
+    <div id="lamppool"></div>
+    <div id="desk"></div>
+    <div id="lamp"></div>
+    <div id="phone" title="Telephone"></div>
+    <div id="berta" class="fig" tabindex="0" title="Berta, next desk"><div class="head"></div><div class="body"></div></div>
+    <!-- hotspots: each is a document; one-unit displacement from its surface -->
+    <div class="hot" id="h1" tabindex="0" style="left:300px;top:395px;width:110px;height:70px">REPORT 4471</div>
+    <div class="hot" id="h2" tabindex="0" style="left:430px;top:405px;width:90px;height:56px">letter, opened</div>
+    <div class="hot" id="h3" tabindex="0" style="left:660px;top:160px;width:120px;height:46px">TENANT REGISTER Vrba St 9</div>
+    <div class="hot" id="h4" tabindex="0" style="left:38px;top:262px;width:60px;height:44px">memo 7781</div>
+    <div class="hot" id="h5" tabindex="0" style="left:150px;top:300px;width:100px;height:60px">note — B.</div>
+    <div class="hot" id="h6" tabindex="0" style="left:30px;top:372px;width:72px;height:40px">stock card</div>
+    <div class="hot" id="ledger" tabindex="0" style="left:200px;top:440px;width:120px;height:70px;background:#c9b48a">THE LEDGER<br><small>enter 4471</small></div>
+    <div id="datestamp">FRI 6 OCT 1989 · WEEK 1</div>
+  </div>
+  <div id="ui">
+    <div class="tab">READING ROOM 4</div>
+    <h2>WORKING FILE — facts held</h2>
+    <div id="facts"><span style="color:#9a9480;font-size:11px">Nothing yet. Read. Click a name, a date, a number. Click two held facts to see if they connect.</span></div>
+    <div id="links"></div>
+    <h2 style="margin-top:10px">DOSSIERS <small style="letter-spacing:0;font-weight:normal">(what the state knows)</small></h2>
+    <div id="dossier"></div>
+    <div id="hint">Everything here is a thing the state could file. The red is not yours.</div>
+  </div>
+  <div id="doc"><div class="paper"><div class="staple"></div><div id="docbody"></div><div id="docbtns"></div></div></div>
+  <div id="bleed"></div>
+</div>
+<div id="debug"></div>
+<script>
+// ---- content ----
+const FACTS = {
+  dusek14:"DUSEK, Marta — apt 14, Vrba St 9",
+  meeting:"3 Oct, 21:10 — stairwell meeting, flat parcel",
+  kastan:"source: KASTAN",
+  tuesdays:"medicine brought 'on Tuesdays' by a friend from the building",
+  vienna:"her son Pavel — Vienna",
+  halm12:"HALM, V. and HALM, Ilona — apt 12, Vrba St 9",
+  kastan15:"KASTAN, Jiri — apt 15, Vrba St 9",
+  ilona7781:"Ilona — Medicine faculty: PENDING REVIEW, ref. 7781",
+  awaits:"7781 awaits 'a note from the Records Office'",
+  due:"4471 into the ledger by 17:00",
+  complete:"'a complete Vrba St file closes 7781' — B.",
+  stock:"theophylline: none at the Vrba district clinic since March"
+};
+const DOCS = {
+  h1:{title:"INFORMER REPORT — No. 4471", body:`Subject: <span class="f" data-f="dusek14">DUSEK, Marta, apt 14, Vrba Street 9</span>. Widow. Pensioner.<br><br>
+  <span class="f" data-f="meeting">3 October, 21:10. Subject met an unidentified male, 25–30, on the second-floor landing. He carried a flat parcel wrapped in newspaper.</span> Conversation two minutes. Parcel not seen again. Male left by the courtyard.<br><br>
+  Assessment: possible courier contact. Recommend entry and observation.<br><br>
+  <span class="f" data-f="kastan">Source: "KASTAN"</span>. Received 5 Oct. Handed to Records for ledger entry.`},
+  h2:{title:"INTERCEPT — private letter, copied", body:`<i>Dear Pavel,</i><br><br>Don't worry about my chest. <span class="f" data-f="tuesdays">The medicine came through at last — a friend from the building brings it on Tuesdays.</span> Don't send any more, it is dangerous for you and they open everything. <br><br>Your father's photograph is back on the wall. The landing is very quiet now; the Kastans keep their door shut.<br><br>Your mother.<br><br><small>To: <span class="f" data-f="vienna">P. Dusek, Wien</span>. Copy retained. Original forwarded.</small>`},
+  h3:{title:"TENANT REGISTER — Vrba Street 9", body:`Apt 11 — Novak, P. and family (4)<br>
+  <span class="f" data-f="halm12">Apt 12 — HALM, Vera (Records Office, cl. II); HALM, Ilona (student)</span><br>
+  Apt 13 — vacant since June<br>
+  <span class="f" data-f="dusek14">Apt 14 — DUSEK, Marta (pensioner, widow)</span><br>
+  <span class="f" data-f="kastan15">Apt 15 — KASTAN, Jiri (caretaker); KASTAN, Eva</span><br>
+  Apt 16 — Sedlak, R.<br><br><small>Caretaker's copy. Updated March.</small>`},
+  h4:{title:"MEMO — University admissions, copy to Records", body:`<span class="f" data-f="ilona7781">HALM, Ilona. Faculty of Medicine. Admission: PENDING REVIEW. Ref. 7781.</span><br><br>Cadre assessment of the family is incomplete. <span class="f" data-f="awaits">Decision awaits a note from the Records Office</span> confirming that the household file is in order.<br><br>Term begins 16 October.`},
+  h5:{title:"NOTE — pinned to the lamp", body:`Vera —<br><br><span class="f" data-f="due">4471 into the ledger by 17:00</span>, Rybar is asking.<br><br>He says the Vrba Street file should be "complete" — his word. <span class="f" data-f="complete">A complete file closes 7781.</span> I think that was meant kindly.<br><br>— B.`},
+  h6:{title:"PHARMACY STOCK CARD — district clinic, Vrba", body:`Theophylline (asthma, chronic bronchitis). Restricted list.<br><br><span class="f" data-f="stock">Last issue: February 1988. In stock: none since March.</span> Requests referred to the regional hospital. Three requests from Vrba Street 9 this year, all refused.<br><br><small>Old card. Why is it in this file?</small>`}
+};
+const LINKS = [
+  {a:"dusek14",b:"kastan15",text:"The informer lives across the landing from her. KASTAN is Jiri Kastan, apt 15.",unlock:"ask_kastan"},
+  {a:"meeting",b:"tuesdays",text:"3 October was a Tuesday. The 'flat parcel' was her medicine.",unlock:"warn"},
+  {a:"ilona7781",b:"complete",text:"If you file 4471, the Vrba Street file is 'complete' — and Ilona's review closes.",unlock:"cost"},
+  {a:"awaits",b:"due",text:"The note the university is waiting for is the one you are being asked to write by 17:00.",unlock:"cost"},
+  {a:"stock",b:"tuesdays",text:"The medicine cannot have come from a clinic. It came over the border — through her son.",unlock:"contraband"},
+  {a:"halm12",b:"dusek14",text:"You live one door from her. You have passed her on those stairs for eleven years.",unlock:"neighbour"},
+];
+// ---- state ----
+const S = {facts:new Set(), links:new Set(), read:new Set(), unlocks:new Set(), sel:null, attention:0, decision:null,
+  t0:Date.now(), tFirstLink:null, tFiling:null, filingDwell:null,
+  dossier:{dusek:["DUSEK, Marta. b. 1928. Widow of DUSEK, Karel (file closed 1971).","Correspondence: son in Vienna. Letters copied.","No entries since 1971."],
+           halm:["HALM, Vera. b. 1949. Records Office, clerk class II. Reliable.","Household: HALM, Ilona (b. 1971), student. Admission 7781: PENDING REVIEW.","Residence: Vrba St 9, apt 12. Caretaker reports: nothing to note."]},
+  newLines:{dusek:[],halm:[]}, redLines:{dusek:[],halm:[]}};
+const $ = s=>document.querySelector(s);
+function setAttention(n){S.attention=n;$("#bleed").className=n?("a"+n):"";}
+function renderFacts(){
+  const box=$("#facts"); box.innerHTML="";
+  if(!S.facts.size){box.innerHTML='<span style="color:#9a9480;font-size:11px">Nothing yet. Read. Click a name, a date, a number. Click two held facts to see if they connect.</span>';return;}
+  for(const k of S.facts){const e=document.createElement("span");e.className="fact"+(S.sel===k?" sel":"")+(isLinked(k)?" linked":"");e.textContent=FACTS[k];e.onclick=()=>pick(k);box.appendChild(e);}
+  const l=$("#links"); l.innerHTML="";
+  for(const i of S.links){const d=document.createElement("div");d.className="link";d.textContent="⟶ "+LINKS[i].text;l.appendChild(d);}
+}
+function isLinked(k){for(const i of S.links){if(LINKS[i].a===k||LINKS[i].b===k)return true;}return false;}
+function pick(k){
+  if(S.sel===null){S.sel=k;renderFacts();return;}
+  if(S.sel===k){S.sel=null;renderFacts();return;}
+  const idx=LINKS.findIndex(L=>(L.a===S.sel&&L.b===k)||(L.a===k&&L.b===S.sel));
+  if(idx>=0&&!S.links.has(idx)){S.links.add(idx);S.unlocks.add(LINKS[idx].unlock);if(!S.tFirstLink)S.tFirstLink=Date.now();}
+  else if(idx<0){flash("These two do not connect. Not yet.");}
+  S.sel=null;renderFacts();renderDossier();debug();
+}
+function flash(msg){const h=$("#hint");const old=h.textContent;h.textContent=msg;h.style.color="#1B1917";setTimeout(()=>{h.textContent=old;h.style.color="";},1800);}
+function renderDossier(){
+  const d=$("#dossier");d.innerHTML="";
+  for(const who of ["dusek","halm"]){
+    const sh=document.createElement("div");sh.className="sheet";
+    const st=document.createElement("div");st.className="stamp"+(S.redLines[who].length?" on":"");sh.appendChild(st);
+    const t=document.createElement("div");t.style.letterSpacing="2px";t.style.fontSize="11px";t.textContent=(who==="dusek"?"FILE 14/9 — DUSEK":"FILE 12/9 — HALM");sh.appendChild(t);
+    for(const ln of S.dossier[who]){const p=document.createElement("div");p.className="line";p.textContent=ln;sh.appendChild(p);}
+    for(const ln of S.newLines[who]){const p=document.createElement("div");p.className="line new";p.textContent="+ "+ln;sh.appendChild(p);}
+    for(const ln of S.redLines[who]){const p=document.createElement("div");p.className="line red";p.textContent="■ "+ln;sh.appendChild(p);}
+    d.appendChild(sh);
+  }
+}
+function openDoc(id){
+  const D=DOCS[id];S.read.add(id);document.getElementById(id).classList.add("read");
+  $("#docbody").innerHTML=`<h3>${D.title}</h3>${D.body}`;
+  $("#docbtns").innerHTML='<span class="closebtn" onclick="closeDoc()">[ PUT IT BACK ]</span>';
+  $("#doc").style.display="block";
+  document.querySelectorAll("#docbody .f").forEach(el=>{const k=el.dataset.f;if(S.facts.has(k))el.classList.add("got");el.onclick=()=>{S.facts.add(k);el.classList.add("got");renderFacts();debug();};});
+}
+function closeDoc(){$("#doc").style.display="none";if(S.tFiling&&!S.filingDwell){S.filingDwell=Date.now()-S.tFiling;S.tFiling=null;}}
+function talk(){
+  let html=`<h3>BERTA — next desk</h3><div class="line">She does not look up from her typewriter.</div><br>`;
+  let btns=[];
+  if(S.unlocks.has("ask_kastan")&&!S.unlocks.has("asked_kastan"))btns.push(['[ "Who is KASTAN?" ]',()=>{S.unlocks.add("asked_kastan");reply("'Jiri Kastan. Caretaker, your building. On the books since seventy-one. He reports on his landing, that is all. Reliable.' She types a line. 'Why?'");}]);
+  if(S.unlocks.has("cost")&&!S.unlocks.has("asked_cost"))btns.push(['[ "Why does Rybar care about Vrba Street?" ]',()=>{S.unlocks.add("asked_cost");reply("'He doesn't.' Now she looks up. 'He cares that you do your job. The review on your Ilona — that is him being helpful, Vera. Don't make him unhelpful.'");}]);
+  if(S.unlocks.has("neighbour")&&!S.unlocks.has("asked_n"))btns.push(['[ "I know her. Marta. She is sick." ]',()=>{S.unlocks.add("asked_n");setAttention(Math.max(S.attention,1));reply("Berta stops typing. 'Then you know what a complete file looks like.' The room is very quiet. 'I did not hear you say that.'");}]);
+  btns.push(['[ Nothing. ]',()=>closeDoc()]);
+  $("#docbody").innerHTML=html;const b=$("#docbtns");b.innerHTML="";
+  for(const [label,fn] of btns){const s=document.createElement("span");s.className="btn";s.textContent=label;s.onclick=fn;b.appendChild(s);}
+  $("#doc").style.display="block";
+}
+function reply(text){$("#docbody").innerHTML+=`<div class="line">${text}</div>`;$("#docbtns").innerHTML='<span class="closebtn" onclick="closeDoc()">[ BACK TO THE DESK ]</span>';}
+function ledger(){
+  if(S.decision)return;
+  if(!S.read.has("h1")){flash("You have not read 4471 yet.");return;}
+  S.tFiling=Date.now();
+  let html=`<h3>LEDGER — ENTRY 4471</h3><div class="line">The pen is in your hand. 17:00 is in forty minutes.</div><br>`;
+  if(S.unlocks.has("cost"))html+=`<div class="line" style="color:#2E3559">You know what entering this does to 7781.</div>`;
+  if(S.unlocks.has("warn"))html+=`<div class="line" style="color:#2E3559">You know what the parcel was.</div>`;
+  if(!S.unlocks.has("cost")&&!S.unlocks.has("warn"))html+=`<div class="line" style="color:#9a9480">You know what the report says. You do not know what it means.</div>`;
+  $("#docbody").innerHTML=html;const b=$("#docbtns");b.innerHTML="";
+  const mk=(label,fn,void_)=>{const s=document.createElement("span");s.className="btn"+(void_?" void":"");s.textContent=label;if(!void_)s.onclick=fn;b.appendChild(s);};
+  mk("[ FILE 4471 ]",()=>decide("file"));
+  mk("[ BURN 4471 ]",()=>decide("burn"));
+  mk(S.unlocks.has("warn")?"[ WARN DUSEK TONIGHT ]":"[ VOID ]",()=>decide("warn"),!S.unlocks.has("warn"));
+  mk("[ PUT THE PEN DOWN ]",()=>closeDoc());
+  $("#doc").style.display="block";
+}
+function decide(d){
+  S.decision=d;S.filingDwell=Date.now()-S.tFiling;S.tFiling=null;
+  document.getElementById("ledger").classList.add("read");
+  let after="";
+  if(d==="file"){
+    S.newLines.dusek.push("4471 entered 6 Oct. Contact with unidentified courier. Parcel.");S.redLines.dusek.push("STATUS: UNDER OBSERVATION. Mail to be held.");
+    S.newLines.halm.push("Household file complete. 7781 CLOSED — admission APPROVED.");
+    setAttention(1);document.getElementById("h1").classList.add("red");
+    after=`<h3>17:40</h3><div class="line">The telephone. Rybar, without greeting: 'Good. Tell your daughter congratulations.' He hangs up.</div><div class="line">On the landing at home, apt 14 is dark. It was dark last night too.</div>`;
+  } else if(d==="burn"){
+    S.newLines.halm.push("Ledger discrepancy: 4471 logged by source 5 Oct; not entered by 17:00. Query raised by RYBAR.");S.redLines.halm.push("7781 remains PENDING. Household file: INCOMPLETE.");
+    setAttention(2);document.getElementById("h5").classList.add("red");document.getElementById("ledger").classList.add("red");
+    after=`<h3>17:40</h3><div class="line">The telephone. Rybar: 'Halm. Report 4471. Kastan says he handed it in on the fifth. Where is it?'</div><div class="line">You say the tray was empty. There is a pause long enough to write something down. 'Monday, then.'</div>`;
+  } else {
+    S.newLines.halm.push("KASTAN reports 6 Oct 18:40: HALM, V. (apt 12) at the door of apt 14, admitted. Eleven minutes.");S.redLines.halm.push("ASSOCIATED: DUSEK, M. (see 4471). 7781 — review extended.");
+    S.newLines.dusek.push("4471 entered 9 Oct by RYBAR. Contact HALM, V. added.");S.redLines.dusek.push("STATUS: UNDER OBSERVATION.");
+    setAttention(3);document.getElementById("ledger").classList.add("red");document.getElementById("h3").classList.add("red");
+    after=`<h3>18:40</h3><div class="line">You knock. She opens the door a hand's width. You say: Tuesday. Not this Tuesday. Not any Tuesday. She looks at you for a long time and says thank you, Vera.</div><div class="line">Across the landing, apt 15's door is shut. The phone in your flat rings at 23:00 and stops before you reach it.</div>`;
+  }
+  renderDossier();
+  $("#docbody").innerHTML=after+`<br><div class="line" style="letter-spacing:2px;font-size:11px">— END OF SCENE — the files have changed. Read them on the right. —</div>`;
+  $("#docbtns").innerHTML='<span class="closebtn" onclick="closeDoc();debrief()">[ CLOSE THE FILE ]</span>';
+  debug();
+}
+function debrief(){
+  const dwell=S.filingDwell?Math.round(S.filingDwell/1000):"n/a";
+  const first=S.tFirstLink?Math.round((S.tFirstLink-S.t0)/1000):"never";
+  $("#ui").scrollTop=$("#ui").scrollHeight;
+  $("#hint").innerHTML=`<b>Playtest signals</b> — facts held: ${S.facts.size}/12 · links made: ${S.links.size}/6 · first link at ${first}s · time with the pen in hand: ${dwell}s · decision: ${S.decision.toUpperCase()}.<br>Now, without scrolling up: what changed in the files, and who is the state looking at?`;
+}
+function debug(){$("#debug").textContent=`[debug] facts=${S.facts.size} links=${S.links.size} attention=${S.attention} decision=${S.decision||"-"} docsRead=${S.read.size}`;}
+// ---- wiring ----
+for(const id of Object.keys(DOCS)){const el=document.getElementById(id);el.onclick=()=>openDoc(id);el.onkeydown=e=>{if(e.key==="Enter")openDoc(id);};}
+$("#berta").onclick=talk;$("#ledger").onclick=ledger;$("#ledger").onkeydown=e=>{if(e.key==="Enter")ledger();};
+$("#phone").onclick=()=>flash("It does not ring. Not yet.");
+renderFacts();renderDossier();debug();
+</script>
+</body>
+</html>
