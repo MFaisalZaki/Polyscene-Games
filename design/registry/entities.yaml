@@ -320,7 +320,6 @@ formulas:
     referenced_by:
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Chapter & Story Structure"
     variables:
       - stability_0
@@ -338,8 +337,8 @@ formulas:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Overlay & Surveillance Rendering"
       - "Audio & Adaptive Surveillance Mix"
       - "Reactive Event Rules & Story Simulator"
@@ -358,8 +357,8 @@ formulas:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
@@ -978,7 +977,6 @@ formulas:
     referenced_by:
       - design/gdd/reactive-event-rules.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Scene Flow"
     variables:
       - lo
@@ -995,8 +993,6 @@ formulas:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
     variables:
       - while
       - a_d
@@ -1052,14 +1048,125 @@ formulas:
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
+  - name: red_reach
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - red_band
+      - phase
+      - PHASE_RED_CAP
+    output_range: "[0, 3]"
+    expression: "red_reach(x) = min(red_band(x), PHASE_RED_CAP[phase])"
+    notes: "Formulas §3. The tier Overlay draws for a person; phase is the ceiling, the person's band the fill. Act one never shows tier 3."
+    added: 2026-11-03
+    revised: ""
+  - name: stamp_tier
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - red_reach
+      - phase
+      - PHASE_RED_CAP
+    output_range: "[0, 3]"
+    expression: "stamp_tier(x) = red_reach(x); ink_reach = PHASE_RED_CAP[phase]; invariant stamp_tier(x) <= ink_reach"
+    notes: "Formulas §4. The surveillance stamp fill (hatched 0–1, half-struck 2, struck 3) and the HUD date stamp's ink reach (dry 0, crisp 1, bleeds 2, floods 3)."
+    added: 2026-11-03
+    revised: ""
+  - name: date_for
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - d
+      - W_open
+      - W_start
+      - PW_open
+      - DOY_open
+    output_range: "weekday 0–6; plan_week PW_open..PW_open+2; day of year within the act's year"
+    expression: "weekday(d) = (W_open + d) mod 7; plan_week(d) = PW_open + floor(((W_open - W_start) mod 7 + d) / 7); day of year through a one-year month table"
+    notes: "Formulas §5. ISO weeks, Monday start; the year bound is a build predicate (V10); no engine date routine."
+    added: 2026-11-03
+    revised: ""
+  - name: transition_between
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - d_a
+      - d_b
+      - slot_a
+      - slot_b
+    output_range: "kind in {none, slot, day}; days_elapsed 0..DAYS_PER_ACT-1"
+    expression: "days_elapsed = d_b - d_a >= 0; kind = day if d_b > d_a, slot if same day and later slot, none otherwise; TRANSITION_ILLEGAL across a chapter edge or with an insert id"
+    notes: "Formulas §6. One leaf torn per day elapsed; never called across a chapter edge."
+    added: 2026-11-03
+    revised: ""
+  - name: calendar_apply
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - batch
+      - schema_range
+      - value
+    output_range: "scalars clamped to the schema range; one change record per field per batch"
+    expression: "GDD 1's scalar_apply with the calendar's own bounds; adds in a batch sum, max/min after; flags last-set-wins, two-state; one change record per field per batch with before = pre-batch value"
+    notes: "Formulas §7. Deliberate divergence from GDD 1 Rule 4a's per-boundary compaction because the changed leaf needs each cascade step's record."
+    added: 2026-11-03
+    revised: ""
+  - name: phase_reports
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    variables:
+      - first_beat
+      - chapter_at
+      - run_t
+    output_range: "first_beat(n) a beat or empty; U = max run length in beats"
+    expression: "first_beat(n) = min beat at which phase() >= n over the game space; U = max_t run_t of boundaries with band >= 1 and not paranoid"
+    notes: "Formulas §9. Simulator reports, never laws; act-one acceptance: first_beat(1) != empty, first_beat(2) = first_beat(3) = empty."
+    added: 2026-11-03
+    revised: ""
 constants:
   - name: ATTENTION_CAP
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Paper UI"
       - "Overlay & Surveillance Rendering"
     value: 6
@@ -1073,6 +1180,7 @@ constants:
       - design/gdd/reactive-event-rules.md
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     value: 3
     unit: points
     added: 2026-11-03
@@ -1083,6 +1191,7 @@ constants:
     referenced_by:
       - design/gdd/narrative-content-format.md
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
     value: 4
@@ -1094,8 +1203,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 1
     unit: points
     added: 2026-11-03
@@ -1105,8 +1213,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 1
     unit: points
     added: 2026-11-03
@@ -1117,6 +1224,7 @@ constants:
     referenced_by:
       - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     value: 3
     unit: beats
     added: 2026-11-03
@@ -1126,6 +1234,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Reactive Event Rules & Story Simulator"
     value: 0
@@ -1137,6 +1246,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
       - "Reactive Event Rules & Story Simulator"
@@ -1149,6 +1259,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
       - "Reactive Event Rules & Story Simulator"
@@ -1161,6 +1272,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
       - "Reactive Event Rules & Story Simulator"
@@ -1174,6 +1286,7 @@ constants:
     referenced_by:
       - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     value: 3
     unit: beats
     added: 2026-11-03
@@ -1183,8 +1296,8 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Overlay & Surveillance Rendering"
     value: 7
     unit: stability
@@ -1195,8 +1308,8 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Overlay & Surveillance Rendering"
     value: 5
     unit: stability
@@ -1207,8 +1320,8 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
       - "Overlay & Surveillance Rendering"
     value: 2
     unit: stability
@@ -1219,8 +1332,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 6
     unit: unrest
     added: 2026-11-03
@@ -1230,8 +1342,7 @@ constants:
     source: design/gdd/dossier-state-model.md
     referenced_by:
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 9
     unit: unrest
     added: 2026-11-03
@@ -1345,8 +1456,7 @@ constants:
     referenced_by:
       - design/gdd/reactive-event-rules.md
       - design/gdd/dossier-state-model.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 12
     unit: beats
     added: 2026-11-03
@@ -2068,6 +2178,7 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Scene Flow"
     value: 3
@@ -2108,9 +2219,9 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
+      - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Chapter & Story Structure"
-      - "Calendar, Regime Phase & Attention"
     value: 2
     unit: act-close beats beyond BEATS_PER_ACT (HORIZON_ACT = 14)
     added: 2026-11-03
@@ -2130,8 +2241,7 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 6
     unit: beat before which the regime announcement cannot fire
     added: 2026-11-03
@@ -2141,8 +2251,7 @@ constants:
     source: design/gdd/reactive-event-rules.md
     referenced_by:
       - design/gdd/reactive-event-rules.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Calendar, Regime Phase & Attention"
+      - design/gdd/calendar-regime-phase-attention.md
     value: 0
     unit: breath value at which marta_collapses is licensed
     added: 2026-11-03
@@ -2190,5 +2299,107 @@ constants:
       - design/gdd/reactive-event-rules.md
     value: 10
     unit: minutes for the whole simulator job in CI
+    added: 2026-11-03
+    revised: ""
+  - name: PHASE_RED_CAP
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    value: [1, 2, 3, 0]
+    unit: red reach tier per phase (confident margin, paranoid props, panicking key light, collapsing withdraws); a tier table, never a float
+    added: 2026-11-03
+    revised: ""
+  - name: DAYS_PER_ACT
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 8
+    unit: "days in the act (act one: Friday 6 to Friday 13 October 1989; the narrative director's ruling)"
+    added: 2026-11-03
+    revised: ""
+  - name: TRANSITION_MAX_LEAVES
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 6
+    unit: calendar leaves per transition above which the timetable loader warns
+    added: 2026-11-03
+    revised: ""
+  - name: PLAN_WEEK_OPENING
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 40
+    unit: ISO week of the act's opening date
+    added: 2026-11-03
+    revised: ""
+  - name: WEEKDAY_OPENING
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: fri
+    unit: weekday of the act's opening date (1989-10-06)
+    added: 2026-11-03
+    revised: ""
+  - name: WEEK_START
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: mon
+    unit: weekday that begins a Plan Week (ISO)
+    added: 2026-11-03
+    revised: ""
+  - name: BREATH_OPENING
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 2
+    unit: calendar.breath_marta default at act open
+    added: 2026-11-03
+    revised: ""
+  - name: BREATH_MAX
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 4
+    unit: calendar.breath_marta range ceiling
+    added: 2026-11-03
+    revised: ""
+  - name: BREATH_SUPPLY
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 3
+    unit: breath added by the breath_supply rule row when the courier crosses (by name in the rules data)
+    added: 2026-11-03
+    revised: ""
+  - name: CALENDAR_SCHEMA_VERSION
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 1
+    unit: calendar store schema version; bump on any field add, remove or retype
+    added: 2026-11-03
+    revised: ""
+  - name: CAL_SNAPSHOT_BUDGET_MS
+    status: active
+    source: design/gdd/calendar-regime-phase-attention.md
+    referenced_by:
+      - design/gdd/calendar-regime-phase-attention.md
+    value: 1
+    unit: ms per BoundaryView snapshot, advisory, reference machine only
     added: 2026-11-03
     revised: ""

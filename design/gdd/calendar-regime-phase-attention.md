@@ -2,7 +2,7 @@
 
 > Authoring guidance: .claude/docs/templates/guidance/game-design-document-guide.md (load per-section as you author — do not read entirely).
 
-> **Status**: In Design
+> **Status**: Designed
 > **Author**: Mustafa Faisal (user) + systems-designer, gameplay-programmer, engine-programmer, creative-director (agents)
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
@@ -10,9 +10,9 @@
 
 ## Summary
 
-[To be designed]
+Calendar, Regime Phase & Attention is the clock and the barometer of Paper Walls: it reads the beat the dossier counts, computes the regime's phase and each character's effective attention from the dossier's aggregates, and turns them into the only things the player sees of either, the date stamp's ink reach, the surveillance stamp's fill and the tear-off calendar, as tiers that change only between scenes. It holds the authored timetable (day, slot and Plan Week per scene) and the small `calendar.*` store of clocks and event flags that rules read and write, and it writes nothing to the dossier itself. It exists because Pillar 5 needs the state's attention to be visible without a meter, Pillar 2 needs the state to have moods that are read off paper and never fall, and the simulator and the runtime need one shared notion of when things happen.
 
-> **Quick reference** — Layer: `Foundation` · Priority: `MVP` (phase and per-character attention) / `Vertical Slice` (calendar) · Key deps: `Dossier State Model`
+> **Quick reference** — Layer: `Foundation` · Priority: `MVP` (phase and per-character attention) / `Vertical Slice` (calendar) · Key deps: `Dossier State Model` (aggregates, thresholds, the beat, the effect record), `Reactive Event Rules & Story Simulator` (the only writer of `calendar.*`; the ratchet rows; `phase()` through the reader), `Narrative Content Format & Strings` (scene lists, placeholders, `phase_at_least`); read by Scene Flow, Overlay & Surveillance Rendering, Paper UI, Audio, Investigation & Fact, Save/Load
 
 ## Overview
 

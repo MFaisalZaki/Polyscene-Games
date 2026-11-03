@@ -30,7 +30,7 @@ Relationship analysis: four systems carry most of the dependency weight — Doss
 | 4 | Settings Store (inferred) | Meta | MVP | Designed | [settings-store.md](settings-store.md) | Narrative Content Format & Strings (locale and string ids) |
 | 5 | Investigation & Fact System | Gameplay | MVP | Designed | [investigation-fact-system.md](investigation-fact-system.md) | Narrative Content Format & Strings, Scene & Interaction Framework, Dossier State Model (read only) |
 | 6 | Reactive Event Rules & Story Simulator (a polyscene topic: dossier flags as fluents, rules as preferences, licences and laws; `classes()` enumerates the branches, `diagnose()` says why a branch is forbidden) | Gameplay | MVP | Designed | [reactive-event-rules.md](reactive-event-rules.md) | Dossier State Model, Narrative Content Format & Strings, Calendar & Regime Phase |
-| 7 | Calendar, Regime Phase & Attention | Core | MVP (phase and per-character attention) / Vertical Slice (calendar) | Not Started | — | Dossier State Model |
+| 7 | Calendar, Regime Phase & Attention | Core | MVP (phase and per-character attention) / Vertical Slice (calendar) | Designed | [calendar-regime-phase-attention.md](calendar-regime-phase-attention.md) | Dossier State Model, Reactive Event Rules & Story Simulator, Narrative Content Format & Strings |
 | 8 | Scene Flow (inferred) | Core | MVP | Not Started | — | Dossier State Model, Reactive Event Rules & Story Simulator, Calendar, Regime Phase & Attention, Scene & Interaction Framework, Paper UI (reveal step hands change records to it) |
 | 9 | Overlay & Surveillance Rendering (inferred) | Core | MVP | Not Started | — | Scene & Interaction Framework, Calendar & Regime Phase, Settings Store |
 | 10 | Character Presentation (inferred) | Core | MVP (stub) / Vertical Slice (full) | Not Started | — | Scene & Interaction Framework |
@@ -161,10 +161,10 @@ Producer estimate for GDDs 1–13 at full rigor: 55–75 hours of human approval
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 16 |
-| Design docs started | 6 |
+| Design docs started | 7 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 6/13 |
+| MVP systems designed | 7/13 |
 | Vertical Slice systems designed | 0/3 |
 
 ---
