@@ -615,6 +615,173 @@ formulas:
     notes: "Formulas §9. rev_stale moves only on a same-meaning rewording (class b)."
     added: 2026-11-03
     revised: ""
+  - name: hit_id
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+      - "Investigation & Fact System"
+      - "Paper UI"
+    variables:
+      - p
+      - region(h)
+      - avail(h)
+      - area(h)
+    output_range: "one id or none"
+    expression: "argmin over hotspots with p in region(h) and avail != hidden of (area(h), id(h)); even-odd for polygons; p1080 = p720 x 1.5"
+    notes: "Formulas §1. Regions are pairwise disjoint by E12, so the argmin matters only in a degraded release build."
+    added: 2026-11-03
+    revised: ""
+  - name: hit_rect
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Asset Pipeline Tools"
+      - "Paper UI"
+    variables:
+      - w
+      - h
+      - HIT_MIN
+      - HIT_GAP
+    output_range: "each side >= HIT_MIN unless clipped by the plate"
+    expression: "m = max(0, ceil((HIT_MIN - side)/2)); hit_rect = clip(grow(bbox, m_x, m_y), plate); valid iff max(m) <= floor(w/2) and gap >= HIT_GAP"
+    notes: "Formulas §2. Computed by the sidecar compiler under tools/scene/, never at runtime. Derived floor w >= HIT_MIN/2."
+    added: 2026-11-03
+    revised: ""
+  - name: focus_ring
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Settings Store"
+    variables:
+      - lift_anchor
+      - FOCUS_ROW_HEIGHT
+      - focus_order
+    output_range: "a permutation of the non-hidden hotspot ids"
+    expression: "row = floor(anchor_y / FOCUS_ROW_HEIGHT); key = (row, anchor_x, id); ring = sort(hotspots minus hidden, key) unless focus_order is authored"
+    notes: "Formulas §3. Screen reading order; the export writes the default and the artist may reorder."
+    added: 2026-11-03
+    revised: ""
+  - name: focus_dir_cost
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Settings Store"
+    variables:
+      - anchor(f)
+      - anchor(c)
+      - d
+      - OFF_AXIS_PENALTY
+    output_range: "cost > 0; no move if the cone is empty"
+    expression: "candidate iff along > 0 and |perp| <= along; cost = sqrt(along^2 + perp^2) + OFF_AXIS_PENALTY x |perp|; argmin (cost, id)"
+    notes: "Formulas §4. Deterministic spatial step; never the engine focus neighbours."
+    added: 2026-11-03
+    revised: ""
+  - name: camera_follow
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+      - "Overlay & Surveillance Rendering"
+    variables:
+      - cam_x
+      - view_w
+      - plate_w
+      - anchor_x
+      - CAMERA_DEAD_ZONE
+      - camera.min_x
+      - camera.max_x
+    output_range: "target_x clamped so the view never shows outside the plate"
+    expression: "needs_pan = source = KEY and (|anchor_x - centre| > CAMERA_DEAD_ZONE x view_w/2 or hit_rect not in view); target_x = clamp(anchor_x - view_w/2, min_x, min(max_x, plate_w - view_w))"
+    notes: "Formulas §6. Follows focus, never the pointer."
+    added: 2026-11-03
+    revised: ""
+  - name: scene_resident_bytes
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Character Presentation"
+      - "Paper UI"
+    variables:
+      - w_t
+      - h_t
+      - mipmapped
+      - OTHERS_RESERVE_MB
+      - reported(owner)
+    output_range: "bytes_est <= SCENE_BUDGET_WARN or warn; > SCENE_BUDGET_MAX error"
+    expression: "bytes(t) = w x h x 4 x (4/3 if mipmapped); bytes_fw = plate + sum(layer + focus_layer + layer_filed); build: bytes_fw + OTHERS_RESERVE_MB; runtime: bytes_fw + sum reported"
+    notes: "Formulas §7. Art bible §8.7 T1 ceiling 256 MB; two scenes resident."
+    added: 2026-11-03
+    revised: ""
+  - name: hotspot_counts
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Investigation & Fact System"
+    variables:
+      - kind
+      - avail
+    output_range: "0 <= filed + void <= total <= 8"
+    expression: "counts[k] = {total: |kind = k and avail != hidden|, filed, void}; Paper UI prints filed of total"
+    notes: "Formulas §10. hidden never counts."
+    added: 2026-11-03
+    revised: ""
+  - name: walk_time
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    variables:
+      - path
+      - WALK_SPEED_PX_S
+      - WALK_FRAMES
+      - WALK_FPS
+      - STRIDE_PX
+    output_range: "t_walk > 0; slide pass 0.8–1.25"
+    expression: "t_walk = |path| / WALK_SPEED_PX_S; criteria t(diam walkable) <= PLATE_CROSS_S and median hop <= HOP_S; slide = WALK_SPEED_PX_S x WALK_FRAMES / WALK_FPS / STRIDE_PX"
+    notes: "Formulas §9. Walking outcome only; the pipeline proof measures it."
+    added: 2026-11-03
+    revised: ""
+  - name: discoverability_pass
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Analytics"
+    variables:
+      - found_i
+      - miss_i
+      - n_h
+      - FIND_WINDOW_S
+      - MISS_RATIO
+      - FAIL_PLAYERS_MAX
+      - N_MIN
+    output_range: "bool"
+    expression: "pass = median found >= n_h - 1 and sum miss / sum found <= MISS_RATIO and |{i: found < n_h - 2}| <= FAIL_PLAYERS_MAX and n >= N_MIN; n_h counts kind != person"
+    notes: "Formulas §11. The art bible C1 hypothesis test at 720p, reveal disabled."
+    added: 2026-11-03
+    revised: ""
 
 # ─── CONSTANTS ───────────────────────────────────────────────────────────────
 # Named numerical values referenced across multiple systems.
@@ -1188,5 +1355,256 @@ constants:
       - design/gdd/narrative-content-format.md
     value: 2000
     unit: ms per changed file in watch mode (reported, not gated, until the CI runner image is named)
+    added: 2026-11-03
+    revised: ""
+  - name: HIT_MIN
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Asset Pipeline Tools"
+      - "Paper UI"
+    value: 66
+    unit: px in 1080 plate space (44 at 720)
+    added: 2026-11-03
+    revised: ""
+  - name: HIT_GAP
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Asset Pipeline Tools"
+    value: 48
+    unit: px in 1080 plate space between padded hit rects
+    added: 2026-11-03
+    revised: ""
+  - name: FOCUS_ROW_HEIGHT
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    value: 72
+    unit: px in 1080 plate space (reading-row band)
+    added: 2026-11-03
+    revised: ""
+  - name: OFF_AXIS_PENALTY
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    value: 1.5
+    unit: weight on perpendicular offset (spatial focus)
+    added: 2026-11-03
+    revised: ""
+  - name: POINTER_LATCH_PX
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    value: 4
+    unit: px in 720 window space (x1.5 at load)
+    added: 2026-11-03
+    revised: ""
+  - name: LIFT_PX
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Asset Pipeline Tools"
+    value: 12
+    unit: px in 1080 plate space (one unit; multiple of 3)
+    notes: "Art bible §6.4 one-unit disturbance; 8 px at 720."
+    added: 2026-11-03
+    revised: ""
+  - name: CAMERA_DEAD_ZONE
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    value: 0.6
+    unit: fraction of view width
+    added: 2026-11-03
+    revised: ""
+  - name: CAMERA_PAN_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    value: 240
+    unit: ms (two corner lifts)
+    added: 2026-11-03
+    revised: ""
+  - name: SCENE_BUDGET_WARN
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Character Presentation"
+      - "Paper UI"
+    value: 224
+    unit: MB per scene (warning line; ceiling is art bible T1 256)
+    added: 2026-11-03
+    revised: ""
+  - name: OTHERS_RESERVE_MB
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Character Presentation"
+      - "Paper UI"
+    value: 181
+    unit: MB (art bible T1 worksheet lines not owned by the framework)
+    added: 2026-11-03
+    revised: ""
+  - name: LOAD_BUDGET_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+    value: 500
+    unit: ms cold load to scene_ready (TD to confirm)
+    added: 2026-11-03
+    revised: ""
+  - name: SWAP_BUDGET_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Scene Flow"
+    value: 50
+    unit: ms preloaded swap behind the wipe (TD to confirm)
+    added: 2026-11-03
+    revised: ""
+  - name: WIPE_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Audio & Adaptive Surveillance Mix"
+      - "Scene Flow"
+    value: 360
+    unit: ms (180 in, 180 out; ceiling 400, art bible §7.4)
+    added: 2026-11-03
+    revised: ""
+  - name: TOOLTIP_DWELL_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Settings Store"
+    value: 400
+    unit: ms focus dwell before the slip under tooltip_mode focus
+    added: 2026-11-03
+    revised: ""
+  - name: CURSOR_PX
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Settings Store"
+    value: 48
+    unit: px at 1080 (32 at 720)
+    added: 2026-11-03
+    revised: ""
+  - name: ARRIVAL_TOLERANCE_PX
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    value: 8
+    unit: px (walking outcome)
+    added: 2026-11-03
+    revised: ""
+  - name: WALK_SPEED_PX_S
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    value: 360
+    unit: plate px per second (walking outcome)
+    added: 2026-11-03
+    revised: ""
+  - name: PLATE_CROSS_S
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    value: 4.5
+    unit: s longest path across walkable (proof criterion)
+    added: 2026-11-03
+    revised: ""
+  - name: HOP_S
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Character Presentation"
+    value: 1.5
+    unit: s median hotspot-to-hotspot path (proof criterion)
+    added: 2026-11-03
+    revised: ""
+  - name: SCENE_BUDGET_MAX
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Character Presentation"
+      - "Paper UI"
+    value: 256
+    unit: MB per scene (art bible §8.7 T1; registered here as a pointer)
+    notes: "Owned by design/art/art-bible.md §8.7 T1; not retuned in any GDD."
+    added: 2026-11-03
+    revised: ""
+  - name: LIFT_MS
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Overlay & Surveillance Rendering"
+    value: 120
+    unit: ms (art bible §7.4; pointer)
+    notes: "Owned by design/art/art-bible.md §7.4."
+    added: 2026-11-03
+    revised: ""
+  - name: DRAW_TARGET
+    status: active
+    source: design/gdd/scene-interaction-framework.md
+    referenced_by:
+      - design/gdd/scene-interaction-framework.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Paper UI"
+    value: 150
+    unit: draws per frame steady state (art bible §8.7 T3; pointer)
+    notes: "Owned by design/art/art-bible.md §8.7 T3; absolute 500."
     added: 2026-11-03
     revised: ""
