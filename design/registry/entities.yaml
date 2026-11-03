@@ -1398,8 +1398,8 @@ formulas:
       - figures block
       - presentation.mode
     output_range: "plain data, sorted keys, no floats; byte-equal across hosts"
-    expression: "plan = {scene_id, entries[{cast_id, hotspot_id, pose, present, order, crop, x, y, twins}], threshold_figure | null, preload_portraits[]} computed once at enter_scene from Scene Flow's resolved cast[] and the sidecar's figures block; PLAN_LOCKED afterwards"
-    notes: "Formulas §1. Presence and pose are content resolved by Scene Flow's reader; this system never evaluates a condition."
+    expression: "plan = {schema_v, scene_id, mode, figures[{cast_id, hotspot, pose, crop, focus_crop, x, y, baseline_y}], absent[], threshold_figure | null, threshold_kind, portraits[], draws_est, bytes_est, draw_order[]} computed once at scene_preloaded (enter_scene precedes it) from Scene Flow's resolved cast[], the sidecar's figures block and presentation.mode; PLAN_LOCKED until clear(scene_id)"
+    notes: "Formulas §1. Presence and pose are content resolved by Scene Flow's resolve_presence(persons[], reader); this system never evaluates a condition. bytes_est = Σ ceil(w × h × 4 × 4/3) per texture (Formulas §6)."
     added: 2026-11-03
     revised: ""
   - name: draw_order
@@ -1414,7 +1414,7 @@ formulas:
       - baseline_y
       - id
     output_range: "a total order over figures and hotspots"
-    expression: "order = sort by (baseline_y asc, id asc), applied as sibling order under standing; the engine's y-sort is needed only under walking"
+    expression: "order = sort by (baseline_y asc, id asc) where a figure's id is its cast_id and a hotspot layer's id is the hotspot id (X03 errors on a collision), applied as sibling order under standing; the engine's y-sort is needed only under walking"
     notes: "Formulas §2."
     added: 2026-11-03
     revised: ""
@@ -1434,7 +1434,7 @@ formulas:
       - threshold_kind
       - has_fact
     output_range: "PortraitSpec {portrait, state, light, overprint, acc_ids}"
-    expression: "state = the last portrait word in the run, neutral at run start, never a function of any dossier value; light from (scene_kind, context, threshold_kind): none in conversation, overhead for interrogation and the telephone, torch at a door/gate/post, sodium at a window; overprint = has_fact(informer_fact(cast_id))"
+    expression: "state = the last portrait word in the run (a word on a line, an ask or a reply; a reply binds to the interlocutor), neutral at run start, never a function of any dossier value; light from (scene_kind, context, threshold_kind): none in conversation, overhead for interrogation and the telephone, torch at a door/gate/post, sodium at a window; overprint = has_fact(informer_fact(cast_id))"
     notes: "Formulas §3. The writer chooses the face; the engine never infers; Paper UI draws."
     added: 2026-11-03
     revised: ""
@@ -2918,5 +2918,23 @@ constants:
       - design/gdd/character-presentation.md
     value: 0.5
     unit: "ms per CastPlan, advisory, reference machine only"
+    added: 2026-11-03
+    revised: ""
+  - name: PORTRAIT_EXPORT_PX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: "896 × 1120"
+    unit: "px, export including 20% bleed (displayed 747 × 933); a fact of the T2 pipeline, not a knob"
+    added: 2026-11-03
+    revised: ""
+  - name: OVERPRINT_OFFSET_PX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: "by pointer to GHOST_OFFSET_PX"
+    unit: "px at 1080 (3) and 720 (2); GDD 5 VA §4's identical offset vector"
     added: 2026-11-03
     revised: ""

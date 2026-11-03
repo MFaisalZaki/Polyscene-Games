@@ -33,7 +33,7 @@ Relationship analysis: four systems carry most of the dependency weight — Doss
 | 7 | Calendar, Regime Phase & Attention | Core | MVP (phase and per-character attention) / Vertical Slice (calendar) | Designed | [calendar-regime-phase-attention.md](calendar-regime-phase-attention.md) | Dossier State Model, Reactive Event Rules & Story Simulator, Narrative Content Format & Strings |
 | 8 | Scene Flow (inferred) | Core | MVP | Designed | [scene-flow.md](scene-flow.md) | Dossier State Model, Reactive Event Rules & Story Simulator, Calendar, Regime Phase & Attention, Scene & Interaction Framework, Narrative Content Format & Strings, Investigation & Fact System, Paper UI (reveal step hands change records to it) |
 | 9 | Overlay & Surveillance Rendering (inferred) | Core | MVP | Designed | [overlay-surveillance-rendering.md](overlay-surveillance-rendering.md) | Scene & Interaction Framework, Calendar, Regime Phase & Attention, Settings Store, Scene Flow (`enter_scene`, the snapshot) |
-| 10 | Character Presentation (inferred) | Core | MVP (stub) / Vertical Slice (full) | Not Started | — | Scene & Interaction Framework |
+| 10 | Character Presentation (inferred) | Core | MVP (stub) / Vertical Slice (full) | Designed | [character-presentation.md](character-presentation.md) | Scene & Interaction Framework, Narrative Content Format & Strings, Scene Flow (`enter_scene` with the resolved `cast[]`), Investigation & Fact System (`has_fact` for the overprint); serves Dialogue & Interrogation and Paper UI |
 | 11 | Dialogue & Interrogation | Narrative | MVP (no timers) / Vertical Slice (timers) | Not Started | — | Narrative Content Format & Strings, Investigation & Fact System, Dossier State Model, Scene & Interaction Framework, Settings Store |
 | 12 | Filing & Decision | Gameplay | MVP | Not Started | — | Investigation & Fact System, Dossier State Model, Narrative Content Format & Strings |
 | 13 | Paper UI (inferred) | UI | MVP (archivist dossier view, fact board where held facts click together, document and transcript sheets, scene-end change reveal, minimal HUD) / Vertical Slice (split into Dossier UI, Document & Transcript UI, HUD, Menus & Calendar UI) | Not Started | — | Dossier State Model, Character Presentation, Overlay & Surveillance Rendering, Narrative Content Format & Strings, Investigation & Fact System, Dialogue & Interrogation, Settings Store |
@@ -161,10 +161,10 @@ Producer estimate for GDDs 1–13 at full rigor: 55–75 hours of human approval
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 16 |
-| Design docs started | 9 |
+| Design docs started | 10 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 9/13 |
+| MVP systems designed | 10/13 |
 | Vertical Slice systems designed | 0/3 |
 
 ---
