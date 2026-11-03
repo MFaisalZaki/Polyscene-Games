@@ -146,7 +146,7 @@ Secondary (light and ink): **incandescent amber** `#DDB065` (private light), **s
 
 ### 4.4 UI palette and where it diverges
 
-UI base is full-value bone `#EDE4CC` with soot text; carbon blue for interactive and linkable facts — **as text, the darker UI tint `#2E3559` of carbon** (measured 7.9:1 on UI bone; the world carbon `#434C7C` measures 6.5:1 and fails the §7.2 text rule, AD-ART-BIBLE C4) (clicking a fact files it, so world meaning and UI meaning converge); stamp red only for state attention — timer margin, surveillance indicator — never as a generic error or danger colour; protagonist inks for annotation. The divergence is **value, not hue**: UI runs at full bone and pure soot (about 13:1 contrast), higher than any plate; it never takes lamp or sodium tint; it contains no ochre or concrete. Per view: archivist bone + blue; dissident bone + soot with torn edges; conscript bone + khaki.
+UI base is full-value bone `#EDE4CC` with soot text; carbon blue for interactive and linkable facts — **as text, the darker UI tint `#2E3559` of carbon** (measured 9.4:1 on UI bone; the world carbon `#434C7C` measures 6.5:1 and fails the §7.2 text rule, AD-ART-BIBLE C4) (clicking a fact files it, so world meaning and UI meaning converge); stamp red only for state attention — timer margin, surveillance indicator — never as a generic error or danger colour; protagonist inks for annotation. The divergence is **value, not hue**: UI runs at full bone and pure soot (about 13:1 contrast), higher than any plate; it never takes lamp or sodium tint; it contains no ochre or concrete. Per view: archivist bone + blue; dissident bone + soot with torn edges; conscript bone + khaki.
 
 ### 4.5 Colourblind safety
 
@@ -160,7 +160,7 @@ No semantic colour carries meaning alone; each has a shape backup, and the two a
 | Carbon blue vs soot | Tritan, low vision. | Filed = double-struck ghost plus a "cc" mark; unfiled = single strike. |
 | Grey-green vs khaki inks | Deutan. | Letterform (cursive vs stencil) plus the chapter tab on the page. |
 
-Text contrast (WCAG relative luminance, measured): soot on UI bone 13.8:1, soot on plate bone 11:1, carbon text tint `#2E3559` on UI bone 7.9:1 (world carbon `#434C7C` is 6.5:1 and is not used for text). An accessibility toggle that renders stamp red as hatching only is a ux-designer item, supplementary to these defaults.
+Text contrast (WCAG relative luminance, measured): soot on UI bone 13.8:1, soot on plate bone 11:1, carbon text tint `#2E3559` on UI bone 9.4:1 (world carbon `#434C7C` is 6.5:1 and is not used for text). An accessibility toggle that renders stamp red as hatching only is a ux-designer item, supplementary to these defaults.
 
 ### 4.6 Alternatives considered
 
