@@ -1,0 +1,961 @@
+{
+ "horizon": 10,
+ "axes": [
+  "fate",
+  "vera_choice",
+  "vera_fate",
+  "jan_fate",
+  "tomas_choice"
+ ],
+ "domains": {
+  "fate": [
+   "fell_bloody",
+   "fell_quiet",
+   "held",
+   "held_bloody"
+  ],
+  "vera_choice": [
+   "burned",
+   "filed",
+   "leaked",
+   "silent",
+   "warned"
+  ],
+  "vera_fate": [
+   "unwatched",
+   "watched"
+  ],
+  "jan_fate": [
+   "arrested",
+   "free",
+   "recanted",
+   "turned"
+  ],
+  "tomas_choice": [
+   "fired",
+   "none",
+   "stood_down"
+  ]
+ },
+ "exhausted": true,
+ "behaviours": [
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "read-file",
+     "text": "Vera reads report 4471 to the end: the parcel was medicine.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "fired",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "leaked",
+    "fate": "held_bloody"
+   },
+   "assumes": [
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "leak-file",
+     "text": "Vera slips the report to Jan.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "expose-informer",
+     "text": "Jan prints the name of the informer: Kastan.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Rybar",
+     "action": "order-fire",
+     "text": "Rybar orders Tomas's unit to hold the line with live rounds.",
+     "world": false
+    },
+    {
+     "step": 6,
+     "actor": "Tomas",
+     "action": "obey-order",
+     "text": "Tomas obeys Rybar. The unit fires on the crowd.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "fired",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "held_bloody"
+   },
+   "assumes": [
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Jan",
+     "action": "print-leaflets",
+     "text": "Jan runs the press all night.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "distribute",
+     "text": "Jan puts the leaflets on every landing in the district.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Rybar",
+     "action": "order-fire",
+     "text": "Rybar orders Tomas's unit to hold the line with live rounds.",
+     "world": false
+    },
+    {
+     "step": 6,
+     "actor": "Tomas",
+     "action": "obey-order",
+     "text": "Tomas obeys Rybar. The unit fires on the crowd.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "fired",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "leaked",
+    "fate": "fell_bloody"
+   },
+   "assumes": [
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "leak-file",
+     "text": "Vera slips the report to Jan.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "expose-informer",
+     "text": "Jan prints the name of the informer: Kastan.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Border",
+     "action": "regime-panics",
+     "text": "Orders arrive by the hour and contradict each other. The regime is panicking.",
+     "world": true
+    },
+    {
+     "step": 6,
+     "actor": "Rybar",
+     "action": "order-fire",
+     "text": "Rybar orders Tomas's unit to hold the line with live rounds.",
+     "world": false
+    },
+    {
+     "step": 7,
+     "actor": "Tomas",
+     "action": "obey-order",
+     "text": "Tomas obeys Rybar. The unit fires on the crowd.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "fired",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "fell_bloody"
+   },
+   "assumes": [
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Jan",
+     "action": "print-leaflets",
+     "text": "Jan runs the press all night.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "distribute",
+     "text": "Jan puts the leaflets on every landing in the district.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Border",
+     "action": "regime-panics",
+     "text": "Orders arrive by the hour and contradict each other. The regime is panicking.",
+     "world": true
+    },
+    {
+     "step": 6,
+     "actor": "Rybar",
+     "action": "order-fire",
+     "text": "Rybar orders Tomas's unit to hold the line with live rounds.",
+     "world": false
+    },
+    {
+     "step": 7,
+     "actor": "Tomas",
+     "action": "obey-order",
+     "text": "Tomas obeys Rybar. The unit fires on the crowd.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "file-report",
+     "text": "Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "turned",
+    "vera_fate": "unwatched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "file-report",
+     "text": "Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    },
+    {
+     "step": 4,
+     "actor": "Rybar",
+     "action": "turn-informer",
+     "text": "Rybar offers Jan a way out of the cell. Jan takes it.",
+     "world": false
+    },
+    {
+     "step": 5,
+     "actor": "Jan",
+     "action": "recant",
+     "text": "Jan signs the statement. The watch on him is lifted; the press goes quiet.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "recanted",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "recant",
+     "text": "Jan signs the statement. The watch on him is lifted; the press goes quiet.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "recanted",
+    "vera_fate": "unwatched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "file-report",
+     "text": "Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Jan",
+     "action": "recant",
+     "text": "Jan signs the statement. The watch on him is lifted; the press goes quiet.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "recanted",
+    "vera_fate": "watched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "query-ledger",
+     "text": "Rybar telephones Vera: report 4471, where is it?",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Vera",
+     "action": "recover-report",
+     "text": "Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.",
+     "world": false
+    },
+    {
+     "step": 4,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 5,
+     "actor": "Jan",
+     "action": "recant",
+     "text": "Jan signs the statement. The watch on him is lifted; the press goes quiet.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "watched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "query-ledger",
+     "text": "Rybar telephones Vera: report 4471, where is it?",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Vera",
+     "action": "recover-report",
+     "text": "Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.",
+     "world": false
+    },
+    {
+     "step": 4,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "turned",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))",
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Rybar",
+     "action": "turn-informer",
+     "text": "Rybar offers Jan a way out of the cell. Jan takes it.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "turned",
+    "vera_fate": "watched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))",
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "query-ledger",
+     "text": "Rybar telephones Vera: report 4471, where is it?",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Vera",
+     "action": "recover-report",
+     "text": "Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.",
+     "world": false
+    },
+    {
+     "step": 4,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 5,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    },
+    {
+     "step": 6,
+     "actor": "Rybar",
+     "action": "turn-informer",
+     "text": "Rybar offers Jan a way out of the cell. Jan takes it.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "burned",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "watched",
+    "vera_choice": "burned",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "query-ledger",
+     "text": "Rybar telephones Vera: report 4471, where is it?",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "leaked",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "leak-file",
+     "text": "Vera slips the report to Jan.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "arrested",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "arrested",
+    "vera_fate": "unwatched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "file-report",
+     "text": "Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "arrested",
+    "vera_fate": "watched",
+    "vera_choice": "filed",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "burn-report",
+     "text": "Vera burns 4471. The ledger now has a gap with her name beside it.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Rybar",
+     "action": "query-ledger",
+     "text": "Rybar telephones Vera: report 4471, where is it?",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Vera",
+     "action": "recover-report",
+     "text": "Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.",
+     "world": false
+    },
+    {
+     "step": 4,
+     "actor": "Kastan",
+     "action": "inform",
+     "text": "Kastan reports Jan to the Records Office.",
+     "world": false
+    },
+    {
+     "step": 5,
+     "actor": "Rybar",
+     "action": "raid",
+     "text": "Rybar raids the print shop; Jan is taken.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "stood_down",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "leaked",
+    "fate": "fell_quiet"
+   },
+   "assumes": [
+    "variable((\"garrison_wavers\",constant(\"border\")))",
+    "variable((\"rybar_vindictive\",constant(\"rybar\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "leak-file",
+     "text": "Vera slips the report to Jan.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "expose-informer",
+     "text": "Jan prints the name of the informer: Kastan.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Rybar",
+     "action": "order-fire",
+     "text": "Rybar orders Tomas's unit to hold the line with live rounds.",
+     "world": false
+    },
+    {
+     "step": 6,
+     "actor": "Tomas",
+     "action": "stand-down",
+     "text": "Tomas lowers the rifle. The gate stays open.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "stood_down",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "silent",
+    "fate": "fell_quiet"
+   },
+   "assumes": [
+    "variable((\"garrison_wavers\",constant(\"border\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Jan",
+     "action": "print-leaflets",
+     "text": "Jan runs the press all night.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Jan",
+     "action": "distribute",
+     "text": "Jan puts the leaflets on every landing in the district.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Border",
+     "action": "crowd-gathers",
+     "text": "A crowd gathers at the Border.",
+     "world": true
+    },
+    {
+     "step": 4,
+     "actor": "Border",
+     "action": "regime-wavers",
+     "text": "The ministry stops answering its telephones. The regime is wavering.",
+     "world": true
+    },
+    {
+     "step": 5,
+     "actor": "Tomas",
+     "action": "stand-down",
+     "text": "Tomas lowers the rifle. The gate stays open.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "unwatched",
+    "vera_choice": "warned",
+    "fate": "held"
+   },
+   "assumes": [],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "read-file",
+     "text": "Vera reads report 4471 to the end: the parcel was medicine.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Vera",
+     "action": "warn",
+     "text": "Vera knocks on Marta's door after dark and says: not on Tuesdays. Not any Tuesday.",
+     "world": false
+    }
+   ]
+  },
+  {
+   "behaviour": {
+    "tomas_choice": "none",
+    "jan_fate": "free",
+    "vera_fate": "watched",
+    "vera_choice": "warned",
+    "fate": "held"
+   },
+   "assumes": [
+    "variable((\"kastan_loyal\",constant(\"kastan\")))"
+   ],
+   "beats": [
+    {
+     "step": 1,
+     "actor": "Vera",
+     "action": "read-file",
+     "text": "Vera reads report 4471 to the end: the parcel was medicine.",
+     "world": false
+    },
+    {
+     "step": 2,
+     "actor": "Vera",
+     "action": "warn",
+     "text": "Vera knocks on Marta's door after dark and says: not on Tuesdays. Not any Tuesday.",
+     "world": false
+    },
+    {
+     "step": 3,
+     "actor": "Kastan",
+     "action": "report-neighbour",
+     "text": "Kastan reports that Vera was seen at Marta's door after dark.",
+     "world": false
+    }
+   ]
+  }
+ ]
+}

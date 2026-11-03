@@ -1,0 +1,234 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Paper Walls — act one branches</title><style>
+:root{--bone:#D8CDB2;--ui:#EDE4CC;--concrete:#585A57;--green:#6B7664;--carbon:#434C7C;--ctext:#2E3559;--red:#B5241C;--soot:#1B1917;--ochre:#8F7748}
+body{margin:0;background:var(--concrete);font-family:"Courier New",Courier,monospace;color:var(--soot)}
+header{background:var(--ui);border-bottom:3px solid var(--soot);padding:18px 28px}
+h1{margin:0;font-size:20px;letter-spacing:4px}h1 small{letter-spacing:0;font-size:12px;color:var(--concrete);display:block;margin-top:6px}
+.cov{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:12px}.cov div{border:2px solid var(--soot);padding:6px 10px;background:var(--ui)}
+.cov b{letter-spacing:2px;display:block;margin-bottom:4px}.ok{color:var(--ctext);text-decoration:underline dotted}.no{color:#9a9480;text-decoration:line-through}
+main{padding:20px 28px}.fate{margin:26px 0 10px;font-size:13px;letter-spacing:3px;background:var(--ui);border:2px solid var(--soot);padding:6px 12px;display:inline-block}
+.fate.red{border-color:var(--red);color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+.card{background:var(--ui);border:2px solid var(--soot);padding:12px 14px;position:relative;font-size:12px}
+.card:before{content:"";position:absolute;left:14px;top:-5px;width:16px;height:6px;background:var(--concrete)}
+.tab{position:absolute;right:-2px;top:-14px;background:var(--ui);border:2px solid var(--soot);border-bottom:none;padding:1px 8px;font-size:10px;letter-spacing:2px}
+.state{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-bottom:8px;border-bottom:2px dashed var(--concrete);padding-bottom:8px}
+.state span b{letter-spacing:1px;color:var(--concrete);font-weight:normal;font-size:10px}
+.assume{color:var(--ctext);text-shadow:1px 1px 0 var(--carbon);margin-bottom:6px}
+ol{margin:0;padding-left:22px}li{margin:3px 0}li.world{color:var(--concrete)}li.world:before{content:"[world] ";color:var(--red);font-size:10px}
+.stamp{position:absolute;right:12px;bottom:10px;width:30px;height:30px;border:3px solid var(--red);opacity:.6;background:repeating-linear-gradient(45deg,transparent 0 3px,var(--red) 3px 4px)}
+</style></head><body>
+<header><h1>PAPER WALLS — ACT ONE, EVERY ADMISSIBLE END STATE<small>23 behaviours on 5 axes, horizon 10, exhaustive, enumerated in 0.3s by polyscene. Each card is one witness telling; the assumption line is what that future rests on.</small></h1><div class='cov'>
+<div><b>fate</b><span class='ok'>fell_bloody</span> · <span class='ok'>fell_quiet</span> · <span class='ok'>held</span> · <span class='ok'>held_bloody</span></div>
+<div><b>vera_choice</b><span class='ok'>burned</span> · <span class='ok'>filed</span> · <span class='ok'>leaked</span> · <span class='ok'>silent</span> · <span class='ok'>warned</span></div>
+<div><b>vera_fate</b><span class='ok'>unwatched</span> · <span class='ok'>watched</span></div>
+<div><b>jan_fate</b><span class='ok'>arrested</span> · <span class='ok'>free</span> · <span class='ok'>recanted</span> · <span class='ok'>turned</span></div>
+<div><b>tomas_choice</b><span class='ok'>fired</span> · <span class='ok'>none</span> · <span class='ok'>stood_down</span></div>
+</div></header><main>
+<div class='fate '>THE REGIME FALLS — NOBODY FIRES · 2</div><div class='grid'>
+<div class='card'><div class='tab'>FELL_QUIET 1</div><div class='state'>
+<span><b>vera_choice</b><br>leaked</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>stood_down</span>
+</div>
+<div class='assume'>assuming garrison wavers · rybar vindictive</div>
+<ol><li class=''>Vera slips the report to Jan.</li><li class=''>Jan prints the name of the informer: Kastan.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class=''>Rybar orders Tomas&#x27;s unit to hold the line with live rounds.</li><li class=''>Tomas lowers the rifle. The gate stays open.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>FELL_QUIET 2</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>stood_down</span>
+</div>
+<div class='assume'>assuming garrison wavers</div>
+<ol><li class=''>Jan runs the press all night.</li><li class=''>Jan puts the leaflets on every landing in the district.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class=''>Tomas lowers the rifle. The gate stays open.</li></ol>
+<div class='stamp'></div></div>
+</div>
+<div class='fate red'>THE REGIME FALLS — AFTER THE SHOOTING · 2</div><div class='grid'>
+<div class='card'><div class='tab'>FELL_BLOODY 1</div><div class='state'>
+<span><b>vera_choice</b><br>leaked</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>fired</span>
+</div>
+<div class='assume'>assuming rybar vindictive</div>
+<ol><li class=''>Vera slips the report to Jan.</li><li class=''>Jan prints the name of the informer: Kastan.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class='world'>Orders arrive by the hour and contradict each other. The regime is panicking.</li><li class=''>Rybar orders Tomas&#x27;s unit to hold the line with live rounds.</li><li class=''>Tomas obeys Rybar. The unit fires on the crowd.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>FELL_BLOODY 2</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>fired</span>
+</div>
+<div class='assume'>assuming rybar vindictive</div>
+<ol><li class=''>Jan runs the press all night.</li><li class=''>Jan puts the leaflets on every landing in the district.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class='world'>Orders arrive by the hour and contradict each other. The regime is panicking.</li><li class=''>Rybar orders Tomas&#x27;s unit to hold the line with live rounds.</li><li class=''>Tomas obeys Rybar. The unit fires on the crowd.</li></ol>
+<div class='stamp'></div></div>
+</div>
+<div class='fate red'>THE REGIME HOLDS — AFTER THE SHOOTING · 2</div><div class='grid'>
+<div class='card'><div class='tab'>HELD_BLOODY 1</div><div class='state'>
+<span><b>vera_choice</b><br>leaked</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>fired</span>
+</div>
+<div class='assume'>assuming rybar vindictive</div>
+<ol><li class=''>Vera slips the report to Jan.</li><li class=''>Jan prints the name of the informer: Kastan.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class=''>Rybar orders Tomas&#x27;s unit to hold the line with live rounds.</li><li class=''>Tomas obeys Rybar. The unit fires on the crowd.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD_BLOODY 2</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>fired</span>
+</div>
+<div class='assume'>assuming rybar vindictive</div>
+<ol><li class=''>Jan runs the press all night.</li><li class=''>Jan puts the leaflets on every landing in the district.</li><li class='world'>A crowd gathers at the Border.</li><li class='world'>The ministry stops answering its telephones. The regime is wavering.</li><li class=''>Rybar orders Tomas&#x27;s unit to hold the line with live rounds.</li><li class=''>Tomas obeys Rybar. The unit fires on the crowd.</li></ol>
+<div class='stamp'></div></div>
+</div>
+<div class='fate '>THE REGIME HOLDS · 17</div><div class='grid'>
+<div class='card'><div class='tab'>HELD 1</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera reads report 4471 to the end: the parcel was medicine.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 2</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.</li><li class=''>Kastan reports Jan to the Records Office.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 3</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>turned</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming rybar vindictive</div>
+<ol><li class=''>Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li><li class=''>Rybar offers Jan a way out of the cell. Jan takes it.</li><li class=''>Jan signs the statement. The watch on him is lifted; the press goes quiet.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 4</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>recanted</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Jan signs the statement. The watch on him is lifted; the press goes quiet.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 5</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>recanted</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Jan signs the statement. The watch on him is lifted; the press goes quiet.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 6</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>recanted</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li><li class=''>Rybar telephones Vera: report 4471, where is it?</li><li class=''>Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Jan signs the statement. The watch on him is lifted; the press goes quiet.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 7</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li><li class=''>Rybar telephones Vera: report 4471, where is it?</li><li class=''>Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.</li><li class=''>Kastan reports Jan to the Records Office.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 8</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>turned</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal · rybar vindictive</div>
+<ol><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li><li class=''>Rybar offers Jan a way out of the cell. Jan takes it.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 9</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>turned</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal · rybar vindictive</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li><li class=''>Rybar telephones Vera: report 4471, where is it?</li><li class=''>Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li><li class=''>Rybar offers Jan a way out of the cell. Jan takes it.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 10</div><div class='state'>
+<span><b>vera_choice</b><br>burned</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 11</div><div class='state'>
+<span><b>vera_choice</b><br>burned</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li><li class=''>Rybar telephones Vera: report 4471, where is it?</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 12</div><div class='state'>
+<span><b>vera_choice</b><br>leaked</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera slips the report to Jan.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 13</div><div class='state'>
+<span><b>vera_choice</b><br>silent</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>arrested</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 14</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>arrested</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete, and Kastan is paid.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 15</div><div class='state'>
+<span><b>vera_choice</b><br>filed</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>arrested</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Vera burns 4471. The ledger now has a gap with her name beside it.</li><li class=''>Rybar telephones Vera: report 4471, where is it?</li><li class=''>Vera gives in: 4471 is re-entered from the carbon. Marta is watched; the household file is complete.</li><li class=''>Kastan reports Jan to the Records Office.</li><li class=''>Rybar raids the print shop; Jan is taken.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 16</div><div class='state'>
+<span><b>vera_choice</b><br>warned</span>
+<span><b>vera_fate</b><br>unwatched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<ol><li class=''>Vera reads report 4471 to the end: the parcel was medicine.</li><li class=''>Vera knocks on Marta&#x27;s door after dark and says: not on Tuesdays. Not any Tuesday.</li></ol>
+<div class='stamp'></div></div>
+<div class='card'><div class='tab'>HELD 17</div><div class='state'>
+<span><b>vera_choice</b><br>warned</span>
+<span><b>vera_fate</b><br>watched</span>
+<span><b>jan_fate</b><br>free</span>
+<span><b>tomas_choice</b><br>none</span>
+</div>
+<div class='assume'>assuming kastan loyal</div>
+<ol><li class=''>Vera reads report 4471 to the end: the parcel was medicine.</li><li class=''>Vera knocks on Marta&#x27;s door after dark and says: not on Tuesdays. Not any Tuesday.</li><li class=''>Kastan reports that Vera was seen at Marta&#x27;s door after dark.</li></ol>
+<div class='stamp'></div></div>
+</div>
+</main></body></html>
