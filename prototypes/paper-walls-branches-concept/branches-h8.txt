@@ -1,0 +1,111 @@
+[compiled and grounded in 0.7s, horizon 8]
+
+=== 1. cheapest tellings (k=6) ===
+[6 tellings in 0.1s; pool dry: False]
+Friday 6 October 1989. Vera Halm has report 4471 on her desk. Jan has a press and no leaflets. Tomas is at the border. Rybar is waiting for the ledger.
+
+────── scenario 1 of 6 ──────
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+  — fate: held
+
+────── scenario 2 of 6 ──────
+   1. Vera slips the report to Jan.
+  — fate: held
+
+────── scenario 3 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+  — fate: held
+
+────── scenario 4 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. Rybar orders Tomas's unit to hold the line with live rounds.
+  — fate: held
+
+────── scenario 5 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. Tomas lowers the rifle. The gate stays open.
+  — fate: fell_quiet
+
+────── scenario 6 of 6 ──────
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. Rybar orders Tomas's unit to hold the line with live rounds.
+   5. Tomas lowers the rifle. The gate stays open.
+  — fate: fell_quiet
+
+=== 2. the branch space on (fate, vera_choice, jan_fate) ===
+[9 behaviours in 0.1s; exhausted: True]
+#  fate         vera_choice  jan_fate
+-  -----------  -----------  --------
+1  held         silent       free
+2  held         leaked       free
+3  fell_quiet   silent       free
+4  fell_bloody  silent       free
+5  held         burned       free
+6  held         filed        free
+7  fell_quiet   leaked       free
+8  held         silent       arrested
+9  held         warned       free
+{'fate': {'fell_bloody': 'covered', 'fell_quiet': 'covered', 'held': 'covered'}, 'vera_choice': {'burned': 'covered', 'filed': 'covered', 'leaked': 'covered', 'silent': 'covered', 'warned': 'covered'}, 'jan_fate': {'arrested': 'covered', 'free': 'covered'}}
+
+--- behaviour 1: {'jan_fate': 'free', 'vera_choice': 'silent', 'fate': 'held'}
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+  — fate: held
+
+--- behaviour 2: {'jan_fate': 'free', 'vera_choice': 'leaked', 'fate': 'held'}
+   1. Vera slips the report to Jan.
+  — fate: held
+
+--- behaviour 3: {'jan_fate': 'free', 'vera_choice': 'silent', 'fate': 'fell_quiet'}
+  assuming variable(("garrison_wavers",constant("border"))) = true
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. Rybar orders Tomas's unit to hold the line with live rounds.
+   5. Tomas lowers the rifle. The gate stays open.
+  — fate: fell_quiet
+
+--- behaviour 4: {'jan_fate': 'free', 'vera_choice': 'silent', 'fate': 'fell_bloody'}
+   1. Jan runs the press all night.
+   2. Jan puts the leaflets on every landing in the district.
+   3. A crowd gathers at the Border.  [world]
+   4. Rybar orders Tomas's unit to hold the line with live rounds.
+   5. Tomas obeys Rybar. The unit fires on the crowd.
+  — fate: fell_bloody
+
+--- behaviour 5: {'jan_fate': 'free', 'vera_choice': 'burned', 'fate': 'held'}
+   1. Vera burns 4471. The ledger now has a gap with her name beside it.
+  — fate: held
+
+--- behaviour 6: {'jan_fate': 'free', 'vera_choice': 'filed', 'fate': 'held'}
+   1. Vera enters 4471 in the ledger. Marta is now under observation; the household file is complete.
+  — fate: held
+
+--- behaviour 7: {'jan_fate': 'free', 'vera_choice': 'leaked', 'fate': 'fell_quiet'}
+  assuming variable(("garrison_wavers",constant("border"))) = true
+   1. Vera slips the report to Jan.
+   2. Jan prints the name of the informer: Kastan.
+   3. A crowd gathers at the Border.  [world]
+   4. Rybar orders Tomas's unit to hold the line with live rounds.
+   5. Tomas lowers the rifle. The gate stays open.
+  — fate: fell_quiet
+
+--- behaviour 8: {'jan_fate': 'arrested', 'vera_choice': 'silent', 'fate': 'held'}
+  assuming variable(("kastan_loyal",constant("kastan"))) = true
+   1. Kastan reports Jan to the Records Office.
+   2. Rybar raids the print shop; Jan is taken.
+  — fate: held
+
+--- behaviour 9: {'jan_fate': 'free', 'vera_choice': 'warned', 'fate': 'held'}
+   1. Vera reads report 4471 to the end: the parcel was medicine.
+   2. Vera knocks on Marta's door after dark and says: not on Tuesdays. Not any Tuesday.
+  — fate: held
+
+=== 3. diagnosis: Vera files 4471, and the regime still falls quietly ===
+laws that forbid it: []

@@ -57,7 +57,7 @@
 ## Allowed Libraries / Addons
 
 <!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+- **polyscene** (MFaisalZaki/polyscene, Python, MIT; depends on clingo, unified-planning, aspplanners) — design-time and build-time story-branch generator for the Reactive Event Rules & Story Simulator and Chapter & Story Structure systems. Not a runtime Godot dependency: its output ships as data. Pinned commit 0a0e8cb; see prototypes/paper-walls-branches-concept/REPORT.md for the known fixture gaps at that commit.
 
 ## Architecture Decisions Log
 

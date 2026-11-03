@@ -259,7 +259,7 @@ primaries, golden-hour sunlight. Warm light is a desk lamp, never the sun.
 | Consideration | Assessment |
 | ---- | ---- |
 | **Recommended Engine** | Godot 4.7, GDScript — pinned by /setup-engine; 2D, Forward+, Godot Physics 2D |
-| **Key Technical Challenges** | Dossier state model (sole cross-storyline channel), writer-authorable reactive triggers, branching dialogue/document tooling at ~60k words, three dossier views, isometric point-and-click navigation |
+| **Key Technical Challenges** | Dossier state model (sole cross-storyline channel), the polyscene story topic that generates the branch space (writer-authorable rules as preferences, licences and laws), branching dialogue/document tooling at ~60k words, three dossier views, isometric point-and-click navigation |
 | **Art Style** | 2.5D isometric, painted plates, Carbon Copy identity |
 | **Art Pipeline Complexity** | Medium (custom 2D; one shared paper/ink asset family) |
 | **Audio Needs** | Moderate; adaptive layer tied to surveillance state (typewriters, phone taps, shredder) |
