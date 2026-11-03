@@ -103,7 +103,7 @@ Each plate has one hero class at a time: the object with a fact in it (Pillar 1)
 
 ### 3.5 UI shape grammar
 
-The UI echoes the world because the player never leaves the document (Hook §1). Panels are sheets with tabs and staples; buttons are typed brackets or stamp impressions; hover is a corner lift; selected is stamped; disabled is a redaction bar; the timer is a margin filling. No rounded corners, glass, glow, or drop shadow into the plate. Where the UI stands apart is not shape but treatment: it is the only perfectly aligned, unlit layer, and it never takes the plate's lamp or sodium. The three dossier views differ in grammar — archivist: gridded form; dissident: pinboard of torn fragments; conscript: a single list sheet.
+The UI echoes the world because the player never leaves the document (Hook §1). Panels are sheets with tabs and staples; buttons are typed brackets or stamp impressions; hover is a corner lift; selected is stamped; disabled is a greyed typed bracket struck through VOID (redaction bars are content only — amended per §7.6 C3); the timer is a margin filling. No rounded corners, glass, glow, or drop shadow into the plate. Where the UI stands apart is not shape but treatment: it is the only perfectly aligned, unlit layer, and it never takes the plate's lamp or sodium. The three dossier views differ in grammar — archivist: gridded form; dissident: pinboard of torn fragments; conscript: a single list sheet.
 
 ### 3.6 Alternatives considered
 
@@ -261,9 +261,57 @@ Figures sit at second-highest contrast (§3.4). This forbids, in the band where 
 
 ## 7. UI/HUD Visual Direction
 
-[To be designed] — diegetic versus screen-space HUD, typography (personality,
-weight, size hierarchy, minimum readable size), iconography style, UI animation
-feel, and any art-direction versus readability conflict and how it was decided.
+Builds on §3.5 (UI shape grammar) and §4.4 (UI palette) without restating them. Drafted by art-director, checked by ux-designer; the three conflicts between them were decided by the user and are recorded in §7.6.
+
+### 7.1 Diegetic by default; three screen-space exceptions
+
+Nothing floats. Every panel is a sheet at UI value (§4.4), unlit, axis-aligned to the window edge. The persistent HUD is exactly three elements: the **dossier tab** (bottom-right, a folder tab protruding 24 px into the frame), the **date stamp** (top-left, typed date with the phase's ink reach), and the **cursor**. Anything else on screen must be a sheet the player opened. Objective text is the top line of the open dossier, never a floating box. Dialogue is an **interrogation transcript**: a sheet with the speaker's ID-photo portrait pinned top-left, lines typed below, choices as typed brackets at the foot. Tooltips are a typed slip that lifts from under the cursor. *Reviewer test:* every UI pixel belongs to paper, cursor or a stamp; a border, panel, bar or badge that is not paper is a defect.
+
+### 7.2 Typography
+
+- **Body face:** one monospaced typewriter face with ribbon-ink texture, fixed pitch, no kerning, regular weight (never light). Used for documents, transcripts, menus, dossier fields, choices. Glyph coverage: Latin Extended-A and Cyrillic (localisation; every string is an ID).
+- **One weight.** Emphasis is double-strike (bold), underline, or CAPS with letter-spacing. Italics are forbidden anywhere: a typewriter has none.
+- **Protagonist letterforms** (§4.2) are annotation only: ≤ 2 lines, ≤ 80 characters, ≥ 1.2× body size, in that protagonist's ink. Never body copy, never choices, never menu labels. The dissident's pinboard fragments carry a typed caption beneath each. Fallback for uncovered glyphs: the typewriter face in the same ink.
+- **Size hierarchy at 1280×720** (scale ×1.5 at 1920×1080, `canvas_items` stretch): body **18 px** (x-height ≥ 9 px) / 27 px; dossier field labels 15 / 22; sheet title 24 CAPS / 36; stamps 32 / 48. Nothing below 15 / 22 px. A UI scale option of 100–150% is required.
+- **Line length:** documents 55–72 characters per line, never more (a typewriter margin); dossier fields ≤ 40; choices ≤ 60.
+- **Interactive facts** (RichTextLabel): carbon blue plus a typed rule underline and a margin tick — a shape cue that is independent of filed state, so tritan and low-vision players can see what is clickable before clicking. Filed facts additionally gain the double-strike ghost and "cc" mark per §4.5.
+- **Grain on the UI layer** (§6.2 layer 1) is capped at 6% opacity and omitted entirely behind body text; the §4.4 contrast figures are measured after compositing, and body contrast must stay ≥ 7:1.
+- UI type never misregisters, even in Panicking (§2.2); misregistration is a plate phenomenon.
+
+### 7.3 Iconography: almost none
+
+Verbs are typed words in brackets — `[ FILE ]`, `[ BURN ]`, `[ LEAK ]`, `[ DELIVER ]`, `[ OBEY ]`, `[ REFUSE ]` — or stamp impressions once chosen. No pictograms for actions. The only icons permitted are printed marks that exist in paperwork: paperclip, staple, tab, seal, "cc", the date stamp, the surveillance stamp. Each is single-colour, hard-edged, pixel-aligned at 720 and 1080, no outline-plus-fill, no gradient. **Cursor:** three states only — a thin pointing hand (the one soft shape in the UI, per Principle C), a typewriter caret over text, and the hand holding a stamp during filing. The cursor never changes to signal a hotspot; the hotspot's corner lifts instead (§6.4), and discoverability is carried by the two aids in §7.6 C1.
+
+### 7.4 Animation
+
+Paper moves like paper: rigid translate, no rotation beyond 2°, no bend or curl beyond the baked two-frame corner lift. Durations: corner lift **120 ms**, sheet slide/page turn **180 ms**, stamp impression **90 ms** down + **60 ms** settle (one 2 px overshoot, the only overshoot in the game), onionskin fade to filing view **250 ms**, calendar tear **300 ms**. Easing: ease-out quadratic everywhere; no bounce, no elastic, no ease-in. **Never moves:** text (scrolling pages by line steps, no inertia), the dossier grid, tabs, the date stamp, the frame edge. No parallax, no pulsing, no breathing idle. Any flicker (the §2.2 Panicking portrait flicker included) stays at or below 3 Hz and can be disabled in settings.
+
+### 7.5 Surveillance indicator and interrogation timer
+
+Two elements, two shapes, two edges — never the same one. **Surveillance** is a square stamp in the top-right corner of every open sheet: hatching-only outline at Confident, red fill rising with the phase (reviewer: fill percentage matches §4.3 budget tier), static, no motion. **Timer** is the margin fill (§2.1): the right margin of the transcript sheet fills top-to-bottom in stamp red with a bordered hatched edge, ruled across by hatching ticks at every 20% so the rate can be read without numerals; one fill = one decision; numerals are forbidden on screen, while the portrait crop tightens. A countdown string is exposed to the screen reader only. Settings offer **timer off / 2× / default**, defaulting to the normal timer; the audio cue is specified by audio-director. The timer is the only UI element allowed continuous motion.
+
+### 7.6 UX alignment: conflicts and resolutions
+
+The ux-designer review set eight requirements (keyboard and later gamepad reach for every interactive element; body text ≥ 16 px with contrast measured post-overlay; every state distinguishable by shape; timer accessibility; AccessKit roles on every Control; hotspot discoverability without pixel-hunting; dossier changes legible unaided; flicker limits) and found seven conflicts with the art rules. Decisions:
+
+- **C1 Hotspot discovery** (art: keyline and displacement only, cursor fixed; UX: too subtle at 720p under grain). *Decided:* keep the fixed cursor and no glow; add a **hold-key / gamepad-button reveal** that raises every hotspot's corner lift at once, and a **read count** ("4 of 6 documents") on the dossier sheet at scene exit. The brief treats discoverability as a hypothesis: test with players at 720p in the MVP before locking.
+- **C2 Hover vs focus.** *Merged:* the corner lift is the **focus** state, triggered by mouse hover, keyboard focus and a gamepad cursor alike, with a 2 px soot keyline on focus so it survives grain. No hover-only affordance exists.
+- **C3 Disabled state** (art, §3.5: redaction bar; UX: indistinguishable from censored content, unreadable by screen readers). *Decided:* disabled = greyed typed bracket struck through **VOID**, exposed via the AccessKit disabled flag; redaction bars are content only. §3.5 amended to match.
+- **C4 Interactive facts.** *Merged:* the typed-rule underline and margin tick in §7.2.
+- **C5 Timer** (art: margin fill, no numerals; UX: no rate read, no off switch). *Decided:* the ticks, the off / 2× / default option and the screen-reader countdown in §7.5.
+- **C6 Three dossier grammars** vs learning cost. *Merged:* one invariant across all three — overprinted consequences and the "changed" marker use the same shape in the same position (the top-right chapter tab), and each protagonist's first dossier view opens on an empty-state sheet so the grammar is met before it changes.
+- **C7 Grain vs legibility.** *Merged:* the UI grain cap and post-composite contrast rule in §7.2.
+
+Diegetic paper is built as a Control tree with semantic roles (button, list, heading) and accessible names, never as a drawn texture; the accessibility tier is confirmed by accessibility-specialist in `design/accessibility-requirements.md`.
+
+### 7.7 Alternatives considered
+
+- **A clean modern HUD layer for readability.** Rejected (§3.6); readability is carried by value contrast and size, not by leaving the paper.
+- **Hand letterforms for dialogue body.** Rejected: handwriting fails the 9 px x-height test and the Cyrillic set; annotation-only is the compromise.
+- **Cursor change over hotspots.** Rejected in C1 in favour of the hold-key reveal; the cursor stays one of three states.
+- **Smooth inertial scrolling.** Rejected: line-step scrolling is an art rule (paper does not glide); if playtesting shows it hurts long documents, escalate to creative-director.
+- **Pictogram verbs.** Rejected: a paperwork state writes words; pictograms would be the only non-period marks on screen.
+- **Numeric timer.** Rejected by §2.1 (never a clock face) and Pillar 5; the 20% ticks give the rate read instead.
 
 ## 8. Asset Standards
 
