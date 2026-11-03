@@ -205,7 +205,7 @@ Budget: 12 × 4 = 48 portraits core, 72 at stretch; the informer overprint is a 
 
 ### 5.5 LOD philosophy and the presentation decision
 
-On a plate a standing figure is 15–20% of plate height. At that size only the silhouette trait, costume dominant, ink accent, head direction and hands survive; eyes are two marks, mouths are absent, buttons are one line. No fact lives on a figure at plate scale — facts are read in portraits and documents (Pillar 1). Figures and hero objects carry a 1 px soot keyline (people are drawn, so printed); supporting props carry none.
+On a plate a standing figure is 15–20% of plate height. At that size only the silhouette trait, costume dominant, ink accent, head direction and hands survive; eyes are two marks, mouths are absent, buttons are one line. No fact lives on a figure at plate scale — facts are read in portraits and documents (Pillar 1). Figures and hero objects carry a 2 px soot keyline at 1080 (≈1.33 px at 720; amended from 1 px per §8.8 — people are drawn, so printed); supporting props carry none.
 
 Rules that hold under **both** MVP outcomes: §5.1–5.4, keyline, contrast position, symmetry. Rules that change:
 
@@ -315,10 +315,93 @@ Diegetic paper is built as a Control tree with semantic roles (button, list, hea
 
 ## 8. Asset Standards
 
-[To be designed] — file formats, naming convention, texture resolution tiers,
-LOD levels, export settings, and the engine's hard limits (poly budgets per
-asset category, texture memory, material slots). Where an art preference and a
-technical limit disagree, record both and the trade-off chosen.
+### 8.1 File formats
+
+Every raster asset is **PNG, 8-bit sRGB, lossless**. §6.2 demands hard edges and ≤ 3 flat values per surface; lossy formats add ringing and chroma shift that break both the §3.1 fill test and the §4.3 red measurement. JPEG is forbidden anywhere.
+
+| Class | Format | Why |
+|---|---|---|
+| Plates (base) | PNG-24, no alpha | Opaque by definition; alpha invites soft edges. |
+| Hotspot layers, figure sprites, standing layers | PNG-32, straight alpha | Cut-outs must register over the plate. |
+| Portraits | PNG-32 with the §5.4 20% bleed baked in | Engine crops and lights; nothing repainted. |
+| Document textures | PNG-24, blank text areas (§6.1) | Text is a string; texture is paper only. |
+| UI sheets, nine-slices | PNG-32 | Flat, unlit, pixel-aligned (§3.5). |
+| Stamps, carbon ghosts | PNG-8 greyscale mask | Engine tints with `#B5241C` / `#434C7C` (§4.1), so red lives in one place. |
+| Fonts | TTF/OTF, embedded licence file | Four letterforms: typewriter, cursive, hand-set block, stencil (§4.2). |
+
+### 8.2 Naming
+
+`[class]_[slug]_[state]_[phase]_[dir]_[frame].png`, snake_case ASCII, tokens omitted when inapplicable but never reordered, no version suffixes (git holds versions).
+
+Classes: `plate`, `hot`, `fig`, `stand`, `por`, `doc`, `ui`, `stamp`, `font`. Phase: `ph1`–`ph4` (§2.2 order). Direction: `n s e w` (or `l r` for 2-direction). Frame: `f00`.
+
+Examples: `plate_archive_reading_room.png` · `hot_archive_reading_room_drawer_open.png` · `fig_archivist_walk_s_f03.png` · `stand_dissident_print_shop_seated.png` · `por_conscript_exposed.png` · `doc_transfer_order_blank.png` · `ui_panel_dossier_tab_nine.png` · `stamp_seal_state_mask.png`.
+
+### 8.3 Resolution tiers
+
+- **Plates: 1920×1080 ship, painted at 3840×2160 and downsampled 2:1 on export.** Source-only, not runtime; 2× painting keeps the §5.5 1 px keyline and §3.1 edges clean after reduction. Scrolling plates may extend width, never height. 720 is a ⅔ `canvas_items` stretch of the same file; a second 720 set is refused (8.7).
+- **Figures / standing layers:** 15–20% of plate height (§5.5) → 160–216 px tall at 1080, exported in a 256×256 frame, feet on a fixed baseline row.
+- **Portraits:** crop 640×800 (4:5, head 60–70% → 480–560 px), **export 896×1120** with bleed (~4 MB each). Only present characters' four states load per scene (≤ 24 portraits ≈ 96 MB), never the full set.
+- **Documents:** 1:1 at 1080 (max 1200×1080 full-frame). Legibility belongs to the font: the paper field under any text area must be ≥ bone `#D8CDB2` so 18 px soot type holds the §4.5 7:1 contrast.
+- **UI nine-slices:** 1× at 1080, all margins multiples of 3 px so the ⅔ stretch lands on whole pixels. Stamps ≤ 256².
+
+### 8.4 LOD and filtering
+
+No LOD levels. A painted 2D game has one level per asset; the portrait is a different asset, not an LOD of the figure (§5.5); only the ⅔ `canvas_items` stretch is accepted, never a second 720 set. Filtering follows the technical constraint, not the art preference (resolved in 8.8): **mipmaps on for plates and portraits** (they are downscaled 0.667× at 720), **off for UI**, linear filtering throughout (nearest aliases at 1.5×), no VRAM compression anywhere. Import option names are not sourceable for 4.7 and are verified in the MVP spike.
+
+### 8.5 Export settings
+
+sRGB, 8-bit, **ICC profile stripped**, no colour transform on export (keeps §4.1 hexes measurable). Straight alpha, ≤ 1 px anti-alias fringe. **Layers are cropped to their bounding box and carry their x,y offset in 1080 plate space** (in a sidecar `.json` beside the PNG, written by the export script), never exported full-frame (8.7 T1); registration is by offset, and the offset is an integer. **Base plate: no pixel within the red tolerance of 8.7 T7 and no carbon-blue pixel except painted carbon paper (§6.2)** — grain, carbon, stamp are engine layers. Keylines are **2 px at 1080** (≈1.33 px at 720; §5.5 amended). Hard edges on whole pixels at 1080; even dimensions everywhere.
+
+### 8.6 Review checklist (AI-generated assets; any fail = reject)
+
+1. Fill black — only people/weather/printed circles curve (§3.1).
+2. 64 px thumbnail — one trait; straight-edge count per type (§3.2, §5.2).
+3. ≤ 3 values per surface; only gradient is lamp/sodium falloff; no drift list items (§6.2).
+4. Midtones 20–60%; one hero at full bone; one light source per state (§2.1, §3.4, §4.1).
+5. No red, no carbon in base plate; red share within phase budget (§4.3, §6.2).
+6. Keylines = hotspots + figures + hero; hotspot margin ≥ half-width (§6.4).
+7. Figure band clean (§6.6); accent ≤ 15%; dominant ≥ 20% off plate neutral (§5.1).
+8. No painted text, no forbidden devices (§6.1); density in table (§6.3).
+9. Portraits: pose table pass; bleed present (§5.4).
+10. Screenshot at 1080 and 720; keyline still reads at 720.
+
+### 8.7 Technical constraints (technical-artist)
+
+Engine Godot 4.7, Forward+, GDScript. Each item is **SOURCED** (reference file cited) or **NOT SOURCEABLE / SPIKE** (not covered by `docs/engine-reference/godot/`; verified in the MVP pipeline proof, never asserted from memory of post-4.3 behaviour).
+
+- **T1 Texture memory per scene.** Ceiling 2 GB RAM (technical-preferences, SOURCED). Stated assumption, not sourced: minimum GPU is integrated / shared-memory class with 2 GB usable, so textures count against the same 2 GB. Allocation: engine, scripts and audio reserve 512 MB; resident textures ≤ 1 GB; **≤ 256 MB per loaded scene**, two scenes resident (current and preloading next). One 1920×1080 RGBA8 plate costs 8.3 MB (11 MB with mipmaps). Consequence: hotspot, figure and carbon layers are cropped to their bounding box, never full-frame (nine full-frame layers would be 75 MB on one plate).
+- **T2 Maximum dimensions per asset class** (project policy; the engine maximum is NOT SOURCEABLE). Plate: a single 1920×1080 PNG at runtime (painted at 2× and downsampled on export, 8.3); a scrolling plate ≤ 3840×1080, still one texture. Hotspot and standing-figure layer: ≤ 512×512 crop. Portrait: 896×1120 export (8.3). Document: ≤ 2048×2048. UI: 2048×2048 atlas sheets. Hard cap for any asset **4096×4096**. One plate per scene is one draw either way; atlasing plates would only add memory.
+- **T3 Draw calls** against the 500/frame default (SOURCED budget; batching rules NOT SOURCEABLE). Target ≤ 150 steady state: plate 1; hotspot layers ≤ 8 (+8 focus states); figures ≤ 6; carbon ghosts ≤ 16 (one extra draw per filed object); stamps ≤ 12; grain 1; phase tint 1; documents ≤ 20; UI ≤ 60; reserve 17. Counted with the engine's draw-call monitor (API name: SPIKE).
+- **T4 Overlay stack.** Four engine layers above the base plate, in order: grain (one tileable texture, uniform, 8–12% opacity on plates, ≤ 6% on UI per §7.2) → carbon (duplicate of the object sprite, offset 2–3 px, carbon-blue tint, dossier-driven) → stamp (instances from one stamp atlas, placed by phase reach) → phase red tint (full-frame). SOURCED: `DrawableTexture2D` exists in 4.7 (`modules/rendering.md`) as a candidate for runtime stamp placement. NOT SOURCEABLE — SPIKE: `CanvasLayer` ordering, `CanvasModulate` versus a full-frame tint shader, blend modes, screen-texture access in 2D under Forward+.
+- **T5 Import settings** (option names NOT SOURCEABLE — SPIKE; the reasons stand). Source PNG, lossless. No VRAM compression: block compression fringes hard edges, bands three-value flat fields (§6.2) and contaminates the red measurement. Mipmaps and filtering per 8.4. sRGB for all colour textures.
+- **T6 Pixel alignment.** The 4.7 new-project default is `stretch/mode canvas_items`, `aspect expand` (`breaking-changes.md`, SOURCED); 720→1080 is 1.5×, so keylines are authored at 2 px (8.5). Figures and hotspot layers sit at integer positions in 1080 space. SOURCED: 4.7 `CanvasItem` lines draw without an anti-aliasing feather and look thinner, so any keyline drawn by code must be widened. The aspect setting is decided in the stretch ADR (concept, Technical Risks).
+- **T7 Red-budget measurement** (§4.3). Two gates, scripted in `tools/asset-pipeline/`. Per pixel → HSV. Stamp red `#B5241C` is hue 3°, S 0.85, V 0.71; **red tolerance: hue 348°–18°, S ≥ 0.55, V ≥ 0.35** (excludes ochre 40°, sodium 33°, amber 38°). Soot: V ≤ 0.15, S ≤ 0.2. Carbon `#434C7C`: hue 215°–245°, S ≥ 0.3. **Gate A**, every plate export: red count = 0; carbon count ≤ the declared carbon-paper mask. **Gate B**, per phase: an in-engine composited capture with the T4 stack → red share ≤ 2 / 5 / 15 / 1%; Collapsing soot ≥ 40%. Capture API: SPIKE. The §4.3 question is answered: the budgets are measurable, but only on the composite, since the plate itself carries no red.
+- **T8 Sprite sheets** (walking-avatar outcome). Figure 162–216 px tall at 1080 (§5.5); cell 256×256. Four directions, three authored (N, S, E; W mirrored). Frames: walk 8, idle 4, sit 2, hand-over 6, page-turn 6 → ≤ 50 cells per protagonist, one 2048×2048 sheet (64 cells, 16 MB). Named NPC: idle 4 + sit 2 on a 1024×512 sheet. Playback ≤ 12 fps. Standing-layer outcome: one ≤ 512×512 crop per pose per scene state. Animation node choice: SPIKE.
+- **T9 Hard limits no art preference overrides.** 4096×4096 for any asset; 256 MB per scene; 500 draws absolute, 150 target; the base plate contains zero red-tolerance pixels; no VRAM compression on plates; no full-frame layers except plate, grain and tint; portraits carry 20% bleed; 60 fps / 16.6 ms.
+
+### 8.8 Conflicts between art preference and technical constraint, and how each was decided
+
+| Topic | Art preference | Technical constraint | Decided |
+|---|---|---|---|
+| Keyline width | 1 px (§5.5 as first written) | Not crisp at both 720 and 1080 under a 1.5× stretch | **2 px at 1080**; §5.5 amended |
+| Filtering | Mipmaps off, no trilinear | Mipmaps on for plates and portraits to avoid shimmer at 720 | **Tech**: on for plates and portraits, off for UI, linear |
+| Portrait size | 896×1120 export (~4 MB) | 640×800 (~2 MB), per-scene loading | **Art size with per-scene loading**: ≤ 24 portraits ≈ 96 MB per scene |
+| Layer registration | Full plate canvas per layer | Full-frame layers forbidden (memory) | **Crop to bounding box with recorded integer offset** |
+
+Everything else was compatible: lossless PNG, naming, 2× painting source with 1080 runtime plates, document sizes, the review checklist. Where the two halves gave different red thresholds, the HSV tolerance in T7 is the one scripts use.
+
+### 8.9 MVP spike list (all NOT SOURCEABLE)
+
+Texture import option names and the engine's maximum texture size; compression and sRGB handling for 2D; CanvasLayer / CanvasModulate / blend-mode compositing for the T4 stack; the draw-call monitor and frame-capture APIs; the sprite animation node; the pixel-snap setting. Each is proven on the installed 4.7.x during the MVP pipeline proof and recorded in the renderer and plate-authoring ADRs.
+
+### 8.10 Alternatives considered
+
+- **Lossy WebP/JPEG.** Rejected: edge ringing fails checklist items 1 and 5.
+- **Separate 720 asset set.** Rejected: doubles the largest cost; stretch plus checklist item 10 instead.
+- **SVG UI.** Rejected: vector smoothing fights pixel-aligned paper; nine-slices suffice.
+- **Painting at 1× directly.** Rejected: 1 px keylines from generators arrive aliased; 2× source is cheap.
+- **Atlasing plates.** Rejected: one plate per scene is already one draw; an atlas only adds memory.
 
 ## 9. Reference Direction
 
