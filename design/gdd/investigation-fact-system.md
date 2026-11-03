@@ -10,9 +10,9 @@
 
 ## Summary
 
-[To be designed]
+The Investigation & Fact System turns what the player reads and hears into held facts, lets two held facts be tested against each other so that an authored link yields a derived fact, and keeps the board that shows what this protagonist knows in this chapter. A fact is the player's, never the state's: it is held by a deliberate press on a line (or automatically when a line is spoken), it never crosses a chapter, it unlocks content only through the `has_fact` gate, a failed pairing costs nothing and leaves no mark, and the board carries no numbers. It exists because Pillar 1 is only true if a fact is an object the player can hold, connect and spend, and the system enforces that at build time: every authored fact must reach something that writes paper, or the content does not ship.
 
-> **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `[To be designed]`
+> **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Narrative Content Format & Strings` (fact declarations, links, the condition evaluator), `Dossier State Model` (read-only, through the evaluator); read by Scene Flow, Paper UI, Dialogue & Interrogation, Filing & Decision, the story simulator
 
 ## Overview
 
@@ -317,7 +317,28 @@ Interaction clusters: (a) `FACTS_PER_SCENE_MAX` and `LINKS_PER_SCENE` set `link_
 
 ## Visual/Audio Requirements
 
-[To be designed]
+*Required for a Gameplay system; written with the art director from art bible §4.1–4.2, §4.5, §6.4, §7.1–7.4 and §7.6. Constraints and vocabulary only; Paper UI renders, Overlay draws the room. Nothing here adds a colour, face, icon or motion the art bible does not already permit.*
+
+**1. The holdable span (document).** Four states, each distinguishable by shape alone (§4.5, C4). *Unheld, holdable:* text in UI carbon `#2E3559` (never world carbon for text), one typed rule underline, one margin tick (a 2 px typed mark, pixel-aligned, in the marginalia column). *Focused:* the tick thickens 2 → 3 px and the typewriter caret sits at the span's first character (§7.3); no underline change, no colour change, no lift, because text never moves (§7.4); pointer hover, keyboard focus and a gamepad cursor produce the same state (C2). *Held:* the double-strike ghost plus a typed `cc` in the margin column where the tick was; the underline stays, the tick is replaced, never stacked. *Line now struck (the dossier moved):* the strike only, no underline, no tick, not focusable; a fact already held from it keeps its `cc` (Core Rule 2). Reviewer test: a struck line with a `cc` is correct; a struck line with an underline is a defect. *Keyboard:* spans are Controls in reading order (one Control per span, the Rule 9 fallback, AccessKit role `button` with the fact text as its name); Tab moves span to span within the open sheet; `activate` holds; a held span stays focusable and re-holding is a no-op. No drag, no modifier.
+
+**2. The three board forms** (Core Rule 7; identical data, three renderers). Carbon appears nowhere on the board: the board is the player's copy, in the protagonist's hand, and nothing on it is yet the state's.
+- *Vera: index cards in a tray.* Each card a bone sheet at UI value, fact text in her pencil (grey-green cursive; hand registry key `vera_pencil`, a tint variant of her cursive hand, never a fifth face). `kind` → a one- or two-letter typed corner code top-left (N, D, P, S, O, St), a clerk's mark permitted by §7.3. `source` → a typed cite bottom-right at label size, the only typed element on the card, because cursive below 1.2× body is forbidden (§7.2). `derived` → a paperclip over the card's top edge. `depth` → the card's row: depth 0 front, 1 behind, 2 behind that.
+- *Jan: torn fragments on the pinboard.* Each primary fact is the source line's own rendered region torn out (a baked torn silhouette, no bend) in whatever hand the source carried, with a typed caption beneath in soot from his press (machine hand `press_jan`). `kind` → a typed code at the caption's head; `source` → the fragment is the cite, the caption repeats the serial; `derived` → a caption-only slip pinned with string from its two inputs; `depth` → tree level left to right, three columns at `LINK_DEPTH_MAX` 2.
+- *Tomas: stencil entries in the margin of the issued list.* Khaki stencil capitals (`tomas_stencil`) in the right margin of the state's typed list. `kind` → a stencilled single letter before the entry; `source` → a stencilled abbreviated cite on the same line; `derived` → a stencil bracket joining two entries with the derived entry at its point; `depth` → indent level.
+
+**No number appears on the board.** No count, fraction, percentage, completion mark, card numbering or "of". Numerals inside a fact's own text or cite (`4471`, `118`) are content; any numeral the board generates is a defect. No tried-pair mark of any kind (Rule 3).
+
+**3. The click.** Selecting a card, fragment or entry uses the §3.5 focus grammar (card corner lifts 120 ms; fragment keyline 3 px; margin caret). Two selected and `pair` succeeds: the link line types out at the transcript's character cadence (Paper UI owns the rate; Dialogue's, not a new one) in the protagonist's voice, in the typewriter face in the form's ink (annotation rules bar cursive from body-length lines); then the derived item arrives by sheet slide, 180 ms, ease-out, rigid translate, no rotation beyond 2°: Vera, a pencil tick on each source card's corner and the derived card slides into the tray; Jan, a pin sets on the new slip (90 ms down, no overshoot; the overshoot is the stamp's alone) and the string appears whole with it, never drawn on; Tomas, the bracket appears in one frame, as a stencil does, and the entry types beneath. No glow, particle, pulse, scale, colour shift or shake. *No connection:* a typed slip lifts from under the cursor (the §7.1 tooltip grammar), 120 ms up, holds for reading length, 120 ms down; the selection clears; nothing else on the board changes.
+
+**4. One idea, two layers.** The carbon ghost on a filed hotspot in the room (Overlay, world carbon `#434C7C`, §6.4) and the `cc` plus double-strike on a held span (Paper UI, `#2E3559`) are one mark family: identical offset vector at 720 and 1080, hard edge, no blur, the same typewriter `cc` glyph at label size. Reviewer test: screenshot both side by side; a viewer names them as one thing, "that's been copied". The board carries neither.
+
+**5. Colourblind backups (§4.5).** Unheld = underline and tick; focused = tick thickness and caret; held = double-strike and `cc`; derived = paperclip, string-from-two, or bracket; struck = the strike. Vera's grey-green versus Tomas's khaki = cursive versus stencil plus the chapter tab. On Jan's fragments any carbon span in the torn region renders inert: no underline, no tick, not focusable; the fragment is a cite, not a document.
+
+**6. Hands.** All letterforms resolve through GDD 2's closed hand registry; narrative names keys, art draws them. Proposed keys for the narrative director to confirm: `vera_pencil` (cursive, grey-green tint), `jan_block` (hand-set block, soot) for Jan's own marks, `press_jan` (typewriter, soot, a new machine hand; needs a registry row, GDD 2 Edge Case 24), `tomas_stencil` (stencil, khaki). Typed cites and link lines use the body face in the form's ink. The kind corner codes are the first typed abbreviation codes in the UI and need `ui.kind.*` string ids for localisation.
+
+**7. Audio** (named for the audio director; no layering, timing or trigger detail here). *Hold:* one dry mark in the form's medium: a pencil tick (Vera), a paper tear (Jan), a stencil tap (Tomas). *Click:* the typewriter keys of the line typing out, plus the set of the clip, pin or bracket; nothing after the last character. *No connection:* the slip's type-tick, or silence; never a buzzer, never a falling tone. **Never a reward sting, chord or rise: a link is read, never scored.** The mood: a desk at night, one lamp, someone writing something down that they will not be allowed to keep.
+
+> 📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/asset-spec system:investigation-fact-system` to produce per-asset visual descriptions, dimensions, and generation prompts from this section.
 
 ## Game Feel
 
@@ -372,4 +393,5 @@ This system owns no screen. It supplies Paper UI with everything the fact board 
 | The `FactSystem` seam and the `ConditionReader` composite deserve an ADR alongside GDD 3's host seam | technical-director | `/create-architecture` | Open |
 | `design/accessibility-requirements.md` does not exist; this GDD's inputs are listed in UI Requirements | accessibility-specialist | Before `/gate-check technical-setup` | Open |
 | The playtest hypotheses `INFORMED_HYPOTHESIS` 0.5 and `T_FIRST_LINK_HYPOTHESIS` 300 s, and the prototype's completionism question (`held_fraction`), are observed in the MVP playtest, never tuned against | ux-designer, analytics-engineer | MVP playtest | Open |
+| Art-director flags: Vera's card cite is typed, not pencil (art bible §7.2's 1.2× minimum for hand letterforms; a pencil cite needs a larger card); `press_jan` is a new machine hand needing a GDD 2 registry row; the kind corner codes need `ui.kind.*` string ids | narrative-director, art-director, writer | Before the fact-board UX spec | Open |
 | Performance budgets proposed in Acceptance Criteria | technical-director | ADR | To be confirmed |
