@@ -20,7 +20,19 @@ Reactive Event Rules & Story Simulator is the system that makes the state and th
 
 ## Player Fantasy
 
-[To be designed]
+*Framing: indirect. The player never sees a rule; they see the state move. Shaped with the creative director (three candidate framings; "the state keeps its books" chosen, with one line from "it had been looking for weeks"; "the answer comes to someone else" left as GDD 1's payoff, not this system's identity).*
+
+**The state keeps its books.** The emotion this system serves is being audited, not being hunted. The state is not angry and it is not clever. It is thorough. Every page that leaves a desk is expected somewhere else, and every gap is noticed.
+
+The anchor moment: Vera burns the report. The scene ends quietly and nothing happens in the archive. A beat later, in the next scene, the telephone on her desk rings. It is Rybar. He is polite and he does not raise his voice. He only asks whether the report reached her, because his copy shows it was sent. He accuses no one. He is balancing a ledger, and the player feels the column that does not add up.
+
+Pillar 2 as feel: the state is a character with habits the player comes to recognise. It always balances the ledger. It never strikes where it has not looked. Its attention is visible before its action, so its action reads as a verdict on what the player failed to see, not as an ambush. As it moves from confident to paranoid it does not get crueller; it sends more paper, thicker and closer together, not louder. The dread is that the player can see where its next query is going to land.
+
+*Cost accepted:* the state can only answer what can be framed as a discrepancy. Every reactive event needs a "missing or contradicting page" reading, which narrows what writers can author.
+
+**Pillar alignment.** Pillar 2, "the state is a character": every move is a habit read off paper, never a script. Pillar 3, "no one is clean": the laws make a costless heroic line and a protectionless cowardly line impossible in the world, not merely discouraged. Pillar 4, "consequences cross lives": a filing in one chapter licenses a move in another without a hand-authored branch.
+
+**The one rule this system must obey: the state only moves on paper the player could have read, and when that paper is there, it always moves.** The first half keeps the state from being a random hazard: nothing fires without a cause in the dossier that a protagonist wrote, read, filed, withheld or was seen near. The second half keeps it from being a scripted villain: if the licence is there, the move comes, every time, whatever the plot would prefer; remove the licence and the move cannot happen. Two clarifications carried into Detailed Design: calendar clocks are the world, not the state (Marta's collapse and the review convening run on time, but the state's response to them, the ambulance, who gets summoned, must still be licensed by the dossier); and the state speaks only in the clerical passive (*a query was raised*, *the line was disconnected*), never naming a cause to a character, so the brief's "nobody is told what they did to the others" holds by construction.
 
 ## Detailed Design
 
