@@ -5,3 +5,7 @@
   e2_gap                   REACHABLE
   e3_carbon                unreachable; forbidding laws: ['review_sits']
   e4_seized_parcel         REACHABLE
+  e5_open_gate             unreachable; forbidding laws: ['review_sits']
+  e6_mothers_trade         REACHABLE
+  e7_daughters_statement   REACHABLE
+  e8_martas_breath         REACHABLE
