@@ -288,7 +288,7 @@ A `day` transition before an **authored** scene with a plate plays, strikes and 
 
 ---
 
-**13. One presentation seam, calls both ways, no signals from Scene Flow.** `PresentationSink` is the one object through which Scene Flow shows anything; the engine implementation fans out to Paper UI, Overlay and Audio **(PROV)**, and `NullPresentationSink` records every call in order for the simulator and the tests. Outbound calls (all return nothing):
+**13. One presentation seam, calls both ways, no signals from Scene Flow.** `PresentationSink` is the one object through which Scene Flow shows anything; it also carries `enter_scene(scene_id, kind, slot, protagonist_id)`, emitted immediately before `activate_scene`, so Overlay can build its plan for every entry including inserts and chapter opens, which `transition` does not cover (GDD 9 amendment); the engine implementation fans out to Paper UI, Overlay and Audio **(PROV)**, and `NullPresentationSink` records every call in order for the simulator and the tests. Outbound calls (all return nothing):
 
 | Call | When | Who consumes |
 |---|---|---|
