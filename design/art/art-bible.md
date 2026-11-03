@@ -3,7 +3,7 @@
 > **Status**: Draft
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-03
-> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-03 — CONCERNS C1–C8 and minor items applied (autonomous mode; see production/session-logs/decision-log.md); focused re-check of §5, §6.4, §7.6 pending
+> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-03 — CONCERNS C1–C8 and minor items applied (autonomous mode; see production/session-logs/decision-log.md); re-check #1 cleared keyline and portrait rules; re-check C-A/C-B/C-C (official shoulders, dissident scarf accent, conscript cap) applied; final read of §3.2 and §5.1–5.2 pending
 
 `/art-bible` writes these nine sections in this order and replaces each
 section's `[To be designed]` line as that section is approved. A section still
@@ -86,8 +86,8 @@ Base figure: about six heads tall, narrow shoulders, no muscle mass, a forward s
 
 - **Archivist** — a rectangle held against the chest: files carried. The only soft figure with a hard shape attached. *Says:* she holds the state's shapes close; knowledge as burden (Pillar 1).
 - **Dissident** — no neck: collar up, scarf, shoulders lifted, hands in pockets; the narrowest, most closed outline. *Says:* hiding in plain sight, and cold.
-- **Conscript** — one straight edge in the silhouette: cap peak and greatcoat hem are rectilinear, the body stoops inside them. *Says:* a uniform trying to turn a person into furniture, and failing (Pillar 3).
-- **State officials** — the most upright, with a horizontal line (hat brim) and a briefcase; still thin, never bulky. Power is shown by stillness and position — centred, seated, behind a desk — never by mass. *Says:* people halfway to becoming furniture (Pillar 2).
+- **Conscript** — one straight edge in the silhouette: the cap peak is rectilinear; the greatcoat hem rounds like any coat, and the body stoops inside it. *Says:* a uniform trying to turn a person into furniture, and failing (Pillar 3).
+- **State officials** — the most upright, with two silhouette edges: a horizontal hat brim and squared, rectilinear shoulders (the coat is cut like a cabinet); a briefcase is a carried prop and never counts; still thin, never bulky. Power is shown by stillness and position — centred, seated, behind a desk — never by mass. *Says:* people halfway to becoming furniture (Pillar 2).
 - **Informers** — identical to citizens in silhouette. The only tell is ink: a carbon-blue overprint on their portrait once the player holds the fact. *Says:* no one is clean and you cannot see it (Pillars 1 and 3).
 - **Ordinary citizens** — the most stooped; a load carried low in the hand (bag, bucket, bundle); queue posture. *Says:* endurance.
 
@@ -175,14 +175,14 @@ Text contrast (WCAG relative luminance, measured): soot on UI bone 13.8:1, soot 
 Each protagonist keeps the one silhouette trait of §3.2 and adds exactly one costume accent in their own ink (§4.2); the rest of the costume is a tint of bone or concrete so the figure never merges with a wall of its own ink colour (the archivist works in grey-green rooms). *Checkable:* ink accent ≤ 15% of costume area; costume dominant differs from the plate's dominant neutral by ≥ 20% value. Names and ages below are proposals for narrative-director to confirm.
 
 - **Archivist** (woman, ~40). Buttoned paper-grey cardigan, skirt below the knee, flat shoes, hair pinned flat; accent: grey-green sleeve protectors. Props: the file held to the chest with both hands, pencil behind the ear. Face: tired, precise, mouth closed; she looks at the lens.
-- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: soot-stained fingers (ink is his trade, visible in portrait only). No props carried openly; hands in pockets except when handing over. Face: unshaven; his Neutral portrait meets the lens like everyone else's (AD-ART-BIBLE C1: looking away is a *state*, never a permanent trait), so his tell is the ink-stained fingers alone.
+- **Dissident** (man, ~28). Soot overcoat, collar up, scarf; accent: a soot ink-bleed along the scarf edge at the collar (ink is his trade; the stain is inside the collar crop of every portrait and readable at plate scale, AD-ART-BIBLE re-check C-B). Ink-stained fingers appear only in the hand-over animation and on documents he authors. No props carried openly; hands in pockets except when handing over. Face: unshaven; his Neutral portrait meets the lens like everyone else's (AD-ART-BIBLE C1: looking away is a *state*, never a permanent trait), so his tell is the ink-stained fingers alone.
 - **Conscript** (boy, ~19). Greatcoat one size too big, cap peak level; accent: khaki stencilled number on the collar tab. Prop: a folded order sheet, one corner showing from the breast pocket. Face: unlined, too open.
 
 All three traits are bilaterally symmetric (file centred, scarf even, cap frontal) so the West facing can be mirrored from East (three directions authored, N/S/E, per §8.7 T8) without a prop changing hands.
 
 ### 5.2 Telling types apart at a glance
 
-One straight-edge count per type, checkable on the 64 px fill, **counting costume and body only — carried props (the archivist's file, an official's briefcase) never count** (AD-ART-BIBLE C2): officials ≥ 2 straight edges (hat brim and a straight column of visible coat buttons; the briefcase is an extra prop, not a tally item; no load carried low); conscript exactly 1 (cap peak or greatcoat hem, §3.2); protagonists, citizens and informers 0. Citizens always carry something below the hip (bag, bucket, bundle) and wear a headscarf or flat cap; protagonists never carry below the hip. **Informers are drawn as citizens with no variation at all** (§3.2); the tell is applied in-engine, never painted: once the player holds the fact, the portrait receives a carbon-blue duplicate of its own outline offset 2–3 px down-right plus a "cc" mark in the lower-right corner — the same filed mark as §4.5 — so "informer" and "filed" are literally one mark. The plate-scale figure is never marked: the walking city cannot be read, only the file can.
+One straight-edge count per type, checkable on the 64 px fill, **counting costume and body only — carried props (the archivist's file, an official's briefcase) never count** (AD-ART-BIBLE C2): officials ≥ 2 straight edges on the fill (hat brim and squared shoulders, §3.2; buttons are interior detail and never count; the briefcase is a prop; no load carried low); conscript exactly 1 (the cap peak, §3.2); protagonists, citizens and informers 0. Citizens always carry something below the hip (bag, bucket, bundle) and wear a headscarf or flat cap; protagonists never carry below the hip. **Informers are drawn as citizens with no variation at all** (§3.2); the tell is applied in-engine, never painted: once the player holds the fact, the portrait receives a carbon-blue duplicate of its own outline offset 2–3 px down-right plus a "cc" mark in the lower-right corner — the same filed mark as §4.5 — so "informer" and "filed" are literally one mark. The plate-scale figure is never marked: the walking city cannot be read, only the file can.
 
 Background figures painted into a plate (queues) are permitted only as non-interactive, still, and inside the plate's midtone band; an interactive figure sits at second-highest contrast (§3.4) and is always a separate layer.
 
@@ -243,7 +243,7 @@ Every plate has exactly one hero (§3.4) and 3–8 hotspots regardless of densit
 
 ### 6.4 Hotspot legibility without glow
 
-A hotspot is an object **disturbed from the grid by one unit**: a lifted paper corner, a drawer out one notch, a door ajar, a receiver off its cradle, a cord across a threshold. Hotspots, figures and the hero are the only keylined objects on a plate, and an unfiled hotspot's 2 px keyline is **permanent**, not focus-only (AD-ART-BIBLE C3); on focus the corner lifts and the keyline thickens to 3 px. Every hotspot sits with a clear margin of plate midtone at least half its width on all sides, and no hotspot stands directly behind a figure's head. After its fact is filed the object loses its keyline and gains the carbon ghost, so a read room looks read. Hover feedback is the §3.5 corner lift and cursor bracket (ux-designer, §7). *Checkable:* keylined objects = hotspots + figures + hero.
+A hotspot is an object **disturbed from the grid by one unit**: a lifted paper corner, a drawer out one notch, a door ajar, a receiver off its cradle, a cord across a threshold. Hotspots, separate-layer figures and the hero are the only keylined objects on a plate (painted-in queue figures, §5.2, are never keylined), and an unfiled hotspot's 2 px keyline is **permanent**, not focus-only (AD-ART-BIBLE C3); on focus the corner lifts and the keyline thickens to 3 px. Every hotspot sits with a clear margin of plate midtone at least half its width on all sides, and no hotspot stands directly behind a figure's head. After its fact is filed the object loses its keyline and gains the carbon ghost, so a read room looks read. Hover feedback is the §3.5 corner lift and cursor bracket (ux-designer, §7). *Checkable:* keylined objects = hotspots + separate-layer figures + hero.
 
 ### 6.5 Environmental storytelling
 
@@ -360,7 +360,7 @@ sRGB, 8-bit, **ICC profile stripped**, no colour transform on export (keeps §4.
 3. ≤ 3 values per surface; only gradient is lamp/sodium falloff; no drift list items (§6.2).
 4. Midtones 20–60%; one hero at full bone; one light source per state (§2.1, §3.4, §4.1).
 5. No red, no carbon in base plate; red share within phase budget (§4.3, §6.2).
-6. Keylines = hotspots + figures + hero; hotspot margin ≥ half-width (§6.4).
+6. Keylines = hotspots + separate-layer figures + hero; hotspot margin ≥ half-width (§6.4).
 7. Figure band clean (§6.6); accent ≤ 15%; dominant ≥ 20% off plate neutral (§5.1).
 8. No painted text, no forbidden devices (§6.1); density in table (§6.3).
 9. Portraits: pose table pass; bleed present (§5.4).
