@@ -405,6 +405,45 @@ Texture import option names and the engine's maximum texture size; compression a
 
 ## 9. Reference Direction
 
-[To be designed] — 3–5 references (games, films, art styles or artists). For
-each: the specific element to take from it, and what to avoid so the result
-does not read as a copy.
+Five references, each pointing one direction only: material, figure, people's paper, filing composition, letterform. A plate that leans on one for a second purpose is a defect. The AI pipeline rule is uniform: **prompt the technique, never the title, artist, country or decade** — a name locks the generator to a style and drags real insignia, real script and photographic rendering in with it, all forbidden by §6.1 and §6.2.
+
+### 9.1 Late-socialist bureaucratic material culture — *the surface*
+
+Serves §4.1 (carbon, bone), §6.2 (three layers), §7.3 (permitted icons). Draw from the physical artefacts themselves: carbon paper's double strike, offset and bluer than the original; a rubber stamp's uneven ink load with a bordered, hatched edge; onionskin's translucency as the filing fade (§2.1); staples, paperclips, tear-off calendars. Avoid: nostalgia kitsch, any real seal, flag, eagle or script (§6.1), and product-photography lighting on the objects. *Prompt:* "carbon-copy double strike, 2 px offset", "rubber stamp impression, uneven ink, hatched border", "onionskin sheet over a form" — never a country, agency or era word.
+
+### 9.2 *The Lives of Others* (2006) — *the figure*
+
+Serves §1.2 Principle C, §3.2, §5.3. Draw the character read alone: stillness, narrow stooped bodies as the one organic thing in a room of boxes, faces that act with gaze and chin, complicity shown as listening posture. Avoid everything photographic — shallow focus, lens grain, naturalistic multi-source lighting (§2 one light; §6.2 photographic drift) — and its real set dressing. *Prompt:* describe the pose ("stooped, narrow shoulders, hands visible, gaze off-lens, flat printed figure"); never the title, actors or "film still", which returns photoreal frames that fail §1.1.
+
+### 9.3 Polish/Czech poster school — *the people's paper only*
+
+Serves Principle B, §3.3 print shop, §4.2 dissident letterform, the dissident dossier grammar (§3.5). Draw: misregistration of two flat inks, hand-cut block capitals, torn-edge collage, overprint as meaning. Avoid: hero-saturated primaries, surreal metaphor imagery, graphic heroism (rejected §1.3), and any spread onto state paper, plates or UI — it lives in samizdat and the print shop. *Prompt:* "two-colour misregistered linocut, torn edge, flat ink" — never "poster", never a school or artist name, and never request lettering at all: text areas stay blank (§6.1).
+
+### 9.4 *Papers, Please* — *the filing frame*
+
+Serves §2.1 Filing state, §3.4 hero, §7.3 stamp verbs, §7.4 stamp timing. Draw: the document filling the frame, scanner-flat and shadowless; the stamp as the decision, with weight in the impression not the hand. Avoid: pixel art (fails §8.3/§8.5 hard edges at 1080), the booth/checkpoint framing, the uniform drab grey, the comic register. *Prompt:* "document at full frame, scanner-flat, no shadow" — never the title; the title is a hard style lock to low-resolution pixel art.
+
+### 9.5 *Pentiment* — *letterform as identity*
+
+Serves §4.2 three inks/three letterforms, §7.2. Draw: the typeface identifies the writer before the words are read; the flat, unlit printed-surface register. Avoid: manuscript illumination, decorative borders, marginalia curves (§3.1), painted-in text (§6.1), parchment warmth drifting bone toward sepia. *Prompt:* "flat printed surface, hard edges, no shading" — never the title, which pulls illuminated lettering, the exact §6.1 defect.
+
+### 9.6 Anti-references
+
+Generated assets must never resemble:
+
+- **Photoreal Cold War film stills** — §1.1 one-line rule; §6.2 photographic drift.
+- **Generic dystopia** (searchlights, monumental statues, banners, hammer/sickle, fog) — §6.1 forbidden devices; §2.3 no desaturation; §3.6 no tilted grid.
+- **Pixel art** — §8.3 2× source, §8.5 2 px keylines, §5.3.
+- **Painterly brushwork / Disco Elysium register** — §6.7, §6.2.
+- **Beholder** caricature and grotesque proportion — §3.6, §5.3 (a comic figure cannot look ashamed).
+- **Orwell**'s screen-and-desktop UI — §3.6, §6.1 no screens, §7.1 nothing floats.
+- **Noir chiaroscuro** with several light sources or Dutch angles — §2 one state, one light; §3.6.
+- **Sunlight, golden hour, blue sky** — §4.1 forbidden.
+- **Ostalgie kitsch and real insignia** — §6.1 anti-pillar.
+
+Orwell and Beholder remain *comparables* in the concept's market positioning; they are anti-references here because the bible already rejects their defining visual traits.
+
+### 9.7 Alternatives considered
+
+- **A still-image mood board from the films and games above.** Rejected: pinned stills become prompt inputs and reintroduce photoreal and pixel drift; the board is built from §9.1 artefacts only.
+- **Named-artist prompting for consistency.** Rejected: style lock plus copyright drift; consistency comes from the §8.6 checklist, not a name.
