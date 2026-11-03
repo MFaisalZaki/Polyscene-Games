@@ -425,7 +425,26 @@ The two reports are defined over the game space `G` (GDD 6 Rule 6: policy on, pl
 
 ## Tuning Knobs
 
-[To be designed]
+All in `assets/data/calendar/calendar_<act>.json` or `assets/data/calendar/schema.json` (D) unless marked G1/G6 (GDD 1 / GDD 6, by pointer) or B (CI config). The act-one value is the default; nothing here is a float, and the loader rejects a non-integral number.
+
+| Knob | Default | Safe range | Too low | Too high | Interacts with |
+|---|---|---|---|---|---|
+| `PHASE_RED_CAP` (D, schema) | `[1, 2, 3, 0]` | each entry 0–3; a tier table of four ints indexed by phase, never a float or a percentage; entries 0–2 non-decreasing, entry 3 ≤ entry 2 | Confident at 0: the margin loses its red and Principle A's first step vanishes; paranoid at 1: props never go red and paranoid looks like confident | Confident at 2: red on props in week one, the §4.3 ≤2% budget is unmeasurable; collapsing above 0: red never withdraws and the stamp never goes unanswered | `red_band` thresholds (`ATTN_LOOK`, `ATTN_WATCHED`, G1); the §4.3 budgets (Overlay); the invariant `stamp_tier ≤ ink_reach` |
+| `DAYS_PER_ACT` (D) | 14 (pending Q4) | 10–21 | Scenes crowd into few days; `V5` fails for any mid-chapter calendar beat; the branches doc's "end of Plan Week 41" needs 10 | The fortnight stretches past the window the pacing targets name; `V10` trips a year bound in a late-year act | `V6`, `V7`, `V10`; `BEATS_PER_ACT` (G1) only through the writers' sense of days per beat |
+| `TRANSITION_MAX_LEAVES` (D) | 6 | 3–10 | The loader warns on every three-day gap; writers stop reading warnings | A 10-leaf tear at 300 ms a leaf is a 3 s screen with nothing on it | `days_elapsed` (§6); the leaf duration is Paper UI's **(PROV)**; loader warning, never a failure |
+| `PLAN_WEEK_OPENING` (D) | 40 | 1–52 (53 in a long year) | — | `V10` overflow before the act ends | `WEEKDAY_OPENING`, `opening.date` (`V11`) |
+| `WEEKDAY_OPENING` (D) | `fri` | mon–sun, must match `opening.date` (`V11`) | — | — | `WEEK_START`; the day-0 weekday the stamp shows |
+| `WEEK_START` (D) | `mon` | mon only while Plan Weeks are ISO weeks | — | Any other value breaks `V11` and the ISO reading of Plan Weeks | `PLAN_WEEK_OPENING`, `V11` |
+| `BREATH_OPENING` (D, schema default) | 2 | 1–3 | Marta collapses at the first drift tick; the courier window cannot answer | The clock never reaches zero in twelve beats; `breath_is_a_clock` has nothing to check | `DRIFT_PERIOD` of the breath drift (G6 rules data), `BREATH_ZERO` (G6), `BEATS_PER_ACT` (G1) |
+| `BREATH_MAX` (D, schema range) | 4 | 3–6 | A supply clamps to nothing; two couriers are one | Medicine outlasts the act; the second collapse is unreachable in act two | `BREATH_SUPPLY`, `BREATH_OPENING` |
+| `BREATH_SUPPLY` (D, schema constant; the `breath_supply` rules row writes `value: BREATH_SUPPLY` by name, GDD 2's constant-by-name grammar) | 3 | 2–`BREATH_MAX` | One crossing buys one tick; the gate stops deciding anything | Equals `BREATH_MAX` − 0: a single crossing ends the clock for the act | `BREATH_MAX`; EC 10's priority between `breath_supply` and `marta_collapses` |
+| `CALENDAR_SCHEMA_VERSION` (D, schema) | 1 | bump on any field add/remove/retype | A silently changed schema loads an old save with a missing field (`MISSING_FIELD` catches it, loudly) | — | Save/Load migrations **(PROV)**; `deserialize` (EC 15) |
+| `SLOTS` (D, schema enum) | `morning < day < night` | an ordered closed set of 2–4 names | Two slots: no evening for the telephone to ring in | Five slots: `V4` fails on honest scenes; Overlay needs a plate per slot | `V4`, `kind: slot` transitions (§6); Overlay's plates **(PROV)** |
+| `T_PARANOID` / `T_PANIC` / `T_COLLAPSE`, `U_CROWD` / `U_COLLAPSE`, `ATTENTION_CAP`, `ATTN_LOOK`, `ATTN_WATCHED`, `OBS_BONUS`, `PHASE_BONUS`, `DRIFT_PERIOD_*`, `DECAY_PERIOD_ATTENTION`, `BEATS_PER_ACT` (G1) | GDD 1's | by pointer | — | — | Read here by constant name in `phase()`, `A_eff`, `red_band` and the beat range, never redefined; cluster (b) |
+| `PARANOID_EARLIEST`, `BREATH_ZERO`, `HORIZON_SLACK` (G6) | GDD 6's | by pointer | — | — | `PARANOID_EARLIEST` is never read by this system (Rule 8); `BREATH_ZERO` is the collapse licence on this store's clock; `HORIZON_SLACK` is the `act_close` row count (`V7`) |
+| `CAL_SNAPSHOT_BUDGET_MS` (B) | 1 | 0.5–3 | Fails on a cold CI cache | A slow snapshot hides inside the reveal (advisory; Acceptance Criteria) | Per-person work is `|persons| × A_eff`; reported per run, blocking on the named reference machine only |
+
+Interaction clusters: (a) `PHASE_RED_CAP` and GDD 1's `ATTN_LOOK`/`ATTN_WATCHED` decide together what a person can look like in each phase — change either and re-check the §4.3 budgets with the art director and the invariant `stamp_tier ≤ ink_reach` in Overlay's assert; (b) `BREATH_OPENING`, `BREATH_SUPPLY`, `BREATH_MAX`, the breath drift period and `BEATS_PER_ACT` set when Marta can collapse — change one and re-run the simulator's `breath_is_a_clock` and `gate_decides` checks, since the clock must be able to reach `BREATH_ZERO` inside the act and a single crossing must be able to stop it; (c) `DAYS_PER_ACT`, `PLAN_WEEK_OPENING`, `WEEKDAY_OPENING` and `opening.date` are one fact stated four ways and `V10`/`V11` hold them together — change the opening date and the other three follow, never the reverse; (d) `PHASE_RED_CAP`, `DAYS_PER_ACT` and `SLOTS` are structural: a change is a schema or timetable edit that re-cuts the golden fixture, not a balance pass.
 
 ## Visual/Audio Requirements
 
