@@ -151,11 +151,258 @@ where `tier = red_band(x)` (GDD 1 §3, uncapped: what the state's eye weighs on 
 
 ## Formulas
 
-[To be designed]
+*Proposed by the systems designer; three items it raised are ruled here: the `calendar.*` store emits one change record per field per batch (a stated divergence from GDD 1 Rule 4a's per-boundary compaction, kept because the `changed:` leaf needs each cascade step's record and no calendar scalar projects); the `breath_supply` priority above `marta_collapses` is rules data the narrative director confirms (Open Questions); the act-close pseudo-chapter `<act>_close` is a requirement on Chapter & Story Structure and GDD 1's source parser (amendment applied to GDD 1 Rule 5).* *Every constant appears by its registry name; the act-one value is quoted in the table. GDD 1's `regime_phase` (Formulas §2) and `attention_effective` with `red_band` (Formulas §3) are cited, never restated. Indices: `b` is the beat (the boundary in progress), `s` the cascade step inside it, `x` a person record, `d` a day offset. Square brackets `[P]` are the Iverson bracket (1 if `P`, else 0). Nothing below reads a wall clock, a beat-to-day ratio or a float.*
+
+### 1. Phase: GDD 1's function, and how the ratchet row and the announcement compose with it
+
+The phase is defined as GDD 1 Formulas §2 (registry `regime_phase`): `phase_{b,s} = max( phase_reached_{b,s}, band(stability_{b,s}, unrest_{b,s}) )`, evaluated live against the boundary view (pre-boundary state plus batches applied through step `s`). This GDD adds nothing to the function; it adds two rows of rules data and one derived predicate:
+
+`ratchet_fires(n, b, s) = [ phase_{b,s} ≥ n ] · [ phase_reached_{b,s} ≤ n − 1 ] · [ ¬fired_act(phase_ratchet_n) ] · [ 1 ≤ beat_b ≤ HORIZON_ACT ]` — when 1, the row's effect `regime.phase_reached max n` is applied at step `s` (or the next step the policy admits it; it carries `priority: 100` so it wins any step it is a candidate in).
+
+`announce_licensed(b, s) = [ PARANOID_EARLIEST ≤ beat_b ≤ HORIZON_ACT ] · ( facts_{b,s} ∨ [ stability_{b,s} ≤ T_PARANOID ] )` where `facts = is_true(jan.leaflets_distributed) ∨ is_true(vera.discrepancy) ∨ is_true(office.border_report) ∨ is_true(kastan.exposed)` — the four named licences plus `by_number`; `regime_paranoid` fires at the first boundary where this holds (GDD 6 Formulas §3), writing `paranoid true`, `phase_reached max 1`, `stability add −1`.
+
+`unannounced_b = [ band_b ≥ 1 ] · [ ¬is_true(paranoid_b) ]` evaluated at the snapshot (the phase is paranoid on the aggregates and no paper has said so).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `phase_reached` | int | 0–3 | calculated (GDD 1 regime record, `max` only) | The ratchet scalar |
+| `band` | int | 0–3 | calculated (GDD 1 §2) | Phase from the aggregates alone |
+| `stability`, `unrest` | int | 0–10, 0–12 | calculated (GDD 1 aggregates via `aggregates()`) | The regime scalars |
+| `paranoid` | bool (tri-state read as `is_true`) | — | calculated (written by `regime_paranoid`) | The state has named the phase |
+| `facts` | bool | — | calculated | Any of the four fact licences |
+| `n` | int | 1–3 | data file (one `phase_ratchet_n` row per reachable phase per act) | The ratchet row's phase |
+| `beat_b` | int | 1–`HORIZON_ACT` (14) | ctx (GDD 1's counter) | The boundary in progress |
+| `PARANOID_EARLIEST` | int | 1–`HORIZON_ACT`; act one 6 | constant (GDD 6, registry) | Window `lo` of `regime_paranoid`; never read by this system |
+| `HORIZON_ACT` | int | `BEATS_PER_ACT + HORIZON_SLACK` = 14 | constant (registry) | Window `hi` |
+| `T_PARANOID` | int | 6–8; 7 | constant (GDD 1, registry) | Stability ceiling of band 1 and the `by_number` licence |
+| `fired_act(r)` | bool | — | calculated (Rules' `world_move_state`) | A world move fires once per act |
+| `phase` | int | 0–3 | calculated | The output; `phase_at_least` and the snapshot read it |
+| `unannounced_b` | int | 0–1 | calculated (snapshot) | Input to the §9 report |
+
+**Output Range:** `phase` is bounded 0–3 by construction; monotone non-decreasing across boundaries once the ratchet row has landed (Edge Case 11 names the one gap, which the simulator fails as `truncated`); act one reaches at most 1 (GDD 1 §2's argument: three hits and unrest near 5). Minimum 0 at the act-one opening (9, 1, unknown, 0); maximum 3 only in a later act. `unannounced_b` is 0 or 1; it can be 1 only while `band_b = 1` and `beat_b < PARANOID_EARLIEST`, or after the window closed unlicensed (impossible once `by_number` is a licence, since band 1 implies `stability ≤ T_PARANOID` or `paranoid`).
+
+**Example:** the chapter holding beats 5–8 is Jan's. J3 at beat 5: `stability 9 → 8`, `band 0`, `phase 0`. J4 at beat 6: the decision batch takes `stability` to 7; at step 0 (after drift) `band = 1` (`7 ≤ T_PARANOID`), so `phase = 1` at once; `phase_ratchet_1` is a candidate (`phase_at_least 1`, `phase_reached 0 ≤ 0`) and so is `regime_paranoid` (`6 ≥ PARANOID_EARLIEST`; `leaflets_distributed` and `by_number` both hold). Both are world moves under the pseudo-agent `world`; by `(priority desc, id asc)` the ratchet (priority 100) fires at step 1 (`phase_reached 1`), the announcement at step 1 or 2 (`paranoid true`, `phase_reached max 1` now a no-op, `stability 6`, `attention +1` to everyone at ≥ 1). At the snapshot `phase 1`, `unannounced_6 = 0`. Contrast a `play_order` with Jan first: J3 at beat 2, J4 at beat 3 give `band 1` at beat 3 while the announcement's window opens at 6 — `unannounced` is 1 at beats 3, 4, 5, which §9 reports as a run of 3 and the narrative director decides on. *Rejected:* a `phase_at_least` term in the announcement's licence instead of `by_number` (it would license the announcement from `phase_reached`, so a later act's relief could not be answered by a second announcement without a new row; the number is what the state reads).
+
+### 2. Effective attention and the per-character view
+
+Effective attention and the red band are defined as GDD 1 Formulas §3 (registry `attention_effective`): `A_eff(x) = clamp( attention(x) + OBS_BONUS·[under_observation(x)] + PHASE_BONUS·[phase ≥ 2], 0, ATTENTION_CAP )` and `red_band(x) = 0 if A_eff = 0; 1 if A_eff < ATTN_LOOK; 2 if A_eff ≤ ATTN_WATCHED; 3 otherwise`. The per-character view this system emits is defined as:
+
+`view(x) = { tier: red_band(x), looked: [A_eff(x) ≥ ATTN_LOOK], watched: [A_eff(x) ≥ ATTN_WATCHED], listed: [is_true(under_observation(x))], red_reach: §3, stamp_tier: §4 }`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `attention(x)` | int | 0–`ATTENTION_CAP` | calculated (GDD 1 scalar via `aggregates()`) | The state's eye on `x` |
+| `under_observation(x)` | tri-state | — | calculated (GDD 1 flag) | Listed; `unknown` counts as not listed in both the bonus and `listed` |
+| `phase` | int | 0–3 | calculated (§1) | Regime phase at the moment of evaluation |
+| `OBS_BONUS`, `PHASE_BONUS` | int | 0–2; 1, 1 | constants (GDD 1, registry) | Weight of listing; weight of panic |
+| `ATTENTION_CAP` | int | 4–8; 6 | constant (GDD 1, registry) | Scalar cap |
+| `ATTN_LOOK`, `ATTN_WATCHED` | int | `ATTN_LOOK < ATTN_WATCHED ≤ ATTENTION_CAP`; 3, 4 | constants (GDD 1, registry) | The two attention states |
+| `A_eff(x)` | int | 0–`ATTENTION_CAP` | calculated | Never leaves this system |
+| `tier` | int | 0–3 | calculated | none, margin, prop, light (uncapped) |
+| `looked`, `watched`, `listed` | bool | — | calculated | The booleans Audio reads; `watched ⇒ looked` by the cluster constraint |
+
+**Output Range:** `tier` 0–3; the booleans are monotone in `A_eff` (`watched ⇒ looked`) because `ATTN_LOOK < ATTN_WATCHED` is a GDD 1 tuning constraint, and `tier = 3 ⇒ watched`, `tier ≥ 2 ⇒ looked`; `tier = 2` includes `A_eff = ATTN_WATCHED`, so `watched ∧ tier = 2` is a legal pair (the two cuts of one integer differ by design: Audio's states are thresholds, Overlay's tiers are bands). Minimum: `{0, false, false, false}` at `attention 0`, unlisted; maximum: `{3, true, true, true}` at the cap. **Example:** Vera after V3 (`+1`) and R1 (`+2`, listed): `attention 3`, `A_eff = min(6, 3 + 1 + 0) = 4` → `tier 2`, `looked true`, `watched true`, `listed true`. Tomas, untouched: `A_eff 0` → `tier 0`, all false. *Rejected:* emitting `A_eff` and letting consumers threshold it (every consumer would own a copy of `ATTN_LOOK`, and one of them would draw a bar).
+
+### 3. Phase-capped red reach
+
+The red reach is defined as:
+
+`red_reach(x) = min( red_band(x), PHASE_RED_CAP[phase] )`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `red_band(x)` | int | 0–3 | calculated (§2) | The person's uncapped tier |
+| `phase` | int | 0–3 | calculated (§1) | Regime phase at the snapshot |
+| `PHASE_RED_CAP` | int[4] | each 0–3; `[1, 2, 3, 0]` | constant (this GDD, registry) | The art bible §2.2/§4.3 ceiling per phase: margin, props, key light, withdrawn |
+| `red_reach(x)` | int | 0–3 | calculated | The tier Overlay draws on `x`'s props and thresholds |
+
+**Output Range:** bounded 0–3. Minimum 0 at `A_eff(x) = 0`, or for everyone at `phase 3` (the cap is 0: red withdraws). Maximum 3 only at `phase 2` with `A_eff(x) > ATTN_WATCHED`; tier 3 is unreachable in act one (phase ≤ 1 caps at 2) and at collapsing, which is the intended hole: red in the key light belongs to panic alone. With the defaults, at `phase 0` every watched person reads as 1 (a margin line) — the per-character signal at confident is `none` versus `margin`, and the rest is carried by signs and files (GDD 1 §7). **Example:** Jan after K1, J2, J3: `attention 5`, listed → `A_eff 6`, `red_band 3`; at `phase 1` → `red_reach = min(3, 2) = 2` (the red telephone, the red folder); the same Jan at `phase 0` → 1; at `phase 3` → 0. *Rejected:* a per-character cap (`min(red_band, cap[x])`) or a reach that adds phase and person (`red_band + phase`, which exceeds 3 and makes a calm person red in a panic for no reason of his own).
+
+### 4. Surveillance stamp tier and date-stamp ink reach
+
+The stamp tier and the ink reach are defined as:
+
+`stamp_tier(x) = red_reach(x)` · `ink_reach = PHASE_RED_CAP[phase]`
+
+with the invariant `stamp_tier(x) ≤ ink_reach` for every `x` at every snapshot (immediate from `min(a, c) ≤ c`).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `red_reach(x)` | int | 0–3 | calculated (§3) | The person's capped reach |
+| `phase` | int | 0–3 | calculated (§1) | Regime phase at the snapshot |
+| `PHASE_RED_CAP` | int[4] | `[1, 2, 3, 0]` | constant (registry) | As §3 |
+| `stamp_tier(x)` | int | 0–3 | calculated | Fill tier of the art bible §7.5 stamp on a sheet whose protagonist is `x`: 0 and 1 hatched outline, 2 partial fill, 3 full fill |
+| `ink_reach` | int | 0–3 | calculated | Ink reach of the §7.1 HUD date stamp: 0 dry, 1 crisp, 2 bleeds past the outline, 3 floods the corner |
+
+**Output Range:** both 0–3; `ink_reach` takes exactly the values 1, 2, 3, 0 in phase order, so it is never 0 before collapsing and never 3 outside panicking. `stamp_tier` reaches 3 only when `ink_reach = 3`. The invariant is the reviewer test of art bible §7.5 ("fill percentage matches the §4.3 budget tier") restated as a bound: the phase tier is the stamp's ceiling, the person's reach its fill; Overlay asserts it in debug on every snapshot. **Example:** the act-one close at `phase 1`: `ink_reach 2`; Vera at `A_eff 4` (`red_band 2`) → `stamp_tier 2`; Tomas at `A_eff 0` → `stamp_tier 0`, a hatched outline under the same bleeding date. At `phase 3` with Jan at the cap: `ink_reach 0`, `stamp_tier 0` — the stamp goes unanswered while `view(jan).watched` stays true (Edge Case 13). *Rejected:* `stamp_tier = ink_reach` (the stamp would say the same thing as the date in the corner above it, and an unwatched conscript would wear a filled stamp in a paranoid week); a continuous fill percentage (a meter).
+
+### 5. Date for a scene
+
+The date for a scene is defined as, for the timetable row `(chapter_id, scene_id) → {day: d, slot}`:
+
+`weekday(d) = (W_open + d) mod 7` · `plan_week(d) = PW_open + ⌊ ((W_open − W_start) mod 7 + d) / 7 ⌋` · `doy(d) = DOY_open + d` · `(month(d), day_of_month(d))` = the unique pair with `cum[month − 1] < doy(d) ≤ cum[month]` over the cumulative month-length table of `opening.year`, and `day_of_month = doy − cum[month − 1]`
+
+and `date_for(chapter_id, scene_id) = { day: d, slot, weekday, plan_week, month, day_of_month, year: opening.year }`. Plan Weeks are ISO weeks: `W_start = mon` and `PW_open` is the ISO week of `opening.date`, which the content compiler checks against the authored `plan_week` and `weekday` (its own ISO calendar routine; a tooling fact, not an engine one).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `d` | int | 0–`DAYS_PER_ACT − 1` (act one 0–13) | data file (timetable row) | The scene's day offset |
+| `W_open` | int | 0–6 (mon 0 … sun 6); act one 4 (fri) | data file (`opening.weekday`) | Opening weekday |
+| `W_start` | int | 0–6; 0 | data file (`week_start`; ISO fixes it at mon) | First day of a Plan Week |
+| `PW_open` | int | 1–53; 40 | data file (`opening.plan_week`) | Opening Plan Week |
+| `DOY_open` | int | 1–365; 279 for 1989-10-06 | compiled from `opening.date` | Day of year of the opening |
+| `cum[0..12]` | int[13] | `[0, 31, 59, …, 365]` for 1989 (not leap) | compiled (month table of `opening.year`) | Cumulative month lengths |
+| `DAYS_PER_ACT` | int | 7–21; act one 14 (pending Q4) | constant (this GDD, registry) | Act length in days; bounds `d` |
+| `weekday(d)` | int | 0–6 | calculated | The stamped weekday id (the locale table renders it) |
+| `plan_week(d)` | int | `PW_open`–`PW_open + 3` | calculated | The stamped Plan Week |
+| `doy(d)` | int | `DOY_open`–`DOY_open + DAYS_PER_ACT − 1` | calculated | Day of year; the year bound is checked here |
+| `month`, `day_of_month` | int | 1–12, 1–31 | calculated | The typed date on the stamp |
+
+**Output Range:** `weekday` wraps 0–6; `plan_week` never wraps — `plan_week(DAYS_PER_ACT − 1) ≤ weeks_in_year(opening.year)` (52 for 1989; 53 in a long year) and `doy(DAYS_PER_ACT − 1) ≤ days_in_year(opening.year)` are build-time validation predicates (§8 V10), so the act stays inside its year and no date is ever computed past 31 December; with the act-one opening the maximum reachable is `d = 13` → Thursday, Plan Week 42, 19 October 1989. **Example:** `d = 3` → `weekday (4 + 3) mod 7 = 0` Monday; `plan_week 40 + ⌊(4 + 3)/7⌋ = 41`; `doy 282` → `cum[9] = 273 < 282 ≤ cum[10] = 304` → October, `day_of_month 9`: Monday 9 October 1989, Plan Week 41. `d = 9` → Sunday 15 October, Plan Week 41 (the last day of Plan Week 41, the branches doc's "end of Plan Week 41"; Open Question Q4 decides whether the act ends there or at `d = 13`). *Rejected:* an engine date routine from a Unix timestamp (NOT SOURCEABLE in the pinned reference, carries a time zone, and puts the wall clock one call away from a system that must never touch it); deriving `d` from the beat (Rule 3).
+
+### 6. Transition between consecutive scenes
+
+The transition is defined, for two authored scenes `a`, `b` with `chapter(a) = chapter(b)` and `index(b) = index(a) + 1` in that chapter's scene list, as:
+
+`days_elapsed(a, b) = d_b − d_a` · `kind(a, b) = day if days_elapsed > 0; slot if days_elapsed = 0 ∧ slot_b > slot_a; none otherwise`
+
+`transition_between(a, b) = { kind, from: date_for(a), to: date_for(b), days_elapsed }`; when the precondition fails (different chapters, non-consecutive, or either id absent from the timetable — which is what an insert scene id is) the call returns `TRANSITION_ILLEGAL(a, b)` and no fields (Edge Cases 2, 20).
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `d_a`, `d_b` | int | 0–`DAYS_PER_ACT − 1` | data file (timetable) | The two scenes' days |
+| `slot_a`, `slot_b` | enum | `morning < day < night` | data file | The two scenes' slots |
+| `index(·)` | int | 0–`|scenes(chapter)| − 1` | data file (scene list order) | Position in the chapter |
+| `days_elapsed` | int | 0–`DAYS_PER_ACT − 1` | calculated | Leaves torn off the wall calendar (art bible §2.1) |
+| `kind` | enum | `none | slot | day` | calculated | What Scene Flow plays: nothing, a plate change, the Calendar-transition state |
+
+**Output Range:** `days_elapsed ≥ 0` always, because §8 V3 forbids a day decrease within a chapter and the precondition forbids crossing a chapter edge; the maximum is `DAYS_PER_ACT − 1` (a chapter whose second scene is the act's last day). `kind = none` with `days_elapsed = 0` and equal slots is legal (two scenes the same evening). **Example:** Vera `s3 {day 3, morning}` → `cal_1 {day 6, day}`: `days_elapsed 3`, `kind day` (three leaves torn, then the calendar beat's boundary runs); `s1 {day 0, day}` → `s2 {day 0, night}`: `days_elapsed 0`, `kind slot` (the lamp comes on; no screen). *Rejected:* a `rewind` kind for chapter edges (a tear-off calendar re-hung is a joke the art bible does not make; the chapter card is the edge).
+
+### 7. The `calendar.*` store: applying one batch
+
+The store apply is defined, for one batch and one declared field `f` with current value `v_f`, as:
+
+scalar: `v'_f = clamp( min( max( (set_f ?? v_f) + Σ_i add_{f,i}, max_j max_{f,j} ), min_k min_{f,k} ), lo_f, hi_f )` — the registry's `scalar_apply` (GDD 1 Formulas §1) with the calendar's own `[lo_f, hi_f]`;
+flag: `v'_f = last( {set_f, clear_f} in list order ) ?? v_f` with `clear ≡ set false`;
+changes: `changes(batch) = | { f ∈ fields(batch) : v'_f ≠ v_f } |`, one change record per field whose value moved, `before = v_f` (the pre-batch value), `after = v'_f`; rejected effects (`tag`, an undeclared field, a writer outside the allow-list, `add` on a flag) are dropped from the batch before the formula runs and logged with their `source`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `v_f` | int or bool | scalar `[lo_f, hi_f]`; flag `{true, false}` | calculated (store) | Value before the batch |
+| `set_f` | int or bool or absent | — | data file (effect) | The last `set` on `f` in list order, if any |
+| `add_{f,i}` | int | −`hi_f`–`hi_f` | data file (effects) | Every `add` on `f` in the batch; they sum |
+| `max_{f,j}`, `min_{f,k}` | int | `[lo_f, hi_f]` | data file (effects) | Ratchets and caps, applied after the adds |
+| `lo_f`, `hi_f` | int | declared; `breath_marta` 0–`BREATH_MAX` 4 | data file (`schema.json`) | Clamp bounds |
+| `changes(batch)` | int | 0–`|fields(batch)|` | calculated | Change records emitted for the batch |
+
+**Output Range:** `v'_f` is clamped into `[lo_f, hi_f]`; a batch that leaves a field where it was emits nothing for that field, so `changes` is 0 for a no-op batch and never exceeds the number of distinct fields the batch names. Across the cascade steps of one boundary each batch is applied and recorded separately (`before` is the pre-batch value), so one field can carry two records in one boundary — a deliberate difference from GDD 1 Rule 4a's one-record-per-field-per-boundary compaction, because the Rules reader needs each step's record for `{changed: F}` and nothing projects a calendar scalar to the player. **Example:** `breath_marta = 2`; step-0 drift batch `[add −1]` → `clamp(2 − 1, 0, 4) = 1`, one record `{before 2, after 1}`; step-1 batch `[add 3]` (the courier crossed) → `4`, one record `{before 1, after 4}`; a later batch `[add 3]` at 4 → `clamp(7) = 4`, zero records. A batch `[add −1, add −1]` from two drift rows on the same clock → `0` from 2, one record. *Rejected:* applying `max`/`min` before the adds (an `add −1` after `max 1` would undo the ratchet); emitting a record for a clamped no-op (Paper UI would be handed a notice that nothing changed).
+
+### 8. Timetable validation predicates
+
+The timetable is valid iff `valid = ∧_{i} V_i` over the following booleans, each checked by the content compiler (build fails naming the first false predicate and its row) and re-checked by the runtime loader over the compiled JSON (a false predicate rejects the file; the Calendar then has no timetable and Edge Case 4 applies to every scene):
+
+- `V1 rows_cover_scenes = ∀ c ∈ chapters, ∀ s ∈ scenes(c) : (c, s) ∈ rows`
+- `V2 rows_are_scenes = ∀ (c, s) ∈ rows : s ∈ scenes(c)` (no row for a scene the chapter does not have; insert scene ids never appear)
+- `V3 day_monotone = ∀ c, ∀ consecutive (a, b) in c : d_b ≥ d_a`
+- `V4 slot_monotone = ∀ c, ∀ consecutive (a, b) in c : d_b = d_a ⇒ slot_b ≥ slot_a`
+- `V5 calendar_advances = ∀ c, ∀ b with kind(b) = calendar : index(b) > 0 ∧ d_b > d_{prev(b)}`
+- `V6 day_in_act = ∀ (c, s) ∈ rows : 0 ≤ d ≤ DAYS_PER_ACT − 1`
+- `V7 act_close_shape = |act_close| = HORIZON_SLACK ∧ ∀ r ∈ act_close : d_r = DAYS_PER_ACT − 1 ∧ slots non-decreasing in list order`
+- `V8 play_order_total = play_order is a permutation of chapters`
+- `V9 integral = every numeric value in the file is an integer` (the loader's own rule; `3.0` is rejected, not rounded)
+- `V10 year_bound = doy(DAYS_PER_ACT − 1) ≤ days_in_year(opening.year) ∧ plan_week(DAYS_PER_ACT − 1) ≤ weeks_in_year(opening.year)`
+- `V11 opening_consistent = iso_weekday(opening.date) = opening.weekday ∧ iso_week(opening.date) = opening.plan_week` (compiler only; the runtime trusts the compiled file)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `rows` | set of `(chapter_id, scene_id) → {d, slot}` | — | data file | The timetable's rows |
+| `scenes(c)` | ordered list | — | data file (GDD 2 chapter scene list) | Authored scenes, with `kind` |
+| `prev(b)`, `index(b)` | scene, int | — | calculated | List neighbours |
+| `HORIZON_SLACK` | int | 2 | constant (registry) | Act-close beats |
+| `DAYS_PER_ACT` | int | 7–21; 14 | constant (registry) | Act length in days |
+| `days_in_year`, `weeks_in_year` | int | 365/366, 52/53 | compiled (year table) | Year bounds |
+| `valid` | bool | — | calculated | The build gate |
+
+**Output Range:** a single boolean; the compiler reports every failing predicate (not only the first) with `(chapter, scene, predicate)` triples so a writer fixes a file in one pass. **Example:** the act-one draft in Core Rule 3 passes `V1–V11`; moving `cal_1` to `{day: 3, slot: night}` after `s3 {day: 3, morning}` passes `V3`, `V4` and fails `V5` ("cal_1: a calendar beat on which no day passes"); an `act_close` with one row fails `V7`; a row `{day: 7.5}` fails `V9`. *Rejected:* warnings instead of failures for `V5` and `V7` (a calendar beat that passes no time, or a closing bell with one beat, are pacing bugs the simulator would otherwise find a sprint later); runtime repair (shifting a bad day forward) — the loader serves the last good date and logs, it never invents one.
+
+### 9. Simulator reports over the game space: phase reachability and the longest unannounced run
+
+The two reports are defined over the game space `G` (GDD 6 Rule 6: policy on, player choices free, `play_order` fixed) with the timetable loaded, as:
+
+`first_beat(n) = min { b : ∃ t ∈ G, phase_t(b) ≥ n }` (∅ if no telling reaches phase `n`), reported with `chapter_at(b)` (the chapter whose scene list holds beat `b` under `play_order`, or `act_close`) and `date_for(chapter_at(b), scene_at(b))`;
+
+`run_t = max { b_2 − b_1 + 1 : ∀ b ∈ [b_1, b_2], unannounced_{t,b} = 1 }` (0 if never unannounced) · `U = max_{t ∈ G} run_t`, reported with one witness telling id and the run's beats and dates.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `G` | set of tellings | — | calculated (simulator, `space` command) | The game space |
+| `phase_t(b)` | int | 0–3 | calculated (§1 on telling `t` at beat `b`) | Phase in a telling |
+| `unannounced_{t,b}` | int | 0–1 | calculated (§1) | Band paranoid, paper silent |
+| `n` | int | 1–3 | report parameter | Which phase |
+| `chapter_at(b)`, `scene_at(b)` | id | — | calculated (`play_order` × scene lists) | Where beat `b` falls in play order |
+| `first_beat(n)` | int or ∅ | 1–`HORIZON_ACT` | calculated | Earliest beat phase `n` is reachable |
+| `U` | int | 0–`HORIZON_ACT` | calculated | Longest unannounced-paranoid run in beats |
+
+**Output Range:** `first_beat(n)` is in `[1, HORIZON_ACT]` or empty; for act one `first_beat(2) = first_beat(3) = ∅` is an acceptance criterion (GDD 1: act one cannot exceed 1) and `first_beat(1) ≠ ∅` is another (the announcement must be reachable). `U` is 0–14; it is a **report, never a law**: the writers' output states it as "the state counts for `U` beats before it speaks, from beat `b_1` (date) to `b_2` (date), in telling `t`", with no frequency and no fraction (GDD 6 Rule 11's output rules). **Example:** `play_order [a1_vera, a1_jan, a1_tomas]`: `first_beat(1) = 6` (Jan's chapter; a Tuesday of Plan Week 41 under Jan's timetable), `U = 0`. `play_order [a1_jan, a1_vera, a1_tomas]`: `first_beat(1) = 3`, `U = 3` (beats 3–5: J4 at 3, the window opens at 6), witness the telling where Jan distributes at 2 and is raided at 3. *Rejected:* a law `phase_is_announced` with `U ≤ k` (the writers may want the state counting silently for a week in act two; a law would forbid it; a report lets them see it); reporting `U` as a share of tellings (a frequency word in the writers' output, which GDD 6 forbids).
 
 ## Edge Cases
 
-[To be designed]
+*Each case states what happens, who logs it and what the player sees. "Logged" means through the injected `DebugSink` (a recording twin in tests, an assert in debug builds, a logger in release); "build fails" means the content compiler or the rules generator refuses the file. The Calendar never repairs data, never invents a date and never writes anything to put a case right.*
+
+1. **If a chapter closes and the next chapter in `play_order` opens (the chapter edge):** Scene Flow does not call `transition_between`; the next chapter's first scene is stamped cold with its own `date_for` (act one: back to Friday, day 0) under the chapter card that Chapter & Story Structure plays; the beat continues from the dossier's counter without a reset; the snapshot's `date` simply differs from the previous one; no leaves are torn; nothing is logged. *Rationale:* the rewind is the overlap of three lives in one fortnight, not time passing; the tear-off calendar has no gesture for going back, and the chapter card is the honest one.
+
+2. **If `transition_between(a, b)` is called across a chapter edge by mistake (or for any pair that is not consecutive in one chapter):** the call returns `TRANSITION_ILLEGAL(a, b)` with no `kind`, no dates and no `days_elapsed` — a negative elapsed count is never computed, so no screen can tear off a negative number of leaves; Scene Flow plays nothing and stamps the new scene's date cold as in case 1; logged with both ids; debug builds assert. *Rationale:* a precondition violated by the caller is a caller bug; serving a plausible value (`abs`, or 0) would hide it in a release and let a wrong screen play.
+
+3. **If a `kind: calendar` scene's timetable row does not advance the day (same day as the preceding scene):** at authoring the build fails `V5` naming the scene. If such data reaches the runtime anyway (hot-loaded content), the scene still runs as a full boundary — the beat is spent, the empty decision batch is applied, the rules step runs, drift ticks and world moves may fire, the snapshot is taken — and the transition before it is `slot` or `none`, so the player sees paper arrive without the calendar screen; logged `CALENDAR_BEAT_NO_DAY`. *Rationale:* a beat is a beat whatever the date says (Rule 2); the Calendar does not refuse to count a boundary because the writer mis-dated it, since the simulator counted it.
+
+4. **If a scene has no timetable row at runtime (or the timetable failed to load and there are no rows at all):** `date_for` returns the last good date served in this chapter (the previous scene's `day` and `slot`), or the act's opening date (`day 0`, `slot` the first scene's declared slot or `day`) when the chapter has served none; the boundary runs normally, GDD 1's change records carry the served day, the snapshot's `date` carries the served day and a `served: stale` marker that the HUD ignores and the trace records; `transition_between` involving the scene returns `TRANSITION_ILLEGAL`; logged `TIMETABLE_MISSING(chapter, scene)` once per scene; debug asserts. At authoring this is `V1` and the build fails. *Rationale:* the honest options at runtime are a stale date or a crash, and a stale date on a story screen is the lesser harm; the marker keeps the trace from lying about it.
+
+5. **If the act-close calendar beats run (the `HORIZON_SLACK` boundaries that belong to no chapter):** Scene Flow opens them under the pseudo-chapter id `<act>_close` (Chapter & Story Structure declares it with `reads: []`, `writes: []`, `assumes: []` **(PROV)**); `ctx.chapter_id = a1_close`, `date_for` serves the `act_close` rows (day `DAYS_PER_ACT − 1`); fired rules cite `rules:a1_close/a1_close_1:<id>`, GDD 1 parses `source_protagonist = null` from it; rules' writes count toward `a1_close`'s own four counts, checked against `WRITE_MAX`/`CROSS_WRITE_MAX` like any chapter, and the `CROSS_READ_MIN` warning is waived for it as for an act's first chapter; no decision is offered; the review sits here (`review_sits` is checked at these beats); the snapshot and reveal run as usual. *Rationale:* GDD 1 charges rules' writes to the chapter whose boundary fired them and parses the chapter from the source; a pseudo-chapter gives the closing bell a name without pretending a protagonist was there.
+
+6. **If a `calendar.*` effect arrives from a writer other than `rules`, `migrate` or `sim` (a `filing`, `dialogue`, `chapter` or `assume` source):** the effect is dropped before the batch formula runs, no change record, the rest of the batch applies, logged `CALENDAR_WRITER_REJECTED(source)`; at authoring the content validator rejects a `calendar` target in any content effect (build fails) and the rules loader rejects a `calendar.*` effect on a row it would stamp with a non-`rules` source. A `sim` source is accepted only when the Calendar was constructed with `allow_sim: true` (the simulator and the unit tests); in a shipped build it is rejected the same way. *Rationale:* GDD 1 Rule 1a — every consequence that crosses chapters starts from something on paper read by a rule; a decision that moved the calendar directly would be a hidden second channel.
+
+7. **If a condition uses `{is_unknown: calendar.F}` or an effect uses `op: tag` on a calendar target:** `is_unknown` on a `calendar.*` target is a content and rules error (build fails: "a schedule has no blanks"); if it reaches the runtime it evaluates `false` and is logged once per leaf. `tag` is rejected at load on a rules row and at runtime in a batch (dropped, no change record, logged `CALENDAR_OP_REJECTED(tag, source)`); `add`/`max`/`min` on a flag and `set unknown` on anything are rejected the same way. *Rationale:* two-state flags and no tags are Rule 6's whole schema; the evaluator must give a defined answer and a build must give a loud one.
+
+8. **If a calendar scalar is at a bound and an effect pushes past it (breath at 0 with a drift `add −1`; breath at `BREATH_MAX` with a supply `add 3`):** clamped, no change record, no `changed:` leaf this step; the drift keeps ticking against the floor harmlessly (its anchor is Rules' and does not care); `marta_collapses`'s licence `at_most [calendar.breath_marta, BREATH_ZERO]` holds on the value, not on a change, so it fires once per act whenever it is first licensed in its window and never again. *Rationale:* GDD 1 Edge Cases 5 and 6 applied to the calendar; a notice that nothing changed is a lie to Paper UI and a phantom `changed` to Rules.
+
+9. **If two drift rows tick the same clock in one step (two `drift` rows on `calendar.breath_marta` whose `while` both hold and whose periods both land on this beat):** both `add`s are in the step-0 drift batch; they sum before clamping (`2 + (−1) + (−1) = 0`); one change record with `before 2, after 0`; `marta_collapses` sees 0 at step 1. The rules loader warns (not fails) on two drift rows naming one field, because a clock that runs down twice as fast is usually one row with the wrong period. *Rationale:* GDD 1 Edge Case 2 — adds commute, so two rows and one row of double value are the same telling, which the simulator needs.
+
+10. **If the courier's supply (`calendar.breath_marta add 3` on `changed: border.courier_through`) and `marta_collapses` are both candidates in one boundary (breath reaches 0 at step 0 by drift, and this boundary's decision batch set `courier_through`):** both are world moves under the pseudo-agent `world`; the policy orders them by `(priority desc, id asc)`. If `breath_supply` carries the higher priority it fires first (step 1): breath 3, the collapse's licence no longer holds, it is dropped — not queued — and fires only if breath reaches 0 again in its window. If `marta_collapses` carries the higher priority it fires first: `marta.hospitalised`, `marta.under_observation`, `vera.attention +1` land, and the supply applies at the next step (breath 3, Marta in hospital with medicine in the flat). The Calendar is indifferent; the authoring recommendation (narrative director to confirm) is `breath_supply` above `marta_collapses`, so a courier who crosses tonight counts tonight — the state is not faster than a courier. If the two share a priority the loader does not object (neither has a `state: true` author), and `id asc` puts `breath_supply` first. *Rationale:* GDD 6 Rule 5 makes the policy a total order the writers can read off the file; this case is exactly what the priority column is for, and the Calendar must not add a tie-break of its own.
+
+11. **If a rule licensed by `phase_at_least: 1` is evaluated at the cascade step where the band moved, before `phase_ratchet_1` has landed:** it is licensed at once — `phase()` is `max(phase_reached, band)` and the band already says 1; the ratchet row changes nothing the reader can see this boundary. The ratchet matters only if the band later falls: with `priority: 100` it is selected at the first step after the band moved, so it lands in the same boundary unless the band moved at step `CASCADE_MAX − 1` and the cascade stops; in that one case the simulator fails the telling as `truncated` (GDD 6 Rule 5.5) before it ships, and at runtime the ratchet fires at the next boundary's first step **if the band still holds**. If relief in that same next boundary's decision batch drops the band first (not possible in act one, which has no relief), `phase()` reads 0 for one boundary, the ratchet's licence lapses, and the snapshot logs `PHASE_FELL(prev, now)` and asserts in debug. *Rationale:* the ratchet is a rule so that it is replayable (Rule 5); the cost is one provable gap, which the cascade cap's build failure closes in CI and the snapshot's comparison names at runtime.
+
+12. **If `phase_reached` is higher than the band (relief has raised `stability` above the band's ceiling, acts two and three):** `phase() = phase_reached`; the snapshot's `phase`, `ink_reach` and every `red_reach` are unchanged from the previous boundary; `PHASE_BONUS` still applies to everyone's `A_eff` when `phase_reached ≥ 2`, because the bonus reads the phase, not the band; `unannounced_b = 0` by construction (`band ≥ 1` is false). *Rationale:* GDD 1 Edge Case 17 — relief changes the number for the next threshold, never the mood already reached.
+
+13. **If the phase is collapsing (`PHASE_RED_CAP[3] = 0`) and a person is listed at the cap (`A_eff 6`):** `red_reach 0`, `stamp_tier 0` (a hatched outline), `ink_reach 0` (the date stamp dry); `tier 3`, `looked true`, `watched true`, `listed true` stand in the same view, so Audio keeps the watched state and Overlay draws no red; Paper UI's signs and files still project whatever GDD 1's thresholds say. *Rationale:* art bible §2.2 — red withdraws, the state's eye does not; a colour is a phase's property and the weight is a person's, and the view carries both so no consumer has to guess which it lost.
+
+14. **If a `kind: person` record has no `attention` scalar in the dossier schema (a future record, or a schema edit):** the content compiler warns (`PERSON_WITHOUT_ATTENTION`); at runtime the record is omitted from `per_character`, and `attention_view(x)` for it returns `{tier 0, looked false, watched false, listed: is_true(x.under_observation), red_reach 0, stamp_tier 0}` and logs once per record per act; a sheet whose protagonist is such a record shows a hatched stamp. *Rationale:* GDD 1 says a missing scalar reads as its default and the Calendar emits only closed sets; `null` in the view would make every consumer branch on it.
+
+15. **If `deserialize(data)` receives a payload with a different `schema_version`, an undeclared field, or a declared field missing:** rejected whole — `SCHEMA_MISMATCH(expected, got)`, `UNDECLARED_FIELD(name)` or `MISSING_FIELD(name)` — nothing partial is loaded, the store keeps its pre-call contents (`defaults()` on a fresh Calendar), Save/Load runs its migration (writer `migrate`, which fills a missing field from `defaults()`) and calls again; a payload newer than the code is rejected (no downgrade); a `deserialize` between `begin_boundary` and `end_boundary` is rejected `NOT_AT_BOUNDARY` without inspecting the payload. *Rationale:* GDD 1 Edge Case 13's strictness, both ways; a blank clock silently loaded would move Marta's collapse and nobody would know why.
+
+16. **If the snapshot is requested before Scene Flow's phase-and-attention step (during the decision or rules step), or twice in one boundary:** before the step, `snapshot(ctx)` returns the previous boundary's memoised `BoundaryView` (stale by one beat; its `beat` field says so) or `null` for the act's first boundary, logs `SNAPSHOT_EARLY(beat)` and does not compute — the cascade is not finished and a mid-cascade tier would be a tier that moves inside a scene; at the step it computes once and memoises by beat; a second request in the same boundary returns the same object with no recompute; a request after `end_boundary` and before the next `begin_boundary` returns the current one. *Rationale:* Rule 9 — every tier changes only at a boundary, and the memo is what makes the stamp static (art bible §7.5).
+
+17. **If `date_for` would cross the year end (`opening.date + DAYS_PER_ACT − 1` past 31 December):** the build fails `V10` (`YEAR_BOUND`) naming the overflow day; the runtime loader rejects the compiled file the same way, so no running game ever computes a date past the year; the game is autumn 1989 and no act crosses it. *Rationale:* a month table for one year is all the arithmetic the stamp needs; a wrap would need leap years and a second year's ISO weeks, which is a calendar library, and the pinned reference has none the Calendar may touch.
+
+18. **If `plan_week` would pass the year's ISO week count (52 for 1989; 53 in a long year), or `opening.plan_week`/`opening.weekday` disagree with `opening.date`:** build fails `V10` (`PLAN_WEEK_OVERFLOW`) or `V11` (`OPENING_INCONSISTENT(date, authored, computed)`); never wraps to Plan Week 1; the runtime never sees either case. *Rationale:* Plan Week 1 of the next year on a date stamp in October is the kind of defect a reviewer would catch once and a player would catch first.
+
+19. **If the rules file names a `calendar.*` field absent from `schema.json` (a drift on `calendar.breath_ilona`, a world move setting `calendar.ledger_due` before the schema declares it):** `topic_gen` fails `UNDECLARED_CALENDAR_FIELD(rule_id, field)`; the runtime rules loader rejects the rules file with the same error (GDD 1 Edge Case 10's rule applied to this store); no fluent is invented with a guessed range, and no default is served for it. If a declared field is read by no rule and written by no rule, the generator warns `CALENDAR_FIELD_UNUSED`. *Rationale:* the solver cannot prove a law over a fluent it guessed, and the runtime cannot clamp a value it has no range for.
+
+20. **If `transition_between` is called with an insert scene as either argument (an id that is not in the timetable because inserts are never authored there):** returns `TRANSITION_ILLEGAL` as in case 2; nothing plays; the insert inherits the day and slot of the boundary that fired it (Rule 2), and the transition Scene Flow should ask for is between the two authored scenes on either side of the insert, computed as if the insert were not there. *Rationale:* Rybar's call comes the same evening the ledger was burned; a torn-off leaf between the burning and the telephone would put a night where the state's reaction needs none.
+
+21. **If two calendar beats are consecutive (the two act-close rows, or a chapter authored with back-to-back calendar scenes):** both run as full boundaries with empty decision batches; the transition between them is `slot` (`act_close` rows `day` → `night`) or `none`, never `day` for the act-close pair (`V7` fixes both at the last day), and `day` for a mid-chapter pair (`V5` demands each advance); world moves may fire at both, NPC moves may fire at both, the reveal shows the paper that arrived; the player decides nothing at either. *Rationale:* the closing bell is two boundaries so the review can convene at one and sit at the other (`review_sits`); two decision-free beats in a row are what "time passes without you" means at an act's end.
+
+22. **If Chapter & Story Structure opens a chapter out of the timetable's `play_order` (a debug jump, a future branching act, or a data mismatch):** the Calendar serves dates regardless — rows are per chapter, not per position — and the snapshot and transitions are correct for that chapter; it logs `PLAY_ORDER_MISMATCH(expected, opened)` once; the §9 reports and the window lint computed for the declared order are void for that run, which the trace header records (`play_order_actual`). *Rationale:* the date of a scene is a fact of the scene; the order is a fact of the act; the Calendar must not refuse a scene because the act is being played in a debugger.
+
+23. **If a scene id is reused across chapters (`s1` in `a1_vera` and `s1` in `a1_jan`) and a caller asks `date_for(scene_id)` without a chapter:** the lookup key is `(chapter_id, scene_id)` and `ctx` always carries both; a bare `scene_id` is accepted only when it is unique across the act's timetable, otherwise the call returns `AMBIGUOUS_SCENE(scene_id, chapters)` and serves nothing (case 4 then applies to that boundary if Scene Flow passes nothing better); the content compiler does not forbid the reuse, because chapter-local ids are GDD 2's convention. *Rationale:* a guessed chapter would stamp Jan's Friday on Vera's sheet; refusing is cheaper than being wrong on the one HUD element that is always on screen.
 
 ## Dependencies
 
@@ -215,7 +462,19 @@ This system has no screen and must not have one. It owns no HUD element: the dat
 
 ## Cross-References
 
-[To be designed]
+| This GDD references | In | Owner | Nature |
+|---|---|---|---|
+| The phase function and its constants (`T_*`, `U_*`, `STABILITY_*`, `UNREST_MAX`), effective attention and `red_band` (`ATTN_*`, `OBS_BONUS`, `PHASE_BONUS`, `ATTENTION_CAP`, the drift and decay periods), the regime record and the `phase_reached` ratchet, the effect record and ops, the boundary API (`begin_boundary(scene_id, day)`, post-increment beat, counter reset), the `calendar.*` channel and writer rule, the cross-life read budget, `source_protagonist` parsing | GDD 1 Core Rules 0, 1a, 4, 4a, 5, 6; Formulas §2, §3, §7; Tuning Knobs | Dossier State Model | Consumed; four amendments applied there for this GDD (Rule 4a, Rule 5, Rule 6, two wording fixes) |
+| Windows in beats, drift anchoring, world-move firing, `beat: none` on bookkeeping rows, the composite apply inside the cascade, the beat fluent, the reserved `phase_ratchet_n` rows, `regime_paranoid` and its `by_number` licence, `PARANOID_EARLIEST`, `BREATH_ZERO`, the trace's `day`, `topic_gen`'s inputs | GDD 6 Core Rules 1, 2, 5, 7, 8, 9, 11, 13; Formulas §3, §4; Dependencies; Open Questions | Reactive Event Rules | Consumed and extended; six amendments applied there for this GDD |
+| The `plan_week`/`date` placeholder types, V44 (no placeholder from a dossier field), the `phase_at_least` leaf as one virtual read, the chapter scene lists, the two-layer source-to-JSON pipeline | GDD 2 Core Rules 5, 6; line 86; Formulas §7 | Narrative Content Format | Consumed |
+| The `ConditionReader` shape `{read, has_fact, phase}` | GDD 5 Core Rule 6 | Investigation & Fact | Consumed; the reader composition must route target `calendar` here (requirement on Scene Flow) |
+| The CI path check naming the Calendar; "a setting changes how the game asks, never what it asks"; `timer_mode` as Dialogue's and Overlay's | GDD 4 Core Rules 11, 13; Player Fantasy | Settings Store | Consumed |
+| The headless seam pattern (`RefCounted`, constructor injection, `DebugSink`, null twins) | GDD 3 Core Rules 8, 14; GDD 6 Core Rule 14 | Scene & Interaction Framework; Rules | Pattern reused |
+| Beats per week, the opening state (Friday, week one), the drift table, the world-move windows, the pacing targets, "end of Plan Week 41" | Narrative brief §3, §4, pacing; design/narrative/paper-walls-act-one-branches.md | Narrative | The source of the timetable's shape and the act's length (Open Questions) |
+| The Calendar-transition state, the four regime phases on three axes, the red budgets per phase, the HUD date stamp, paper animation durations, the surveillance stamp, colourblind backups, asset naming | Art bible §2.1, §2.2, §4.2, §4.3, §4.5, §7.1, §7.4, §7.5, §8.2 | Art direction | Consumed; eight amendments proposed (Open Questions) |
+| Pillars 2, 4, 5; the anti-pillar "not a sandbox" | design/gdd/game-concept.md | Creative direction | Player Fantasy; Core Rule 8's rejection of a schedule-driven phase |
+| Headless CI: `--import` first, retried once; exit codes; zero tests exit 0; typed-return overrides; lambdas capture by value; `Time` as the singleton name | docs/engine-reference/godot/current-best-practices.md lines 19–30, 46–47, 192–223; breaking-changes.md line 17; deprecated-apis.md lines 32, 49 | Engine reference | The test runner, the no-wall-clock CI grep, the `DebugSink` twin |
+| `JSON`/`FileAccess` reads, `typeof`, typed `Dictionary`, `RefCounted` under headless gdUnit4, `CanvasLayer`/`CanvasModulate`/shader uniforms for the tier surface | NOT SOURCEABLE from the pinned reference (no `core.md`) | Engine reference | Open Questions; the loader outside the class; Overlay's spike |
 
 ## Acceptance Criteria
 

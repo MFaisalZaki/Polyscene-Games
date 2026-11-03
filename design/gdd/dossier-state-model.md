@@ -116,7 +116,7 @@ change:
   before: unknown
   after: true
   source: "filing:a1_vera/s3:burn_report"
-  source_protagonist: vera    # parsed from the chapter id; null for rules/chapter/migrate
+  source_protagonist: vera    # parsed from the chapter id (a chapter id with no protagonist, the act-close pseudo-chapter `<act>_close` of GDD 7, parses to null; amendment applied for GDD 7); null for rules/chapter/migrate
   cross_life: true            # schema.cross_life of the field
   status_change: null         # or { before: opened, after: active } when the write moved the record's lifecycle
   contradicts: null           # the source tag of an assumption this write overturned (§8)
