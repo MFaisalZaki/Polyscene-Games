@@ -339,8 +339,8 @@ formulas:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Audio & Adaptive Surveillance Mix"
       - "Reactive Event Rules & Story Simulator"
     variables:
@@ -360,8 +360,8 @@ formulas:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - attention
@@ -693,7 +693,6 @@ formulas:
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Character Presentation"
-      - "Overlay & Surveillance Rendering"
     variables:
       - cam_x
       - view_w
@@ -712,8 +711,8 @@ formulas:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Character Presentation"
       - "Paper UI"
     variables:
@@ -823,8 +822,7 @@ formulas:
     source: design/gdd/settings-store.md
     referenced_by:
       - design/gdd/settings-store.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
+      - design/gdd/overlay-surveillance-rendering.md
     variables:
       - flashes
       - window_s
@@ -1053,8 +1051,8 @@ formulas:
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - red_band
@@ -1071,8 +1069,8 @@ formulas:
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - red_reach
@@ -1090,7 +1088,6 @@ formulas:
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - d
@@ -1110,7 +1107,6 @@ formulas:
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - d_a
@@ -1129,7 +1125,6 @@ formulas:
       - design/gdd/calendar-regime-phase-attention.md
       - design/gdd/scene-flow.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - batch
@@ -1146,7 +1141,6 @@ formulas:
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     variables:
       - first_beat
@@ -1309,6 +1303,95 @@ formulas:
     notes: "Formulas §8. The only save point."
     added: 2026-11-03
     revised: ""
+  - name: reach_for
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Character Presentation"
+    variables:
+      - anchor.subject
+      - protagonist_id
+      - snapshot.per_character
+    output_range: "0–3"
+    expression: "reach_for(anchor) = snapshot.per_character[anchor.subject ?? protagonist_id].red_reach; an anchor is lit iff anchor.tier <= reach_for(anchor)"
+    notes: "Formulas §1. Whose reach a room uses: the chapter protagonist's, overridable per anchor by an authored subject; thresholds use the room default; reach is cumulative."
+    added: 2026-11-03
+    revised: ""
+  - name: lit
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Character Presentation"
+    variables:
+      - slot
+      - space
+      - phase
+      - lit_phases
+      - threshold
+    output_range: "a set of lighting layer ids"
+    expression: "window layer by slot (day: window_day; night: window_night), pool by space and slot (lamp private, overhead state; off by day), sodium poles whose lit_phases contains the phase, amber windows at night, threshold_<hotspot> replacing the pool on an insert's second cut"
+    notes: "Formulas §2. Two switches per light; plan entries, never tweens."
+    added: 2026-11-03
+    revised: ""
+  - name: red_estimate_ppm
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Character Presentation"
+    variables:
+      - red_px
+      - HUD_RED_RESERVE_PX
+      - ink_reach
+      - FRAME_PX
+    output_range: "0–1000000 ppm; must be <= PHASE_RED_BUDGET_PPM[phase]"
+    expression: "red_estimate_ppm = (sum of red_px over lit red layers in their selected variant + HUD_RED_RESERVE_PX[ink_reach]) * 1000000 / FRAME_PX"
+    notes: "Formulas §4. The headless proxy for Gate B's composited capture; asserted at build for every phase and in debug at every plan."
+    added: 2026-11-03
+    revised: ""
+  - name: flicker_allowance
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Character Presentation"
+    variables:
+      - flicker
+      - can_count_flashes
+      - FLICKER_HZ
+      - FLASH_MAX_PER_S
+    output_range: "{allowed, max_hz}; toggle_ok bool"
+    expression: "allowed = flicker == limited and can_count_flashes; max_hz = FLICKER_HZ; toggle_ok(now, last) = now - last >= 1000 / (2 * max_hz) over a sliding 1000 ms window; limited behaves as off while can_count_flashes is false"
+    notes: "Formulas §5. The cap enforced by construction in the core; the only flicker is the interrogation portrait's."
+    added: 2026-11-03
+    revised: ""
+  - name: overlay_plan
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Character Presentation"
+    variables:
+      - snapshot
+      - sidecar.overlay
+      - settings
+    output_range: "plain data, sorted keys, no floats; byte-equal across hosts"
+    expression: "plan = {lit layers, lit red anchors with variant (red or hatch), ghost list, tint tier, flicker allowance, red_estimate_ppm} computed at scene entry from the snapshot stored at reveal (or view_now()), the sidecar's overlay block and the settings values; immutable while the scene is active"
+    notes: "Formulas §3. Recomputed only at scene entry; the ghost is a separate op."
+    added: 2026-11-03
+    revised: ""
 constants:
   - name: ATTENTION_CAP
     status: active
@@ -1318,7 +1401,6 @@ constants:
       - design/gdd/calendar-regime-phase-attention.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Overlay & Surveillance Rendering"
     value: 6
     unit: points
     added: 2026-11-03
@@ -1447,8 +1529,6 @@ constants:
     referenced_by:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
     value: 7
     unit: stability
     added: 2026-11-03
@@ -1459,8 +1539,6 @@ constants:
     referenced_by:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
     value: 5
     unit: stability
     added: 2026-11-03
@@ -1471,8 +1549,6 @@ constants:
     referenced_by:
       - design/gdd/dossier-state-model.md
       - design/gdd/calendar-regime-phase-attention.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
     value: 2
     unit: stability
     added: 2026-11-03
@@ -1760,7 +1836,6 @@ constants:
       - design/gdd/narrative-content-format.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Overlay & Surveillance Rendering"
     value: 48
     unit: characters per rendered sign line, 2 lines
     added: 2026-11-03
@@ -1772,7 +1847,6 @@ constants:
       - design/gdd/narrative-content-format.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Overlay & Surveillance Rendering"
     value: 12
     unit: characters per stamp line, 2 lines
     added: 2026-11-03
@@ -1938,7 +2012,6 @@ constants:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Asset Pipeline Tools"
     value: 12
     unit: px in 1080 plate space (one unit; multiple of 3)
@@ -1970,8 +2043,8 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Character Presentation"
       - "Paper UI"
     value: 224
@@ -1983,8 +2056,8 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Character Presentation"
       - "Paper UI"
     value: 181
@@ -2096,8 +2169,8 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Character Presentation"
       - "Paper UI"
     value: 256
@@ -2113,7 +2186,6 @@ constants:
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Overlay & Surveillance Rendering"
     value: 120
     unit: ms (art bible §7.4; pointer)
     notes: "Owned by design/art/art-bible.md §7.4."
@@ -2124,8 +2196,8 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     value: 150
     unit: draws per frame steady state (art bible §8.7 T3; pointer)
@@ -2171,8 +2243,8 @@ constants:
     source: design/gdd/settings-store.md
     referenced_by:
       - design/gdd/settings-store.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Accessibility requirements"
     value: 3
     unit: flashes per second ceiling (WCAG 2.3.1; may only be lowered)
@@ -2454,8 +2526,8 @@ constants:
     source: design/gdd/calendar-regime-phase-attention.md
     referenced_by:
       - design/gdd/calendar-regime-phase-attention.md
+      - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Overlay & Surveillance Rendering"
       - "Paper UI"
     value: [1, 2, 3, 0]
     unit: red reach tier per phase (confident margin, paranoid props, panicking key light, collapsing withdraws); a tier table, never a float
@@ -2568,5 +2640,149 @@ constants:
       - design/gdd/scene-flow.md
     value: 1
     unit: "Scene Flow cursor save schema version"
+    added: 2026-11-03
+    revised: ""
+  - name: GHOST_OFFSET_PX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 3
+    unit: "px offset of the carbon ghost at 1080 (2 at 720)"
+    added: 2026-11-03
+    revised: ""
+  - name: GHOST_MAX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 16
+    unit: "carbon ghosts per scene (art bible T3)"
+    added: 2026-11-03
+    revised: ""
+  - name: STAMP_MAX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 12
+    unit: "stamp instances per scene (art bible T3)"
+    added: 2026-11-03
+    revised: ""
+  - name: LIGHT_MAX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 6
+    unit: "lighting layers per scene"
+    added: 2026-11-03
+    revised: ""
+  - name: LIGHT_LAYER_MAX_PX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 1024
+    unit: "max side of a lighting layer crop in px"
+    added: 2026-11-03
+    revised: ""
+  - name: PHASE_RED_BUDGET_PPM
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: [20000, 50000, 150000, 10000]
+    unit: "red share of the composited frame per phase in ppm (art bible §4.3: 2/5/15/1%)"
+    added: 2026-11-03
+    revised: ""
+  - name: SOOT_MIN_PPM
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 400000
+    unit: "soot share of the frame at Collapsing, minimum (art bible §4.3)"
+    added: 2026-11-03
+    revised: ""
+  - name: FRAME_PX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 2073600
+    unit: "pixels in a 1920x1080 frame; a fact, not a knob"
+    added: 2026-11-03
+    revised: ""
+  - name: HUD_RED_RESERVE_PX
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: [0, 4000, 8000, 41000]
+    unit: "red pixels reserved for the HUD date stamp per ink reach; Paper UI confirms"
+    added: 2026-11-03
+    revised: ""
+  - name: GRAIN_PLATE_MIN_PCT
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 8
+    unit: "grain opacity on plates, minimum percent"
+    added: 2026-11-03
+    revised: ""
+  - name: GRAIN_PLATE_MAX_PCT
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 12
+    unit: "grain opacity on plates, maximum percent"
+    added: 2026-11-03
+    revised: ""
+  - name: GRAIN_UI_MAX_PCT
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 6
+    unit: "grain opacity on UI, maximum percent (art bible §7.2)"
+    added: 2026-11-03
+    revised: ""
+  - name: FLICKER_HZ
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 2
+    unit: "scheduled flashes per second for the interrogation portrait under flicker limited (margin under FLASH_MAX_PER_S 3)"
+    added: 2026-11-03
+    revised: ""
+  - name: THRESHOLD_CUT_MS
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 500
+    unit: "ms between the insert's figure cut and its light cut"
+    added: 2026-11-03
+    revised: ""
+  - name: TIMER_TICKS
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 5
+    unit: "hatching ticks across the interrogation timer fill (one per 20%)"
+    added: 2026-11-03
+    revised: ""
+  - name: RED_PROXY_TOLERANCE_PP
+    status: active
+    source: design/gdd/overlay-surveillance-rendering.md
+    referenced_by:
+      - design/gdd/overlay-surveillance-rendering.md
+    value: 1
+    unit: "percentage points of frame by which Gate B's capture may differ from the headless estimate"
     added: 2026-11-03
     revised: ""
