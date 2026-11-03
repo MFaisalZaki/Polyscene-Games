@@ -11,24 +11,42 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--concrete);font-family:"Courier New",Courier,monospace;color:var(--soot);}
   #stage{position:relative;width:1280px;height:720px;margin:0 auto;background:var(--bone);overflow:hidden}
-  /* the office plate */
-  #plate{position:absolute;left:0;top:0;width:860px;height:720px;background:var(--green);}
-  #floor{position:absolute;left:0;top:420px;width:860px;height:300px;background:#8e8a78;}
-  #desk{position:absolute;left:120px;top:380px;width:460px;height:150px;background:var(--ochre);border:2px solid var(--soot)}
-  #lamp{position:absolute;left:540px;top:290px;width:40px;height:90px;background:var(--soot)}
-  #lamppool{position:absolute;left:380px;top:360px;width:300px;height:200px;background:radial-gradient(ellipse at center,rgba(221,176,101,.55),rgba(221,176,101,0) 70%);pointer-events:none}
-  #shelf{position:absolute;left:640px;top:120px;width:200px;height:300px;background:#4f5648;border:2px solid var(--soot)}
+  /* the office plate — CSS 3D isometric (dimetric 60/45) projection */
+  #plate{position:absolute;left:0;top:0;width:860px;height:720px;background:var(--concrete);overflow:hidden}
+  #room{position:absolute;left:150px;top:220px;width:560px;height:560px;transform-style:preserve-3d;transform:rotateX(60deg) rotateZ(45deg);background:#8e8a78;border:2px solid var(--soot)}
+  #room *{transform-style:preserve-3d}
+  .wall{position:absolute;background:var(--green);border:2px solid var(--soot)}
+  #wallL{left:0;top:-260px;width:560px;height:260px;transform-origin:bottom;transform:rotateX(-90deg)}
+  #wallR{left:0;top:0;width:260px;height:560px;transform-origin:left;transform:rotateY(-90deg)}
+  #window{position:absolute;left:170px;top:60px;width:200px;height:140px;background:var(--bone);border:6px solid var(--soot)}
+  .face{position:absolute;border:2px solid var(--soot)}
+  /* desk: 300 x 150 x 80 at (170,250) */
+  #deskTop{left:170px;top:250px;width:300px;height:150px;background:#a3875a;transform:translateZ(80px)}
+  #deskFront{left:170px;top:320px;width:300px;height:80px;background:#7d6740;transform-origin:bottom;transform:rotateX(-90deg)}
+  #deskSide{left:470px;top:250px;width:80px;height:150px;background:#6c5836;transform-origin:left;transform:rotateY(-90deg)}
+  /* shelf: 120 x 60 x 220 against the left wall at (380,10) */
+  #shelfTop{left:380px;top:10px;width:120px;height:60px;background:#59604f;transform:translateZ(220px)}
+  #shelfFront{left:380px;top:-150px;width:120px;height:220px;background:#4f5648;transform-origin:bottom;transform:rotateX(-90deg)}
+  #shelfSide{left:500px;top:10px;width:220px;height:60px;background:#434a3e;transform-origin:left;transform:rotateY(-90deg)}
   .shelfrow{position:absolute;left:0;width:100%;height:2px;background:var(--soot)}
-  #cabinet{position:absolute;left:20px;top:200px;width:90px;height:230px;background:#5a6155;border:2px solid var(--soot)}
+  /* cabinet: 70 x 50 x 160 against the right wall at (10,330) */
+  #cabTop{left:10px;top:330px;width:70px;height:50px;background:#5a6155;transform:translateZ(160px)}
+  #cabFront{left:10px;top:220px;width:70px;height:160px;background:#505850;transform-origin:bottom;transform:rotateX(-90deg)}
+  #cabSide{left:80px;top:330px;width:160px;height:50px;background:#434a42;transform-origin:left;transform:rotateY(-90deg)}
   .drawerline{position:absolute;left:0;width:100%;height:2px;background:var(--soot)}
-  #window{position:absolute;left:260px;top:60px;width:220px;height:180px;background:var(--bone);border:6px solid var(--soot)}
-  #berta{position:absolute;left:700px;top:430px;width:60px;height:150px;}
+  #lamp{position:absolute;left:430px;top:255px;width:30px;height:30px;background:var(--soot);transform:translateZ(81px)}
+  #lamppool{position:absolute;left:260px;top:220px;width:300px;height:220px;background:radial-gradient(ellipse at center,rgba(221,176,101,.6),rgba(221,176,101,0) 70%);transform:translateZ(81px);pointer-events:none}
+  #phone{position:absolute;left:190px;top:270px;width:44px;height:26px;background:var(--soot);border-radius:4px;transform:translateZ(82px)}
+  /* figure: a billboard standing on the floor, facing the camera */
+  #berta{position:absolute;left:470px;top:430px;width:60px;height:150px;transform-origin:50% 100%;transform:rotateZ(-45deg) rotateX(-60deg)}
   #berta .head{width:34px;height:40px;background:#c9b89a;border-radius:16px 16px 12px 12px;margin:0 auto;border:2px solid var(--soot)}
   #berta .body{width:60px;height:108px;background:#7a7566;border-radius:22px 22px 4px 4px;border:2px solid var(--soot);margin-top:-2px}
-  #phone{position:absolute;left:150px;top:395px;width:46px;height:28px;background:var(--soot);border-radius:4px}
+  #berta.fig:hover .body{border-width:3px}
+  .onfloor{position:absolute}
   /* hotspots: paper rectangles with keyline, lifted corner on hover */
-  .hot{position:absolute;background:var(--bone);border:2px solid var(--soot);cursor:pointer;transition:transform .12s ease-out;padding:4px;font-size:10px;line-height:1.1;overflow:hidden}
-  .hot:hover,.hot:focus{transform:translate(-2px,-3px);border-width:3px;outline:none}
+  .hot{position:absolute;background:var(--bone);border:2px solid var(--soot);cursor:pointer;transition:transform .12s ease-out;padding:4px;font-size:11px;line-height:1.1;overflow:hidden;transform:translateZ(1px)}
+  .hot:hover,.hot:focus{transform:translateZ(6px);border-width:3px;outline:none}
+  .hot.lift{transform:translateZ(6px)}
   .hot.read{border-color:var(--carbon);box-shadow:3px 3px 0 var(--carbon);color:var(--carbon)}
   .hot.red{border-color:var(--red)}
   .fig{position:absolute;cursor:pointer}
@@ -73,23 +91,31 @@
 <body>
 <div id="stage">
   <div id="plate">
-    <div id="window"></div>
-    <div id="cabinet"><div class="drawerline" style="top:56px"></div><div class="drawerline" style="top:112px"></div><div class="drawerline" style="top:168px"></div></div>
-    <div id="shelf"><div class="shelfrow" style="top:70px"></div><div class="shelfrow" style="top:140px"></div><div class="shelfrow" style="top:210px"></div></div>
-    <div id="floor"></div>
-    <div id="lamppool"></div>
-    <div id="desk"></div>
-    <div id="lamp"></div>
-    <div id="phone" title="Telephone"></div>
-    <div id="berta" class="fig" tabindex="0" title="Berta, next desk"><div class="head"></div><div class="body"></div></div>
-    <!-- hotspots: each is a document; one-unit displacement from its surface -->
-    <div class="hot" id="h1" tabindex="0" style="left:300px;top:395px;width:110px;height:70px">REPORT 4471</div>
-    <div class="hot" id="h2" tabindex="0" style="left:430px;top:405px;width:90px;height:56px">letter, opened</div>
-    <div class="hot" id="h3" tabindex="0" style="left:660px;top:160px;width:120px;height:46px">TENANT REGISTER Vrba St 9</div>
-    <div class="hot" id="h4" tabindex="0" style="left:38px;top:262px;width:60px;height:44px">memo 7781</div>
-    <div class="hot" id="h5" tabindex="0" style="left:150px;top:300px;width:100px;height:60px">note — B.</div>
-    <div class="hot" id="h6" tabindex="0" style="left:30px;top:372px;width:72px;height:40px">stock card</div>
-    <div class="hot" id="ledger" tabindex="0" style="left:200px;top:440px;width:120px;height:70px;background:#c9b48a">THE LEDGER<br><small>enter 4471</small></div>
+    <div id="room">
+      <div id="wallL" class="wall"><div id="window"></div></div>
+      <div id="wallR" class="wall"></div>
+      <div id="shelfTop" class="face"></div>
+      <div id="shelfFront" class="face"><div class="shelfrow" style="top:70px"></div><div class="shelfrow" style="top:140px"></div>
+        <div class="hot" id="h3" tabindex="0" style="left:6px;top:78px;width:108px;height:50px">TENANT REGISTER Vrba St 9</div></div>
+      <div id="shelfSide" class="face"></div>
+      <div id="cabTop" class="face"></div>
+      <div id="cabFront" class="face"><div class="drawerline" style="top:52px"></div><div class="drawerline" style="top:104px"></div>
+        <div class="hot" id="h4" tabindex="0" style="left:6px;top:8px;width:58px;height:40px">memo 7781</div>
+        <div class="hot" id="h6" tabindex="0" style="left:6px;top:112px;width:58px;height:40px">stock card</div></div>
+      <div id="cabSide" class="face"></div>
+      <div id="lamppool"></div>
+      <div id="deskTop" class="face">
+        <div class="hot" id="h1" tabindex="0" style="left:90px;top:20px;width:110px;height:70px">REPORT 4471</div>
+        <div class="hot" id="h2" tabindex="0" style="left:206px;top:30px;width:84px;height:56px">letter, opened</div>
+        <div class="hot" id="h5" tabindex="0" style="left:200px;top:96px;width:90px;height:48px">note — B.</div>
+        <div class="hot" id="ledger" tabindex="0" style="left:40px;top:92px;width:120px;height:54px;background:#c9b48a">THE LEDGER<br><small>enter 4471</small></div>
+      </div>
+      <div id="deskFront" class="face"></div>
+      <div id="deskSide" class="face"></div>
+      <div id="lamp"></div>
+      <div id="phone" title="Telephone"></div>
+      <div id="berta" class="fig" tabindex="0" title="Berta, next desk"><div class="head"></div><div class="body"></div></div>
+    </div>
     <div id="datestamp">FRI 6 OCT 1989 · WEEK 1</div>
   </div>
   <div id="ui">

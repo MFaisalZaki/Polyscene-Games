@@ -28,7 +28,7 @@ explanation. Not yet proved out: nobody has played it.
 
 ## Approach
 
-One self-contained `prototype.html`: an office plate in flat CSS boxes using the
+One self-contained `prototype.html`: an office plate in a CSS 3D isometric projection using the
 art bible palette, six documents as keylined paper hotspots, a fact board where
 clicking a name or number in a document holds it and clicking two held facts
 tests a link (six authored links), a colleague with questions unlocked by links,

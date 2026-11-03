@@ -27,7 +27,7 @@ ends after one decision; reload to try another.
 
 ## What is in it
 
-One office plate drawn with flat CSS boxes in the Carbon Copy palette, six
+One office plate in a CSS 3D isometric projection (two back walls, desk, shelf, cabinet, a standing figure billboard) in the Carbon Copy palette, six
 documents as paper hotspots (keyline, lifted corner on focus, no glow), a fact
 board, six fact links, one colleague with three unlockable questions, one filing
 decision with three options (one is VOID until a specific link is found), one
