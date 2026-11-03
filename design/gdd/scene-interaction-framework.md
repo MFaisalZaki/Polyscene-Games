@@ -275,7 +275,7 @@ The camera follow formula is defined as:
 
 The resident-byte formula is defined as:
 
-`bytes(t) = w_t × h_t × 4 × (4/3 if mipmapped(t) else 1)`; `bytes_fw = bytes(plate) + Σ_h (bytes(layer_h) + bytes(focus_layer_h) + bytes(layer_filed_h))`; build `bytes_est = bytes_fw + OTHERS_RESERVE_MB`; runtime `bytes_scene = bytes_fw + Σ_owner reported(owner, scene_id)`; W13 warns at `≥ SCENE_BUDGET_WARN`, errors at `> SCENE_BUDGET_MAX`.
+`bytes(t) = w_t × h_t × 4 × (4/3 if mipmapped(t) else 1)`; `bytes_fw = bytes(plate) + Σ_h (bytes(layer_h) + bytes(focus_layer_h) + bytes(layer_filed_h))`; build `bytes_est = bytes_fw + bytes_overlay + OTHERS_RESERVE_MB` (`bytes_overlay` is GDD 9 Formulas §9's lighting, stamp-atlas and grain bytes; `OTHERS_RESERVE_MB` carries no overlay line; amendment applied for GDD 9); runtime `bytes_scene = bytes_fw + Σ_owner reported(owner, scene_id)`; W13 warns at `≥ SCENE_BUDGET_WARN`, errors at `> SCENE_BUDGET_MAX`.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |

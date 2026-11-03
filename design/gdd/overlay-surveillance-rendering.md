@@ -192,11 +192,299 @@ Switch one is the window's value (bone by day, soot by night; never blue, never 
 
 ## Formulas
 
-[To be designed]
+*Proposed by the systems designer; three items it raised are ruled here: T3's "stamps ≤ 12" is read as the draw budget for **all lit red anchors** (stamps, props and the key light together), so `STAMP_MAX` bounds `|red_anchors|` and O14 counts every kind (a tightening of Section C's O14 wording); the overlay block's bytes are added to GDD 3's build-time estimate (`bytes_est = bytes_fw + bytes_overlay + OTHERS_RESERVE_MB`, an amendment to GDD 3 Formulas §7, because `OTHERS_RESERVE_MB` 181 is exactly sheet + portraits + UI atlas + documents and holds no overlay line); and the proxy-versus-capture tolerance `RED_PROXY_TOLERANCE_PP` is a CI constant, not an art knob. Every constant appears by its registry name; the shipped value is quoted in the table. GDD 7's `red_reach`, `stamp_tier` and `PHASE_RED_CAP` (Formulas §3–§4) are cited, never restated. Indices: `a` is an anchor, `l` a lighting layer, `h` a hotspot, `p` a phase 0–3, `k` an ink reach 0–3. Square brackets `[P]` are the Iverson bracket (1 if `P`, else 0). Every quantity below is an integer, an id, a boolean or a rect of integers; fractions are parts per million (`ppm`) and opacities integer percent; nothing reads a wall clock except §5's gate, whose time is injected.*
+
+### 1. Reach for an anchor
+
+The reach an anchor is lit against is defined as:
+
+`subject(a) = a.subject if a.subject ≠ null else protagonist_id` · `reach_for(a) = view[subject(a)].red_reach if subject(a) ∈ view else 0`
+
+where `view` is the snapshot's `per_character` (GDD 7 Rule 9) and `view[x].red_reach = min(red_band(x), PHASE_RED_CAP[phase])` (GDD 7 §3, registry `red_reach`). An anchor on a `threshold: true` hotspot carries no `subject` by O06/O11's shape and so uses the room's default; a `kind: person` hotspot carries no anchor at all (O05–O07). With no snapshot held (Core Rule 11), `view = {}` and every `reach_for = 0`.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `a.subject` | id or null | a dossier person record id, or null | data file (sidecar `overlay.red_anchors[].subject`; X02 cross-check in `tools/`) | The person whose attention this anchor shows; null on almost every anchor |
+| `protagonist_id` | id | `{vera, jan, tomas}` in act one | `enter_scene` (GDD 8 Rule 13) | The chapter's protagonist: the room is theirs |
+| `view` | map id → record | every person record carrying `attention` | snapshot (`reveal`, GDD 8 Rule 13; GDD 7 Rule 9) | The per-character view; absent persons read as 0 (GDD 7 Edge Case 14) |
+| `view[x].red_reach` | int | 0–3 | calculated (GDD 7 §3) | Phase-capped reach of `x` |
+| `reach_for(a)` | int | 0–3 | calculated | The tier this anchor is lit against |
+
+**Output Range:** bounded 0–3. Minimum 0 when the subject is absent from the view, unwatched (`A_eff 0`), or the phase is collapsing (`PHASE_RED_CAP[3] = 0`), and for every anchor when no snapshot is held. Maximum 3 only at panicking with the subject above `ATTN_WATCHED` (act two and later; act one's `first_beat(2) = ∅`). Because the default subject is one person, every anchor without a `subject` in one room shares one reach, so a room reads as one tier plus named exceptions; a `subject` anchor can be above or below the room's tier (Marta's door hatched in a room whose telephone is red, or the reverse). **Example:** Jan's `j_route` at the snapshot `{phase 1, per_character: {jan: {red_reach 2}, marta: {red_reach 1}}}`, `protagonist_id jan`: `prop_telephone` (no subject) → `reach_for 2`; `stamp_marta_door` (`subject: marta`) → `reach_for 1`; `stamp_notice_01` with `subject: ilona` (not in the view) → 0, `SUBJECT_UNKNOWN` logged once. *Rejected:* the room's reach as `max` over everyone in the view (a calm protagonist's room reddens because a watched friend exists; GDD 7 §3's "red for no reason of his own"); the subject as a per-hotspot-kind rule ("a `person` hotspot's threshold uses the subject's", the brief's wording: a telephone is not a person, and the binding must be visible in the data or there is none).
+
+### 2. Lit: anchors, the slot's two switches, the threshold's two switches
+
+What is drawn is defined as three predicates over the sidecar's layers:
+
+`lit_anchor(a) = [ a.tier ≤ reach_for(a) ]` (cumulative: the margin stays lit when the props join it)
+
+`lit_light(l, slot, space, phase) = [ l.id ∈ RECIPE[space][slot] ] · [ l.id ∉ SODIUM ∨ phase ∈ l.lit_phases ]` with
+`RECIPE[interior][morning] = {window_day, POOL}`, `RECIPE[interior][day] = {window_day}`, `RECIPE[interior][night] = {window_night, POOL}`, `RECIPE[street][night] = SODIUM ∪ {amber_windows}`, `RECIPE[street][morning] = RECIPE[street][day] = ∅`, where `interior = {state, private, print_shop}`, `POOL = {lamp} ∪ {overhead}` (whichever the sidecar declares), `SODIUM = {sodium_<n>}`
+
+`lit_light_after(l) = [ l.id = threshold_<t> ]` for `scene_kind = insert` and the insert's one threshold `t` (every slot layer off: "the room's light source is replaced", art bible §2.1)
+
+Switch one of the slot is the window's value (`window_day` xor `window_night`), switch two is the pool on or off; switch one of the threshold is `threshold_<t>` off then on, switch two is the slot set kept then replaced. The tint is `tint.tier = 3 · [reach_for(default) = 3]`, with `reach_for(default)` the protagonist's reach.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `a.tier` | int | 1–3 | data file (fixed by `kind`: stamp 1, prop 2, key_light 3; O02) | The reach at which the anchor lights |
+| `reach_for(a)` | int | 0–3 | calculated (§1) | |
+| `slot` | enum | `morning`, `day`, `night` (GDD 7 `SLOTS`) | `enter_scene` | The scene's slot from the timetable |
+| `space` | enum | `state`, `private`, `street`, `print_shop` | data file (`overlay.space`) | Art bible §6.3 area |
+| `l.lit_phases` | int[] | subset of 0–3; default all | data file (`sodium_<n>` only) | Phases in which this pole is lit; "dark one by one" is authored per pole |
+| `phase` | int | 0–3 | snapshot | |
+| `scene_kind` | enum | `authored`, `insert` | `enter_scene` | |
+| `lit_anchor`, `lit_light`, `lit_light_after` | bool | — | calculated | Drawn or not |
+| `tint.tier` | int | `{0, 3}` | calculated | The full-frame layer's uniform; never 1 or 2 |
+
+**Output Range:** `lit_anchor` is monotone in `reach_for` (a higher reach never unlights an anchor); at reach 0 the lit set is empty and the plate carries no red-tolerance pixel. `lit_light` lights at most `|{window}| + |POOL| = 2` layers in an interior and at most `|SODIUM| + 1 ≤ LIGHT_MAX` in a street; `lit_light_after` lights exactly 1. A sidecar whose `lit_phases` omits the current phase simply leaves that pole dark (Edge Case 23). `tint.tier` is 3 only when the protagonist's own reach is 3: a `subject` anchor at 3 in a room whose protagonist is at 2 lights the key light? No: `key_light` carries no `subject` (O07 shape), so the key light and the tint move together on the protagonist alone. **Example:** `v_office` (`private`), `slot day`, `reach 1`: `window_day` on, `lamp` off, `window_night` off; `stamp_door_01` lit, `prop_telephone` unlit; `tint 0`. Insert `v_rybar_call` (`private`, inherited `slot night`, `reach 1`): first table `window_night` on, `lamp` on, `threshold_telephone` off; second table all three slot layers off, `threshold_telephone` on; `stamp_door_01` lit in both. Street `j_vrba` at `phase 3`, `night`: `sodium_01 {lit_phases [0,1,2]}` dark, `sodium_02 {lit_phases [0,1,2,3]}` lit, `amber_windows` lit. *Rejected:* a non-cumulative reach (only tier = reach lit: paranoid would lose its margin stamps, and §2.2's axis reads "margin → props", not "margin, then props instead"); a tint at tiers 1–2 (a red grade is a meter in light; GDD 6 VA §2).
+
+### 3. The plan as a function
+
+The plan is defined as:
+
+`OverlayPlan = plan(sidecar.overlay, snapshot, ctx, settings, caps)` with `ctx = {scene_id, scene_kind, slot, protagonist_id}`, `settings = {flicker, red_as_hatching}`, `caps = {can_count_flashes}`, and fields:
+
+```
+phase        = snapshot.phase                (0 if snapshot = null)
+reach        = reach_for(default)            (§1)
+ink_reach    = PHASE_RED_CAP[phase]          (1 if snapshot = null)
+slot, scene_kind                              = ctx
+lighting[l]  = on if lit_light(l, slot, space, phase) else off, for every l in sidecar.lighting   (§2)
+lighting_after_threshold = { l: on if lit_light_after(l) else off } if scene_kind = insert else null
+stamps       = sorted by id { a: kind = stamp,     lit_anchor(a) } each as {anchor, atlas, variant: red_style(), rect}
+props        = sorted by id { a: kind = prop,      lit_anchor(a) } each as {anchor, hotspot, variant, rect}
+key_light    = the one a: kind = key_light with lit_anchor(a), as {anchor, variant, rect}, else null
+tint         = { tier: 3·[reach = 3], hatch: red_as_hatching }
+grain        = sidecar.grain
+flicker      = flicker_allowance(flicker, can_count_flashes)       (§5)
+red_est_ppm  = red_estimate_ppm(lit anchors, variant, ink_reach)   (§4)
+red_budget_ppm = PHASE_RED_BUDGET_PPM[phase]
+ghosts_at_entry = sorted { h : availability(h) = filed }
+findings     = codes raised during planning (SNAPSHOT_MISSING, SUBJECT_UNKNOWN, RED_BUDGET, STAMP_TIER_ABOVE_INK)
+```
+
+serialised with keys sorted, lists in id order, every number an integer. The plan is a pure function of its five inputs: two runs over equal inputs give byte-equal output on any host, and the `NullOverlayHost` log for a scene is the plan plus the ordered `apply`/`apply_after_threshold`/`apply_ghost` calls.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `sidecar.overlay` | record | validated by O01–O15 | data file (GDD 3's `scene.json`) | Every red and every light the room can show |
+| `snapshot` | `BoundaryView` or null | GDD 7 Rule 9's shape | `reveal` | null before the act's first boundary and after a load until `view_now()` is pushed (Core Rule 11; GDD 7 amendment) |
+| `ctx` | record | ids and enums | `enter_scene` | Scene facts Scene Flow already holds |
+| `settings.flicker` | enum | `off`, `limited` | `SettingsReader` at plan time | GDD 4 |
+| `settings.red_as_hatching` | bool | — | `SettingsReader` at plan time | GDD 4 |
+| `caps.can_count_flashes` | bool | — | `OverlayHost` | The host drives toggles through §5's gate on frame time |
+| `availability(h)` | enum | `unfiled`, `filed`, `void`, `hidden` | GDD 3 host (set by Scene Flow before `scene_ready`) | For `ghosts_at_entry` |
+| `OverlayPlan` | record | as above | calculated | The one output; immutable per scene |
+
+**Output Range:** exactly one plan per `enter_scene`; no field is unbounded (`stamps + props + [key_light] ≤ STAMP_MAX`, `|lighting| ≤ LIGHT_MAX`, `|ghosts_at_entry| ≤ 8`, `red_est_ppm ≤ 10⁶`). The all-null-snapshot plan is the minimum: no anchor lit, `tint 0`, `ink_reach 1`, `red_est_ppm = HUD_RED_RESERVE_PX[1] · 10⁶ / FRAME_PX = 1929`, `flicker` per settings, lighting per slot. The maximum is a state-space or insert plate at reach 3 with every anchor lit and `tint 3`. **Example:** `plan(v_office.overlay, {phase 0, per_character: {vera: {red_reach 1}}}, {v_office, authored, day, vera}, {limited, false}, {false})` → `{phase 0, reach 1, ink_reach 1, slot day, lighting {lamp off, window_day on, window_night off}, lighting_after_threshold null, stamps [{stamp_door_01, stamp_square_official, fill, [1612,118,96,96]}], props [], key_light null, tint {0, false}, grain {grain_bone_01, 10}, flicker {false, 0}, red_est_ppm 4147, red_budget_ppm 20000, ghosts_at_entry [], findings []}`. *Rejected:* a plan that holds a reference to the sidecar or the snapshot (a later mutation would change a plan already applied; the plan copies values); recomputing on `changed(red_as_hatching)` (two plans in one room; Core Rule 2).
+
+### 4. Red estimate and the budget
+
+The headless proxy for the §4.3 share is defined as:
+
+`red_est_ppm = ⌈ ( Σ_{a : lit_anchor(a)} red_px(a, variant) + HUD_RED_RESERVE_PX[ink_reach] ) · 10⁶ / FRAME_PX ⌉` with `red_px(a, fill) = a.red_px` and `red_px(a, hatch) = a.red_px_hatch = 0` (O08)
+
+`within_budget(p) = [ red_est_ppm(p) ≤ PHASE_RED_BUDGET_PPM[p] ]`, where `red_est_ppm(p)` at build (O10) counts every anchor with `tier ≤ PHASE_RED_CAP[p]` lit under `fill` and uses `HUD_RED_RESERVE_PX[PHASE_RED_CAP[p]]`
+
+`proxy_agrees(capture_ppm) = [ capture_ppm − red_est_ppm ≤ RED_PROXY_TOLERANCE_PP · 10⁴ ]` (Gate B, CI: the capture may be below the proxy by any amount, since the proxy over-counts overlaps, but above it by at most one percentage point, since only the tint or a sheet could add red the proxy did not see)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `a.red_px` | int | 0 – layer area | data file (written by the T7 gate script at export; O09 re-verifies) | Red-tolerance pixels (hue 348°–18°, S ≥ 0.55, V ≥ 0.35) in the anchor's `fill` layer or atlas cell |
+| `a.red_px_hatch` | int | 0 | data file (O08 requires 0) | The hatch variant carries no red |
+| `HUD_RED_RESERVE_PX` | int[4] | `[0, 4000, 8000, 41000]` (D; Paper UI confirms) | constant (this GDD, registry; co-owned with Paper UI) | The §7.1 date stamp at `dry/crisp/bleeds/floods`: a 640×64 box at 1080, strokes ≈ 10% / 20% / solid |
+| `ink_reach` | int | 0–3 | snapshot (`PHASE_RED_CAP[phase]`) | Which reserve applies |
+| `FRAME_PX` | int | 2,073,600 | constant (1920 × 1080; a fact of the composite, not a knob) | The capture's size |
+| `PHASE_RED_BUDGET_PPM` | int[4] | `[20000, 50000, 150000, 10000]` | constant (art bible §4.3 by pointer, registry) | 2 / 5 / 15 / 1 % |
+| `RED_PROXY_TOLERANCE_PP` | int | 1 (B) | constant (CI config) | Percentage points the capture may exceed the proxy by |
+| `red_est_ppm` | int | 0 – 10⁶ | calculated | The plan's share |
+| `within_budget`, `proxy_agrees` | bool | — | calculated | The build assert (O10) and the CI assert (Gate B) |
+
+**Output Range:** `red_est_ppm` is bounded 0–10⁶ and is 0 exactly under `red_as_hatching` at `ink_reach 0`, or at reach 0 with `ink_reach 0` (collapsing: the proxy reads 0 against a 1% budget; the soot ≥ `SOOT_MIN_PPM` 400,000 half of Gate B has no proxy and is capture-only). Minimum with a snapshot and `fill`: `HUD_RED_RESERVE_PX[1] = 4000` → 1,929 ppm at confident with nobody looked at. Maximum: every anchor lit under `fill` plus the floods reserve, which O10 bounds at 150,000. The proxy never under-counts a lit anchor (overlaps sum; occlusion by figures is ignored) and never sees the tint or a sheet; `proxy_agrees` is therefore one-sided. **Example (1080):** *Confident, `v_office`, reach 1, ink_reach 1:* `4600 + 4000 = 8600` → `⌈8600 · 10⁶ / 2073600⌉ = 4147` ppm, 0.41% ≤ 2% ✓. *Paranoid, `j_press`, reach 2, ink_reach 2:* `4600 + 11000 + 14000 + 8000 = 37600` → 18,133 ppm, 1.81% ≤ 5% ✓. *Panicking state space (act two), reach 3, ink_reach 3:* `4600 + 25000 + 180000 + 41000 = 250600` → 120,853 ppm, 12.1% ≤ 15% ✓. *Collapsing, any plate:* reach 0, `ink_reach 0` → 0 ppm ≤ 1% ✓. *Gate B on `j_press`:* capture 16,900 ppm (overlap of folder and stamp) → `proxy_agrees` (below the proxy); a capture of 29,000 ppm → fails (`+1.09 pp`), naming the tint or an open sheet as the suspect. *Rejected:* `red_px` as rect area × a fill factor (the gate script already counts exactly; an estimate of an exact number is a worse number); a budget tuned per plate (§4.3 is the state's colour budget, not a plate's).
+
+### 5. Flicker allowance and the toggle gate
+
+The allowance and the gate are defined as:
+
+`max_hz = 0 if flicker = off ∨ ¬can_count_flashes else min(FLICKER_HZ, FLASH_MAX_PER_S)` · `flicker_allowance = { allowed: [max_hz > 0], max_hz }`
+
+`toggle_ok(now_ms, last_ms) = [ max_hz > 0 ] · [ now_ms − last_ms ≥ ⌈1000 / (2 · max_hz)⌉ ]`
+
+A flash (WCAG 2.3.1) is a pair of opposing luminance transitions; a square wave driven through `toggle_ok` produces at most `max_hz` pairs in any sliding one-second window, because two toggles are one pair and consecutive toggles are at least `1000 / (2 · max_hz)` ms apart, so GDD 4 Formulas §3's `flash_rate_ok(flashes, 1 s)` holds by construction with `flashes ≤ max_hz ≤ FLASH_MAX_PER_S`. A toggle refused by the gate is dropped, never deferred. `red_flashes = 0` always: no element carrying stamp red is ever toggled (Core Rule 10), so the red-flash threshold GDD 4 left to this system is met without a second gate.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `flicker` | enum | `off`, `limited` | `SettingsReader` at plan time | GDD 4; `limited` is the default, `off` under OS reduced motion at first run |
+| `can_count_flashes` | bool | — | `OverlayHost.can_count_flashes()` | The engine twin drives every toggle through `toggle_ok` on frame time; `false` until the spike proves it; the null twin returns what a test sets |
+| `FLICKER_HZ` | int | 1–3; 2 (D) | constant (this GDD, registry) | The portrait flicker's rate |
+| `FLASH_MAX_PER_S` | int | 3 (may only be lowered) | constant (GDD 4, registry) | WCAG 2.3.1 ceiling |
+| `max_hz` | int | 0–3 | calculated | The allowance |
+| `now_ms`, `last_ms` | int | ≥ 0 | injected (the host's tick; a test counter) | Time of this frame and of the last accepted toggle |
+| `toggle_ok` | bool | — | calculated | Whether the portrait may swap lit/unlit this frame |
+
+**Output Range:** `max_hz ≤ 3` for every input and 0 for every input while `can_count_flashes` is false (GDD 4 Edge Case 21: `limited` behaves as `off` until the cap exists). The minimum interval is 167 ms at `max_hz 3`, 250 ms at 2, 500 ms at 1; at 60 fps those are 10, 15 and 30 frames. The gate is stateless beyond `last_ms`, so a replay with the same injected times gives the same toggles. **Example:** `limited`, `can_count_flashes true`, `FLICKER_HZ 2` → `{true, 2}`; toggles at 0, 250, 500 ms accepted, a toggle requested at 620 ms (120 ms after 500) refused and dropped, the next accepted at 750 ms; in any 1 s window at most 4 toggles = 2 pairs ≤ 3. `limited` with `can_count_flashes false` → `{false, 0}`: the portrait is steadily lit, the sheet says so. *Rejected:* counting luminance transitions from a frame capture (a count after the fact is not a cap, and the capture API is the spike that may not land); a per-player Hz slider (GDD 4's rejection: no value above the ceiling may exist).
+
+### 6. Red style
+
+The style every red element renders in is defined as:
+
+`red_style(red_as_hatching) = hatch if red_as_hatching else fill`; `layer_of(a) = a.layer_hatch if red_style = hatch else a.layer` (atlas: `a.atlas + "_h"` for stamps); `tint.hatch = red_as_hatching`
+
+Consumers: this system's stamps, props and key light (Core Rule 5); Paper UI's surveillance stamp, date stamp and timer fill **(PROV)**, which draw from the same atlas and the same style (Core Rule 12). The style is read at plan time and applies at the next scene entry.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `red_as_hatching` | bool | — | `SettingsReader` | GDD 4's §4.5 toggle |
+| `red_style` | enum | `fill`, `hatch` | calculated | The variant every red element renders in |
+| `a.layer`, `a.layer_hatch` | layer `{png, x, y}` | equal bounds (O04) | data file | The two paintings of one anchor; the hatch is soot hatching inside the same border, red-free (O08) |
+| `tint.hatch` | bool | — | calculated | The full-frame shader drops any hue term and keeps the value shift |
+
+**Output Range:** two values; under `hatch` the plate carries zero red-tolerance pixels at every reach (O08), so `red_est_ppm` reduces to the HUD reserve and the §4.3 budgets are met trivially; under `fill` the §4.5 shape backups (border, hatching, geometry) still carry every meaning, so the toggle removes hue and nothing else. **Example:** `red_as_hatching true`, `j_press` at reach 2: `stamp_door_01` from `stamp_square_official_h`, `prop_telephone` from `j_press_prop_telephone_h.png` (a soot-hatched receiver inside the same outline), `tint {0, true}`; `red_est_ppm = ⌈8000 · 10⁶ / 2073600⌉ = 3859` (the date stamp's reserve; Paper UI's own hatch rendering may make it 0, and the proxy stays conservative). *Rejected:* a hatched full-frame vignette under `hatch` (a vignette is a grade; GDD 6 VA §2); hatching rendered in a thinner red (GDD 4: "players who prefer no red at all").
+
+### 7. Ghost placement and count
+
+The carbon ghost is defined as:
+
+`ghost(h) = { hotspot: h, source: layer_filed(h), rect: layer_filed(h).rect + (GHOST_OFFSET_PX, GHOST_OFFSET_PX), colour: CARBON_WORLD, z: directly beneath layer(h) }` for `availability(h) = filed`; `|ghosts| ≤ min(GHOST_MAX, n_hotspots)`
+
+Drawn as a flat silhouette (the crop's alpha filled with one colour; mechanism a spike), by cut, never moved, never removed in-scene.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `layer_filed(h)` | layer `{png, x, y}` | ≤ 512², bounds equal to `layer(h)` (GDD 3 E08) | GDD 3 sidecar | The keyline-free crop; the ghost copies the object, not the mark |
+| `GHOST_OFFSET_PX` | int | 3 (D); art bible §6.4 says 2–3 at 1080, and only 3 gives a whole pixel at ⅔ | constant (this GDD, registry) | Right and down |
+| `CARBON_WORLD` | colour | `#434C7C` | constant (art bible §4.1 by pointer) | World carbon; the UI text tint `#2E3559` is never used on a plate |
+| `n_hotspots` | int | 3–8 (GDD 3 E02) | sidecar | |
+| `GHOST_MAX` | int | 16 | constant (art bible T3 by pointer) | Draw ceiling; 8 of it is reserve |
+| `ghost(h).rect` | rect | inside the plate ± 3 px | calculated | May overhang a plate edge by the offset; clipped by the viewport |
+
+**Output Range:** at most 8 ghosts per scene in practice, each one draw; the offset is 3 px at 1080 and exactly 2 at 720 under `canvas_items` ⅔ (breaking-changes.md line 39 for the stretch default; T6). A ghost's rect never intersects `figure_band` except where the hotspot already may (thresholds in the wall band, GDD 3 E06), since it is the hotspot's own crop displaced by 3 px. **Example:** `ledger` `layer_filed` at `(1210, 599, 96, 40)` → ghost at `(1213, 602, 96, 40)` beneath the `ledger` layer; on focus the `ledger` lifts 12 px (`LIFT_PX`, GDD 3) and the ghost stays, opening a 12 px gap above a 3 px overhang below. *Rejected:* a modulated copy of `layer(h)` (a blue keyline says "a fact is here" in another colour; GDD 3 VA 7c); 2 px (1.33 px at 720, a soft edge under T6's integer rule).
+
+### 8. The validator predicates
+
+Each check in Core Rule 3's table is defined as a boolean over the sidecar `S` with `O = S.overlay`, `H = S.hotspots`, `P = S.plate`, `F = S.figure_band`; a false predicate is the finding named, at the severity given there:
+
+```
+O01 = O.schema_version = OVERLAY_SCHEMA_VERSION ∧ O.space ∈ SPACES
+O02 = ids(O) match ^[a-z0-9_]+$ ∧ unique(ids(O)) ∧ ids(O) ∩ ids(H) = ∅ ∧ ∀a: a.tier = TIER[a.kind] ∧ |{a : a.kind = key_light}| ≤ 1
+O03 = ∀ rect r in O: integer(r) ∧ r ⊆ P ∧ ∀ layer: exists(png) ∧ pixel_size(png) = (w, h) ∧ integer(x, y) ∧ ∀a: a.kind = stamp ⇒ a.atlas ∈ ATLAS ∧ a.layer = null
+O04 = ∀a: a.kind ∈ {prop, key_light} ⇒ bounds(a.layer) = bounds(a.layer_hatch) ∧ a.kind = stamp ⇒ (a.atlas + "_h") ∈ ATLAS
+O05 = ∀a: a.kind = stamp ∨ (a.kind = prop ∧ a.hotspot = null) ⇒ a.rect ∩ (⋃_h bounds(h.layer) ∪ h.hit) = ∅ ∧ a.rect ∩ S.hero.rect = ∅ ∧ a.rect ∩ F = ∅ ∧ ∀h: h.kind = person ⇒ a.rect ∩ h.hit = ∅
+O06 = ∀a: a.kind = prop ∧ a.hotspot ≠ null ⇒ a.hotspot ∈ ids(H) ∧ H[a.hotspot].kind ∈ {object, phone, paper} ∧ bounds(a.layer) = bounds(H[a.hotspot].layer)
+O07 = ∀a: a.kind = key_light ⇒ (O.space = state ∨ S.kind = insert) ∧ a.rect ∩ F = ∅ ∧ ∀h: h.kind = person ⇒ a.rect ∩ h.hit = ∅ ∧ a.subject = null
+O08 = ∀l ∈ O.lighting: l.red_px = 0 ∧ ∀a: a.red_px_hatch = 0
+O09 = ∀a: a.red_px present ∧ a.red_px = recount(layer_of(a, fill))         [CI only; the recount is the gate script's]
+O10 = ∀p ∈ 0..3: red_est_ppm(p) ≤ PHASE_RED_BUDGET_PPM[p]                      [static plate: E; scrolling: E per window at start_x, min_x, max_x; plate-wide W]
+O11 = ∀l: l.id ∈ LIGHT_IDS ∧ (l.id = threshold_<t> ⇒ t ∈ ids(H) ∧ H[t].threshold) ∧ (l.id ∈ SODIUM ∪ {amber_windows} ⇒ O.space = street) ∧ (window_day ∈ ids ⇔ window_night ∈ ids) [W if one] ∧ (O.space ≠ street ⇒ POOL ∩ ids ≠ ∅) [W: NO_POOL]
+O12 = S.kind = insert ⇒ |{l : l.id = threshold_*}| = 1
+O13 = GRAIN_PLATE_MIN_PCT ≤ O.grain.opacity_pct ≤ GRAIN_PLATE_MAX_PCT ∧ O.grain.tile ∈ GRAIN_TILES
+O14 = |O.red_anchors| ≤ STAMP_MAX ∧ |O.lighting| ≤ LIGHT_MAX ∧ ∀ layer: w ≤ LIGHT_LAYER_MAX_PX ∧ h ≤ LIGHT_LAYER_MAX_PX
+O15 = report(bytes_overlay(O), owner = overlay)                                   [an observation into GDD 3's W13 sheet; never a finding of its own]
+```
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `S`, `O`, `H`, `P`, `F` | records | GDD 3 Rule 1's sidecar | data file | The scene and its overlay block |
+| `SPACES`, `TIER`, `LIGHT_IDS`, `SODIUM`, `POOL`, `ATLAS`, `GRAIN_TILES` | closed sets | as Core Rule 3 and §2 | constants (this GDD; the atlas and grain manifests are asset data) | The vocabularies |
+| `OVERLAY_SCHEMA_VERSION` | int | 1 | constant (this GDD) | Bumped on any field add/remove/retype |
+| `recount(png)` | int | ≥ 0 | calculated (the T7 gate script, `tools/asset-pipeline/`) | Red-tolerance pixel count |
+| `red_est_ppm(p)` | int | 0 – 10⁶ | calculated (§4) | |
+| `bytes_overlay(O)` | int | ≥ 0 | calculated (§9) | |
+| `O01..O15` | bool | — | calculated | True is clean |
+
+**Output Range:** fifteen booleans; a build is clean when all E-severity predicates are true and the release branch additionally requires the W ones. The predicates are independent of the snapshot (a sidecar is checked once, not per phase, except O10's loop over `p`), so the validator is a pure function over the file and runs headless in GDD 3's `validate_scenes.gd` and at load in debug builds. **Example:** `v_office`: O01–O09 true; O10 at `p = 0`: 4,147 ≤ 20,000, `p = 1`: 18,133 ≤ 50,000 (stamp + telephone + folder + 8,000), `p = 2`: no key light (private) → 25,000 + 41,000 = 66,000 → 31,829 ≤ 150,000, `p = 3`: 0 ≤ 10,000, true; O11: `lamp`, `window_day`, `window_night` declared, true; O12 vacuous (authored); O13 `10 ∈ [8, 12]`; O14 `3 ≤ 12`, `3 ≤ 6`, lamp 600×400 ≤ 1024; O15 reports 2.1 MB. A sidecar with `stamp_desk_01` at `(1200, 590, 96, 96)` over `ledger`'s layer fails O05 naming both ids. *Rejected:* validating the block only at load (GDD 3 Rule 2's argument: too late for the painter); a per-phase sidecar (O10 loops instead, because the plate is one file).
+
+### 9. Draw and byte estimates
+
+The estimates this system adds to GDD 3's are defined as:
+
+`draws_overlay = 2 + n_light_on + n_red_lit + n_ghosts` (grain and tint are the 2; `n_light_on = |{l : lit_light(l)}|` or, for an insert, `max` over the two tables; `n_red_lit = |stamps| + |props| + [key_light ≠ null]`; `n_ghosts = |ghosts_at_entry| + ghosts added in-scene`)
+
+`draws_overlay_max = 2 + LIGHT_MAX + STAMP_MAX + GHOST_MAX = 36`; GDD 3 Formulas §8 becomes `draws_est = 1 + n_vis + n_lift + FIG_MAX + n_vis + STAMP_MAX + 2 + LIGHT_MAX + DOC_MAX + UI_MAX` (amendment: `+ LIGHT_MAX`), range 107–131 < `DRAW_TARGET` 150
+
+`bytes_overlay = Σ_{l ∈ lighting} bytes(l) + Σ_{a : lit_anchor(a), kind ≠ stamp} bytes(layer_of(a)) + bytes(grain_tile) + bytes(atlas_share) + Σ_h bytes(ghost_mask(h))·[mask export]` with `bytes(t) = w·h·4·(4/3 if mipmapped(t) else 1)` (GDD 3 Formulas §7); lighting layers are loaded for both tables of an insert; only the chosen variant of a red anchor is resident
+
+`bytes_overlay_max = LIGHT_MAX · bytes(1024²) + STAMP_MAX · bytes(512²) + bytes(grain) + bytes(atlas)`; build-time `bytes_est = bytes_fw + bytes_overlay + OTHERS_RESERVE_MB` (amendment to GDD 3 §7)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `n_light_on` | int | 0–`LIGHT_MAX` | calculated (§2) | Interiors ≤ 2; streets ≤ `LIGHT_MAX` |
+| `n_red_lit` | int | 0–`STAMP_MAX` | calculated (§2) | |
+| `n_ghosts` | int | 0–8 | calculated (§7) | |
+| `LIGHT_MAX`, `STAMP_MAX`, `GHOST_MAX` | int | 6, 12, 16 | constants (this GDD; T3 by pointer for the last two) | Declared ceilings |
+| `LIGHT_LAYER_MAX_PX` | int | 1024 | constant (this GDD) | Side bound of any overlay layer (O14) |
+| `DRAW_TARGET` | int | 150 | constant (art bible T3 by pointer) | Steady-state target; 500 absolute |
+| `mipmapped(t)` | bool | plates and layers yes; grain tile and atlas no (art bible §8.4) | constant | |
+| `bytes(atlas_share)` | int | ≤ 16 MB (2048² RGBA8, no mips) | asset data | The stamp atlas, shared with Paper UI's sheet stamps; counted once |
+| `draws_overlay`, `bytes_overlay` | int | 0–36; 0–`bytes_overlay_max` | calculated | Observations into GDD 3's debug overlay and W13 sheet |
+
+**Output Range:** `draws_overlay ≤ 36` at any plan; with GDD 3's other terms the total stays under 150 at build, so W14 remains a runtime observation. `bytes_overlay_max = 6 × 5.59 + 12 × 1.40 + 1.0 + 16.0 ≈ 67.4 MB`, which is why `LIGHT_MAX` and `STAMP_MAX` are ceilings a plate may not reach together: W13 (`SCENE_BUDGET_WARN` 224) decides, and a plate that declares six 1024² lights with twelve 512² props warns at the canonical scene (197.8 + 67.4 − 2.1 ≈ 263 > 256, an E). The realistic MVP block is far smaller. **Example:** `v_office` at reach 1: `draws_overlay = 2 + 1 (window_day) + 1 (stamp) + 0 = 4`; `bytes_overlay = lamp 600×400 (1.28 MB) + window_day 300×500 (0.80) + window_night (0.80) + grain 512² (1.05) + atlas share 1024² (4.19) = 8.1 MB`; `bytes_est = 16.8 + 8.1 + 181 = 205.9 < 224` ✓ (GDD 3's 197.8 becomes 205.9 and still passes). Insert `v_rybar_call` adds `threshold_telephone` 400×700 (1.49 MB) and loads both tables: 9.6 MB. *Rejected:* an Overlay-local byte ceiling (the ceiling is per scene, GDD 3 §7's rejection); loading both variants of every red anchor (doubles the anchor bytes for a setting that applies only at the next entry anyway).
 
 ## Edge Cases
 
-[To be designed]
+*Each case states what happens, who logs it and what the player sees. "Logged" means through the injected `DebugSink` (a recording twin in tests, an assert in debug builds, a logger in release); "build fails" means `validate_scenes.gd` refuses the sidecar on an O-rule (Core Rule 3). This system never repairs data, never invents a layer, and when it must degrade it degrades toward **less red and fewer layers**, never more: a missing or refused anchor is hidden, a missing light stays dark, and nothing is substituted. The player, in every case below, sees a still room; only the ghost ever changes while they are in it.*
+
+1. **If no snapshot has been received when a scene is entered (the act's first scene before any boundary; the first scene after a load, GDD 7 Rule 11, until the `view_now()` amendment is pushed through the sink):** `plan()` runs with `snapshot = null` → `phase 0`, `ink_reach 1`, `view = {}`, every `reach_for = 0`; the slot lighting is applied normally, no anchor is lit, `tint 0`, `red_est_ppm` is the HUD reserve alone; logged `SNAPSHOT_MISSING(scene_id)` once per scene; debug asserts only when a `reveal` has been received earlier in the run (a null after a non-null is a wiring bug, not a start). The player sees the room lit for its slot with no red on it — correct at the act's opening, where nobody has been looked at yet; wrong on resume for a room that showed red before the save, which is why GDD 7 gains `view_now()` and Scene Flow pushes it at `open_chapter(resumed)`. *Rationale:* a room must always have a plan (Core Rule 2); the one honest value for an unknown reach is 0, since Principle A forbids red on a person the state has not been shown looking at.
+
+2. **If an anchor's `subject` names an id that is not in the snapshot's `per_character` (not a person record, or a person record without `attention`, GDD 7 Edge Case 14):** `reach_for = 0`, the anchor is unlit in this plan; logged `SUBJECT_UNKNOWN(scene_id, anchor, subject)` once per scene. At authoring the `tools/` cross-check X02 fails the build if the id is not a `kind: person` record carrying `attention` in the dossier schema, so the runtime case is a schema edit after export or a person whose record the compiler warned `PERSON_WITHOUT_ATTENTION` about. The player sees that one anchor unlit and nothing else different. *Rationale:* a guessed subject (falling back to the protagonist) would put red on a door for a reason the data does not state; unlit is the only reading that is never a lie.
+
+3. **If a red anchor's rect overlaps a hotspot's `layer` bounds or `hit` region, the `hero.rect`, a `kind: person` hotspot, or the `figure_band` (a stamp or unbound prop: O05; a key light over the band or a person: O07):** the build fails naming the anchor and the object it overlaps; nothing ships. Should a hand-edited sidecar reach a release build, the structural rules pass, the anchor is **hidden** (never drawn at any reach), logged `ANCHOR_HIDDEN(scene_id, anchor, O05 | O07)`, and the plan's `findings` carries the code; the player sees a plate with one less red element. *Rationale:* GDD 3's "a stamp never sits on a hotspot's rect" and §4.2's "never on skin" are hard rules; a release that drew the anchor anyway would be measurably wrong in Gate B, and hiding is the only degradation that cannot add red.
+
+4. **If a plate has no `prop` anchor and the room is entered at reach 2 (a private room with no telephone or folder the painter chose to redden; paranoid, the protagonist looked at):** the plan lights the tier-1 stamps only; nothing is logged, because a room with no prop to redden is a legal room (§6.3: private spaces "only red and carbon reach do" change, and a room may have no object the state would mark). The validator warns `NO_PROP_ANCHOR` only when `space: state` (a state room at paranoid with no red prop is an authoring smell: the state's own objects are where its attention lands first). The player sees the margin stamps and a room that otherwise looks confident, and the sheet's `half-struck` stamp says more than the room does — which is Pillar 1 ("you learn you are watched by reading paper"). *Rationale:* reach is a ceiling on what may be lit, not a quota of what must be; the budgets are maxima too.
+
+5. **If a `space: state` plate has no `key_light` anchor and is entered at reach 3 (act two, panicking, the protagonist watched):** the plan lights stamps and props, `tint.tier = 3` still applies (the hard light is the phase's, carried by the full-frame layer), no key light is drawn; the validator warns `NO_KEY_LIGHT(scene_id)` at build for every `space: state` sidecar without one, so the omission is a known choice, not an accident; nothing is logged at runtime. The player sees a state room under hard light with red on its props and none in its light. *Rationale:* §2.2 says key light "in state spaces" at panicking; a warning at authoring is the right force, since a corridor plate may honestly have no key light to tint, while a silent omission at runtime would hide a painter's mistake.
+
+6. **If a `key_light` layer covers more than half the frame (rect area > `FRAME_PX / 2`), or any overlay layer exceeds `LIGHT_LAYER_MAX_PX` on a side (O14):** the build fails naming the layer and its size; a 1024² cap already bounds a single layer at 50.6% of the frame, so the half-frame case is reachable only by a scrolling plate's wide layer, and O10 will in any case fail such a layer at `p = 2` (a half-frame red light exceeds 15% by itself). In release the layer is treated as missing (case 21). *Rationale:* T9 allows no full-frame layer but plate, grain and tint; the key light is light on a wall, not a grade.
+
+7. **If a `layer_hatch` (or a stamp's `_h` atlas cell) contains a red-tolerance pixel (Gate A over overlay layers, O08), or a lighting layer does:** the build fails naming the file and the count; `red_px_hatch` must be 0 and a lighting layer's `red_px` must be 0. There is no runtime path: the field is in the sidecar and O08 is structural enough to run at load, where a release build hides the anchor (case 3) or leaves the light dark (case 21) and logs `RED_IN_REDFREE_LAYER(file, count)`. The player under `red_as_hatching` sees exactly no red, which is what they asked for. *Rationale:* `red_as_hatching` promises "no red at all" (GDD 4); a hatch variant with a red pixel breaks the promise at the one place the player cannot check.
+
+8. **If `red_px` is missing on a red anchor, or stale after a re-export (the PNG changed, the count did not):** O09 fails the build in CI (the gate script's recount disagrees), naming the anchor, the stored and the recounted value; the compiler never fills the field itself (the count is the gate's, not the compiler's). At load, a missing `red_px` is a structural failure of the block: the anchor is hidden with `RED_PX_MISSING(anchor)` logged; a stale value cannot be detected at load (no pixel scan at runtime) and the plan's estimate is simply wrong by the difference, which Gate B's `proxy_agrees` catches in CI. The player sees nothing different in the stale case; one fewer red element in the missing case. *Rationale:* the headless proxy is only as honest as the number it is handed; the honesty lives in CI, where the recount is cheap, not at runtime, where a pixel scan would be a load-time cost for a build error.
+
+9. **If `enter_scene` arrives with `scene_kind: insert` and the sidecar declares no `threshold_*` layer (O12 missed because the sidecar was hand-edited after the build):** the plan's `lighting_after_threshold` is the slot layers off and nothing on — the room goes dark at the second cut; logged `INSERT_NO_THRESHOLD(scene_id)` and debug asserts. The player sees the figure arrive on the line, then the room's light go out with no replacement: wrong, but it is "the floor goes" and not a lit room pretending nothing happened. *Rationale:* substituting the slot light for the missing threshold light would show the §2.1 reactive-event state as an ordinary room; darkness is the lesser lie, and the assert makes it a short-lived one.
+
+10. **If an insert sidecar declares two `threshold_*` layers (a door and a telephone, O12):** the build fails naming both. At load in release, the plan takes the one whose hotspot the entry dialogue's `person` hotspot is bound to if Scene Flow's `set_focus(threshold)` names it (GDD 8 Rule 11 step 3), else the first in id order; the other stays off; logged `INSERT_TWO_THRESHOLDS(scene_id, chosen, other)`. The player sees one light from one threshold. *Rationale:* GDD 6 VA §1 — one person through one threshold; two lights would be two arrivals, which GDD 8 VA §6 forbids.
+
+11. **If `ghost_requested(h)` arrives for a hotspot whose availability is `void` or `hidden`, or `unfiled`:** no ghost; `ghost()` returns `null`, `apply_ghost` is not called; logged `GHOST_REFUSED(scene_id, h, availability)`; debug asserts, because GDD 3 emits the signal only on the `filed` transition and any other source is a caller bug. The player sees nothing change. *Rationale:* a ghost says "the state has a copy"; `void` says "the state removed the paper" and `hidden` says it was never there; drawing a copy of either would be a false fact on the plate.
+
+12. **If more ghosts are requested than the scene has hotspots (`|ghosts| > n_hotspots`), or more than `GHOST_MAX`:** the request is refused, logged `GHOST_OVERFLOW(scene_id, h, count, n_hotspots)` and debug asserts; the first bound is the real one (a ghost is one per hotspot, and `set_hotspot_state(filed)` on an already-filed hotspot is idempotent at GDD 3 and emits nothing), so the case is reachable only by a duplicate id or a replayed signal. The player sees the ghosts already drawn and no more. *Rationale:* T3's 16 is a draw budget; the hotspot count is the semantic bound, and a second ghost on one object would read as a second copy the dossier does not hold.
+
+13. **If `ghost_requested(h)` arrives while the scene is `suspended` under a block (the player filed from an open document sheet; GDD 3 Rule 5 permits availability changes under a block):** the ghost is drawn on the next frame beneath the sheet, by cut, exactly as when unblocked; nothing is logged; the ghost stays when the sheet closes. The player, closing the sheet, finds the object already double-struck — the room was read while they were reading. *Rationale:* GDD 3 Rule 5 names the block as a legal moment for availability to change; the ghost follows availability, and deferring it to `pop_input_block` would make the room change on an unblock, which is not the player's act.
+
+14. **If a setting this system reads changes mid-scene (`red_as_hatching` toggled on the back page during a room; `flicker` likewise):** the store emits `changed` (GDD 4 Rule 10); this system holds no subscription, the plan is not recomputed, the room is unchanged until the next `enter_scene`; nothing is logged. Paper UI's settings sheet shows the GDD 4 live-preview note for `red_as_hatching` as "applies to rooms on entering the next one" (a string Paper UI owns; parallel to GDD 4 Edge Case 19's `timer_mode` "at the next beat"). The player sees the sheet's own stamps change at once (Paper UI applies `red_style` live to the sheet it is drawing) and the room behind it change when they next walk into one. *Rationale:* Core Rule 2 — a plan is immutable so a tier cannot be seen to move; a settings change is not a tier change, but re-planning a visible room would be the same frame a reviewer flags.
+
+15. **If `flicker` is `limited` and `can_count_flashes()` is false (the engine twin before the frame-timing spike; the MVP and, since act one never reaches panicking, every shipped act-one build):** `flicker_allowance = {allowed: false, max_hz: 0}`; the portrait is steadily lit; nothing is logged (the state is expected); the settings sheet labels `limited` with GDD 4's help text unchanged, because the store never knows (GDD 4 Edge Case 21: the store is unchanged). The player sees no flicker and loses nothing: the flicker is mood, never information. *Rationale:* `limited` promises a ceiling; without the gate driving toggles on real frame time the ceiling is unproven, and an unproven ceiling is `off`.
+
+16. **If `toggle_ok` denies a scheduled toggle (Paper UI's portrait driver asks to swap 120 ms after the last accepted swap at `max_hz 2`):** the swap is dropped, not queued; the portrait keeps its current state until the next request that passes (≥ 250 ms after the last accepted); nothing is logged in release; the null host's test log records `TOGGLE_DENIED(now, last)` so a test can count denials. The player sees a flicker that is at most 2 Hz and occasionally skips a beat — a bulb, not a strobe. *Rationale:* a queued toggle would fire the instant the gate opens and bunch with the next, which is exactly the burst WCAG 2.3.1 counts; dropping is the only policy under which the gate's arithmetic holds.
+
+17. **If `capture_red_share_ppm()` (Gate B) is called on `NullOverlayHost`:** it returns `null`; the Gate B job treats `null` as "capture unavailable", **skips the comparison and fails the job** with `GATE_B_NO_CAPTURE` unless the job is marked `allow_no_capture` (the headless-only CI lane, where the O10 proxy is the whole check); the unit suite asserts `null` from the null twin. No player sees this. *Rationale:* a null twin that returned 0 would pass every budget; a gate that cannot measure must say so, never pass by default (`.claude/docs/context-management.md`: helpers emit observations, never verdicts — and a silent zero is a verdict).
+
+18. **If the proxy and Gate B's capture disagree by more than `RED_PROXY_TOLERANCE_PP` (1 pp) with the capture above the proxy:** the CI job fails `RED_PROXY_DISAGREES(scene_id, phase, est_ppm, capture_ppm)`; the suspects, in order, are the tint carrying hue (Core Rule 5's Gate B sub-check also fails if any of it lands in the figure band), a sheet or the HUD open in the capture beyond the reserve, or a stale `red_px` (case 8). Capture below the proxy by any amount passes (overlaps and occlusion only lower the truth). No player sees this. *Rationale:* the proxy is one-sided by construction; the only way the truth exceeds it is a red source the proxy was never told about, and that is always a finding.
+
+19. **If a plan's `red_est_ppm` exceeds `red_budget_ppm` (a budget breach at panicking: a key light plus every prop plus the floods reserve on a plate O10 should have refused; reachable only by a sidecar edited after the build):** in debug, `RED_BUDGET(scene_id, phase, est, budget)` is raised through the sink and asserts; the plan is applied as computed so the artist sees the breach. In release, the core hides lit anchors in order of descending `red_px` **until the estimate is within budget**, logs `RED_BUDGET_DEGRADED(scene_id, phase, hidden[])`, and applies the reduced plan; it never adds, swaps or shrinks a layer and never touches the tint. The player sees a room with less red than its painter intended; never more. *Rationale:* the budget is Principle A's measurable form and a release must honour it; the one degradation that cannot create a new defect is removal, and removing the largest first is the shortest path back under the line.
+
+20. **If the snapshot carries a `stamp_tier(x) > ink_reach` for any `x` (the invariant GDD 7 Formulas §4 proves and this system asserts):** the plan is computed from `red_reach` as received (the plate uses `red_reach`, not `stamp_tier`; the two are equal by GDD 7 §4, so the plate is unaffected), `STAMP_TIER_ABOVE_INK(beat, x, stamp_tier, ink_reach)` is raised through the sink, debug asserts, release logs once per beat; Paper UI's sheet stamp, which does read `stamp_tier`, is Paper UI's to clamp **(PROV)** — this system recommends `min(stamp_tier, ink_reach)` there. The player sees a correct plate and, until Paper UI clamps, a sheet stamp one tier too full. *Rationale:* `min(a, c) ≤ c` cannot fail unless the Calendar's code and its formula have parted; the assert exists to name that day, not to repair it.
+
+21. **If the host fails to load a lighting layer or an anchor layer at `load(plan)` (file missing at runtime, import failure, out of memory):** `load` returns `{ok: false, errors: [{layer, reason}]}`; the plan is applied with the failed layer treated as absent — a missing light stays dark, a missing anchor is unlit, a missing `layer_hatch` under `red_as_hatching` leaves the anchor unlit **rather than falling back to the `fill` variant**; logged `LAYER_LOAD_FAILED(scene_id, layer, reason)`; the scene still reaches `scene_ready` (this system never blocks GDD 3's lifecycle). The player sees a darker or less red room. *Rationale:* the fallback that would "look right" (fill for hatch) breaks the one promise the setting makes; the fallback that is merely dimmer breaks nothing the art bible names.
+
+22. **If the plan is requested while the scene is `applied` or `relit` (a second `scene_preloaded` for the same id; a caller trying to re-plan on a settings change):** refused, `PLAN_LOCKED(scene_id)` logged, debug asserts; the existing plan stands; the host receives no call. The player sees nothing. *Rationale:* Core Rule 2's immutability is what makes "never mid-scene" checkable by one assert instead of by every consumer promising to behave.
+
+23. **If a `sodium_<n>` layer's `lit_phases` omits the current phase (`[0, 1, 2]` at phase 3, the intended Collapsing darkening; or `[1, 2, 3]` at phase 0, a pole dark in a confident week):** the pole is dark; nothing is logged in either case, because both are authoring, not errors; the validator warns `SODIUM_NEVER_LIT` only when `lit_phases = []` and `SODIUM_DARK_AT_CONFIDENT` when `0 ∉ lit_phases` (a street dark before the state begins to withdraw is usually a typo). The player sees one fewer cone of light on the street. *Rationale:* "sodium poles dark one by one" (§2.2) is the painter's sequence across the act's streets; the data can say it and the warning only asks whether it was meant.
+
+24. **If the entered "scene" is the act-close Calendar-transition screen, a chapter card, or any paper screen with no plate (GDD 8 Rules 2, 12; the `<act>_close` pseudo-chapter):** no `enter_scene` is emitted for it (Scene Flow calls `preload_scene` for no plate, and `enter_scene` precedes `preload_scene`), so no plan exists, nothing is drawn by this system, and `reveal`s received there update the stored snapshot as usual; nothing is logged. The screen's own red — the struck date, the pinned notices' stamps — is Paper UI's in `red_style`. The player sees paper. *Rationale:* this system draws on plates; a screen with no plate has no reach to show, and the act-close beats have no protagonist for a reach to belong to (GDD 8 VA §2: no stamp on those sheets, "no person is on that page for the state to be reading").
+
+25. **If `enter_scene` arrives for a scene whose sidecar has no `overlay` block at all (a scene authored before this GDD; a sidecar from an older schema):** at build O01 fails. At load in release, the plan is the **bare plan**: no anchors, no lighting layers, grain at `GRAIN_PLATE_MIN_PCT`, `tint 0`, `red_est_ppm` = the HUD reserve; logged `OVERLAY_BLOCK_MISSING(scene_id)` once; the plate shows as painted, flat, with no slot light. The player sees a room with no lamp pool and no red — legible, dull, and obviously unfinished to a reviewer. *Rationale:* a plate with no block is a plate; refusing to show it would make this system able to block GDD 3's lifecycle, which Core Rule 1 forbids, and inventing a lamp would be the one substitution the degradation rule bans.
+
+26. **If the two cuts of an insert would land on the same frame (`THRESHOLD_CUT_MS` set to 0, or a frame longer than the delay after a hitch):** the host enforces a minimum of one rendered frame between `apply` and `apply_after_threshold` regardless of the knob: the second cut is deferred to the frame after the first has been presented; logged `THRESHOLD_CUT_SAME_FRAME(scene_id)` once when the deferral was needed; the knob's safe range starts at 200 ms so the case is a hitch, not a setting. The player sees the figure, then the light — always in that order, never together. *Rationale:* GDD 8 VA §3's reviewer test is stated per frame ("if both land together … it is a defect"); a rule stated per frame must be enforced per frame, not per millisecond.
 
 ## Dependencies
 
@@ -218,7 +506,32 @@ Switch one is the window's value (bone by day, soot by night; never blue, never 
 
 ## Tuning Knobs
 
-[To be designed]
+All in `assets/data/overlay/overlay.json` (D) unless marked A (art bible, by pointer), G3/G4/G7 (GDD 3 / GDD 4 / GDD 7, by pointer), P (Paper UI co-owns, **PROV**) or B (CI config). The shipped value is the default; nothing here is a float, and the loader rejects a non-integral number. Two rows are facts, not knobs, and are listed so that no GDD retunes them by accident. Pointer rows are never redefined here: a change to one is made in its owning document and re-checked against this system's asserts (interaction clusters below).
+
+| Knob | Default | Safe range | Too low | Too high | Interacts with |
+|---|---|---|---|---|---|
+| `GHOST_OFFSET_PX` (D) | 3 | 3 only at 1080 while the 720 target stands (any value must give a whole pixel under the ⅔ stretch: multiples of 3); art bible §6.4 names 2–3 | 0: the ghost is hidden behind its object and "a read room looks read" fails; 2 → 1.33 px at 720, a soft edge under T6 | 6: the copy reads as a second object, and a 6 px overhang can cross a neighbouring hotspot's clear margin (GDD 3 E05) | `LIFT_PX` 12 (G3: the focus gap must dwarf the offset, 12 ≫ 3); the stretch ADR; §4.5's double-strike backup |
+| `GHOST_MAX` (A, T3) | 16 | pointer; the semantic bound is `n_hotspots` ≤ 8 (GDD 3 E02) | — | — | Formulas §7, §9; GDD 3 Formulas §8 counts ghosts as `n_vis`; half of 16 is reserve |
+| `STAMP_MAX` (A, T3) | 12 | pointer; bounds **all** red anchors of a sidecar (O14) | — | — | O14; Formulas §9 `draws_overlay_max`; GDD 3 Formulas §8's `STAMP_MAX` term is the same constant |
+| `LIGHT_MAX` (D) | 6 | 3–8 | 3: a street with four sodium poles and amber windows cannot be authored | 8: `draws_overlay_max` 38 and a worst-case `bytes_overlay` near 80 MB; W13 catches the bytes, nothing catches the draws until W14's runtime observation | O14; Formulas §9 (`+ LIGHT_MAX` in GDD 3 §8, 131 at 6, 133 at 8, still < 150); `LIGHT_LAYER_MAX_PX` |
+| `LIGHT_LAYER_MAX_PX` (D) | 1024 | 768–1536 | 768: a lamp pool over a desk cannot be painted in one layer; painters split it and spend two `LIGHT_MAX` slots | 1536: one layer is 12.6 MB with mipmaps and 2.3× the frame's half (T9's "no full-frame layer" is approached by a single crop); W13 trips at the canonical scene with three such layers | O14; Formulas §9 `bytes_overlay_max`; `SCENE_BUDGET_WARN`/`MAX` (G3/A); T2's 512² for hotspot crops is a different class and unaffected |
+| `PHASE_RED_BUDGET_PPM` (A, §4.3) | `[20000, 50000, 150000, 10000]` | pointer; a tier table of four ints indexed by phase, never a float or a percentage string; entry 3 ≤ entry 0 (collapse withdraws below confidence) | — | — | O10 at build; the `RED_BUDGET` assert; Gate B (T7); `PHASE_RED_CAP` (G7) decides which anchors are lit at each `p`; `HUD_RED_RESERVE_PX` eats into every entry |
+| `SOOT_MIN_PPM` (A, §4.3) | 400000 | pointer; Collapsing only | — | — | Gate B's second assert; no headless proxy (Edge Case 17's `allow_no_capture` lane cannot check it); `sodium_<n>.lit_phases` is how a street reaches it |
+| `FRAME_PX` | 2,073,600 | **a fact, not a knob**: 1920 × 1080, the composite's size under `canvas_items` stretch (breaking-changes.md line 39); a scrolling plate's 3840 width does not change it (O10 checks per 1920-wide window) | — | — | Formulas §4; every ppm in this GDD is over this denominator; a resolution change is the stretch ADR's, not a tuning |
+| `HUD_RED_RESERVE_PX` (D; P confirms) | `[0, 4000, 8000, 41000]` | each 0–60000; entry 0 must be 0 (`dry` carries no red, GDD 7 VA §1); non-decreasing | A reserve below the real date stamp lets the proxy pass a plate Gate B fails by the difference (`RED_PROXY_DISAGREES`, Edge Case 18) | 60000 at `floods` is 2.9% of frame and eats a fifth of panicking's budget for a stamp that is ≈ 2%; plates lose red they could carry | Formulas §4; GDD 7 VA §1 (the four date-stamp states; `floods` is a solid 640×64 block at 1080); Paper UI's stamp geometry and `ui_scale` (the HUD scales with `ui_scale`, so the reserve should be checked at 150%) |
+| `GRAIN_PLATE_MIN_PCT` / `GRAIN_PLATE_MAX_PCT` (A, T4 "8–12% on plates") | 8 / 12 | pointer; O13 enforces the band per sidecar | Below 8: a plate reads as a render, not paper (§6.2) | Above 12: the §6.6 figure-band legibility and the 720 discoverability pass (GDD 3 Formulas §11) suffer; T7's HSV tolerance may start counting grain-speckled red edges | O13; Formulas §9 (`bytes(grain_tile)`); `GRAIN_UI_MAX_PCT`; GDD 3's C1 discoverability hypothesis |
+| `GRAIN_UI_MAX_PCT` (A, §7.2) | 6 | pointer; Paper UI's to apply, listed because the one grain tile is this system's asset | — | — | Paper UI **(PROV)**; §7.2's post-composite 7:1 body-contrast rule; the same `grain_bone_01` tile at a different opacity |
+| `FLICKER_HZ` (D) | 2 | 1–3; never above `FLASH_MAX_PER_S` (the loader rejects it) | 1: a 500 ms bulb reads as a fault, not a flicker; still legal | 3: at the WCAG ceiling exactly, with no margin for a dropped frame lengthening one half-cycle and shortening the next; the general threshold is met only if the toggle gate's rounding is upward (`⌈1000/(2·3)⌉ = 167`) | Formulas §5; `FLASH_MAX_PER_S` (G4); Paper UI's portrait driver; `flicker` key (G4) |
+| `THRESHOLD_CUT_MS` (D) | 500 | 200–1000 | 200: the figure and the light nearly coincide and a 60 fps hitch merges them (Edge Case 26's frame guard holds, but the beat is lost) | 1000: a full second of the state standing in the player's lamplight before "the floor goes"; GDD 6 VA §7's "arrives with its object" starts to read as a pause | Core Rule 9; GDD 8 VA §3's two-cut reviewer test; `rule_fired(class, insert)` at `scene_ready` (Audio's cue lands on cut one); not shortened by `motion: reduced` |
+| `TIMER_TICKS` (A, §7.5 "every 20%") | 5 | pointer; Paper UI draws the ticks from Dialogue's `fraction` | — | — | Core Rule 12; Dialogue's `timer_mode` (G4); the screen-reader countdown string (§7.5) |
+| `CARBON_WORLD` (A, §4.1) | `#434C7C` | **a palette fact, not a knob**: the world carbon; the UI text tint `#2E3559` is a different colour for a different surface and never appears on a plate | — | — | Formulas §7; T7's carbon tolerance (hue 215°–245°, S ≥ 0.3) must contain it; Gate A's carbon count on plates excludes the engine-drawn ghosts |
+| `RED_PROXY_TOLERANCE_PP` (B) | 1 | 0–2 percentage points | 0: any tint hue or HUD anti-aliasing fails every Gate B run, and the job becomes noise (GDD 2's `PROSE_WARN` failure mode) | 2: a 2 pp excess at confident is the whole 2% budget; the proxy stops meaning anything at phase 0 | Formulas §4 `proxy_agrees`; Edge Case 18; the tint spike (Core Rule 5) |
+| `PHASE_RED_CAP` (G7) | `[1, 2, 3, 0]` | pointer | — | — | Formulas §1–§2 via `red_reach`; O10's loop lights anchors with `tier ≤ PHASE_RED_CAP[p]`; the invariant `stamp_tier ≤ ink_reach` (Edge Case 20); never redefined here |
+| `FLASH_MAX_PER_S` (G4) | 3 | pointer; may only be lowered, in GDD 4 | — | — | Formulas §5 `max_hz = min(FLICKER_HZ, FLASH_MAX_PER_S)`; `design/accessibility-requirements.md` cites the same number |
+| `DRAW_TARGET` (A, T3; G3 pointer) | 150 | pointer; 500 absolute | — | — | Formulas §9; GDD 3 Formulas §8 and W14 (`measured − draws_est > 17`); this system's 36-draw ceiling is inside it |
+| `SCENE_BUDGET_MAX` (A, T1; G3 pointer) | 256 | pointer; `SCENE_BUDGET_WARN` 224 (G3) beside it | — | — | Formulas §9 `bytes_overlay` reported into W13 (O15); the GDD 3 §7 amendment `bytes_est = bytes_fw + bytes_overlay + OTHERS_RESERVE_MB` |
+
+Interaction clusters: (a) **the red budget** — `PHASE_RED_BUDGET_PPM`, `HUD_RED_RESERVE_PX`, `PHASE_RED_CAP` (G7) and GDD 1's `ATTN_LOOK`/`ATTN_WATCHED` decide together how much red a plate may carry at each phase and which anchors are lit to carry it; change any one and re-run O10 over every sidecar and Gate B over every plate, since a cap moved up lights a tier of anchors the budget was not sized for, and a reserve moved up fails plates the budget was; (b) **the plate-space geometry** — `GHOST_OFFSET_PX`, `LIFT_PX` (G3), the 720 stretch and T6's integer rule are one fact (whole pixels at ⅔) stated three ways; change the stretch target and the offset must be re-derived, never the reverse; (c) **draws and bytes** — `STAMP_MAX`, `LIGHT_MAX`, `LIGHT_LAYER_MAX_PX`, `GHOST_MAX` against `DRAW_TARGET` and `SCENE_BUDGET_MAX`/`WARN`: the ceilings are declared independently but cannot all be reached on one plate (Formulas §9's 67 MB worst case), so a change to any ceiling is checked by re-running GDD 3's W13 sheet over the committed sidecars, not by arithmetic alone; (d) **the flicker** — `FLICKER_HZ`, `FLASH_MAX_PER_S` (G4), `THRESHOLD_CUT_MS` and Edge Case 26's one-frame guard are the only timings this system knows; `FLICKER_HZ` is bounded by the ceiling in the loader, and `THRESHOLD_CUT_MS` is a story beat the art director sets by eye in the Vertical Slice (the two cuts within one second are one flash pair, under the ceiling at any value in range); (e) **grain** — `GRAIN_PLATE_MIN/MAX_PCT` and `GRAIN_UI_MAX_PCT` share one tile; raise the plate band and re-run GDD 3's 720 discoverability pass and the §7.2 post-composite contrast measurement, because grain is the one layer that touches every legibility rule at once; (f) **structural** — `FRAME_PX`, `CARBON_WORLD`, `GHOST_OFFSET_PX` and every pointer row are not a balance pass: a change is an art-bible or stretch-ADR edit that re-cuts the Gate B fixtures and the golden `NullOverlayHost` logs.
 
 ## Visual/Audio Requirements
 
