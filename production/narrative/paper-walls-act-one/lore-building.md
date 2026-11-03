@@ -4,14 +4,14 @@
 > **Written**: 2026-11-03
 > **Visible To Player**: tagged per entry — [K] known, [D] discoverable, [H] hidden
 > **Cross-References**: lore-city.md (Lom, tram 11, Brenava, the Vienna call), lore-factions.md (informers, garrison train inspection), lore-naming.md; design/art/art-bible.md §6.1 (imperial-era core)
-> **Contradictions Check**: Tenant register matches the prototype (11 Novak, 12 Halm, 13 vacant since June, 14 Dusek, 15 Kastan, 16 Sedlak). Apartment numbering explained below. No conflicts.
+> **Contradictions Check**: Tenant register follows brief §2 (Sokol flat 3, Halm flat 5); the prototype's placeholder numbering (11–16) is dropped.
 > **Source**: /team-narrative Phase 2 brief, 2026-11-03
 
 ## The house [K]
 
 A four-storey stucco **gallery house** built in 1894 under the old Crown, in the Lom quarter. Street front: five windows wide, ochre stucco gone grey-green, a carriage passage with a wooden gate that is locked at 22:00 and opened by the caretaker. Behind it, a cobbled **courtyard** with one chestnut, the bins, a carpet-beating rail, and a cellar hatch. The upper floors are reached by one **stair** in the rear corner of the passage, and each floor opens onto an **open gallery** (*pavlac*) that runs along the courtyard side; rear flats are entered from the gallery, front flats from the landing.
 
-Door numbers start at 11 because the Crown-era plan numbered the ground-floor shop, store, stable and lodge 1–10, and the housing cooperative never renumbered. Ground floor now: the carriage passage, the caretaker's **lodge** (a cubby with a hatch window onto the passage, by day Kastan's post), a closed cooperative repair shop, the cellar.
+Six flats, numbered 1–6, two to a floor: odd numbers are the rear flats, entered from the gallery; even numbers are the front flats, entered from the landing. The ground floor is unnumbered. Ground floor now: the carriage passage, the caretaker's **lodge** (a cubby with a hatch window onto the passage, by day Kastan's post), a closed cooperative repair shop, the cellar.
 
 ## Tenant register [K]
 

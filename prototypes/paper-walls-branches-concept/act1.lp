@@ -307,7 +307,7 @@ feature(regime, confident) :- query(t), not on("paranoid", city).
 feature(kastan, exposed) :- on("exposed", kastan).
 feature(kastan, hidden)  :- query(t), not on("exposed", kastan).
 % ending classes (§7): a telling may belong to several; `other` when to none
-feature(act_ending, e1_complete_file)       :- on("filed", marta), on("courier_listed", border), on("courier_through", border), on("family_detained", border).
+feature(act_ending, e1_complete_file)       :- on("filed", marta), on("courier_listed", border), on("courier_through", border), on("family_detained", border), on("admitted", ilona).
 feature(act_ending, e2_gap)                 :- on("burned", marta), on("reported", berta), on("under_observation", vera), on("courier_through", border), not on("leaflets_printed", jan).
 feature(act_ending, e3_carbon)              :- on("took_carbon", ilona), on("exposed", kastan), on("under_observation", vera), on("family_detained", border).
 feature(act_ending, e4_seized_parcel)       :- on("courier_detained", border), on("border_report", border), on("hospitalised", marta), not on("leaflets_printed", jan).
