@@ -469,7 +469,7 @@ The player never sees a dossier field as a value. The three projections are the 
 | Act-one classes, axes, laws and unknowns | `design/narrative/paper-walls-act-one-brief.md` | §4 fluent ownership; §5 unknowns; §7 axes and ending classes | Data dependency |
 | Act-one world as proven by polyscene | `prototypes/paper-walls-branches-concept/act1.pddl`, `act1.lp` | Fluent list (field candidates); `act_ending` class rules; `no_one_unchanged` | Rule dependency |
 | Save registry, migration, save points, RNG state | `design/gdd/save-load.md` (not yet written) | `serialize` / `deserialize` payload; `SCHEMA_VERSION`; writer `migrate` | Ownership handoff |
-| Held facts are not dossier state; every fact has a dossier use | `design/gdd/investigation-fact.md` (not yet written) | Fact board state; unlock reads | Rule dependency |
+| Held facts are not dossier state; every fact has a dossier use | `design/gdd/investigation-fact-system.md` | Fact board state; unlock reads | Rule dependency |
 | Headless boundary and flag budget as named risks | `design/gdd/systems-index.md` | Boundary review rules; risk register | Rule dependency |
 | Model representation, change-record delivery, node-free rule | `docs/architecture/` ADR-1 (not yet written) | Chapter sheet hosted here; `calendar.*` namespace; RefCounted vs Resource | Rule dependency |
 | Save format and the no-resource-from-save rule | `docs/architecture/` ADR-4 (not yet written) | JSON plain data; schema version first | Rule dependency |
