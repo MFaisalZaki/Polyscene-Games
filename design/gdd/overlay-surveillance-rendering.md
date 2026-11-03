@@ -2,7 +2,7 @@
 
 > Authoring guidance: .claude/docs/templates/guidance/game-design-document-guide.md (load per-section as you author — do not read entirely).
 
-> **Status**: In Design
+> **Status**: Designed
 > **Author**: Mustafa Faisal (user) + systems-designer, technical-artist, engine-programmer, art-director, creative-director (agents)
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
