@@ -27,7 +27,7 @@ Relationship analysis: four systems carry most of the dependency weight — Doss
 | 1 | Dossier State Model | Core | MVP | Designed | [dossier-state-model.md](dossier-state-model.md) | — |
 | 2 | Narrative Content Format & Strings (inferred) | Narrative | MVP | Designed | [narrative-content-format.md](narrative-content-format.md) | Dossier State Model (build-time schema only) |
 | 3 | Scene & Interaction Framework (inferred) | Core | MVP | Designed | [scene-interaction-framework.md](scene-interaction-framework.md) | Narrative Content Format & Strings (vocabulary at build time, one string at runtime) |
-| 4 | Settings Store (inferred) | Meta | MVP | Not Started | — | — |
+| 4 | Settings Store (inferred) | Meta | MVP | Designed | [settings-store.md](settings-store.md) | Narrative Content Format & Strings (locale and string ids) |
 | 5 | Investigation & Fact System | Gameplay | MVP | Not Started | — | Narrative Content Format & Strings, Scene & Interaction Framework, Dossier State Model (read only) |
 | 6 | Reactive Event Rules & Story Simulator (a polyscene topic: dossier flags as fluents, rules as preferences, licences and laws; `classes()` enumerates the branches, `diagnose()` says why a branch is forbidden) | Gameplay | MVP | Not Started | — | Dossier State Model, Narrative Content Format & Strings, Calendar & Regime Phase |
 | 7 | Calendar, Regime Phase & Attention | Core | MVP (phase and per-character attention) / Vertical Slice (calendar) | Not Started | — | Dossier State Model |
@@ -161,10 +161,10 @@ Producer estimate for GDDs 1–13 at full rigor: 55–75 hours of human approval
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 16 |
-| Design docs started | 3 |
+| Design docs started | 4 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 3/13 |
+| MVP systems designed | 4/13 |
 | Vertical Slice systems designed | 0/3 |
 
 ---

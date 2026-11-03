@@ -526,11 +526,11 @@ formulas:
     status: active
     source: design/gdd/narrative-content-format.md
     referenced_by:
+      - design/gdd/settings-store.md
       - design/gdd/narrative-content-format.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
       - "Dialogue & Interrogation"
-      - "Settings Store"
     variables:
       - obj
       - L
@@ -780,6 +780,91 @@ formulas:
     output_range: "bool"
     expression: "pass = median found >= n_h - 1 and sum miss / sum found <= MISS_RATIO and |{i: found < n_h - 2}| <= FAIL_PLAYERS_MAX and n >= N_MIN; n_h counts kind != person"
     notes: "Formulas §11. The art bible C1 hypothesis test at 720p, reveal disabled."
+    added: 2026-11-03
+    revised: ""
+  - name: snap
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - value
+      - lo
+      - hi
+      - step
+    output_range: "[lo, hi]"
+    expression: "clamp(lo + round((clamp(value, lo, hi) - lo) / step) x step, lo, hi)"
+    notes: "Formulas §1. set accepts off-step values by snapping; load clamps."
+    added: 2026-11-03
+    revised: ""
+  - name: binding_ok
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Scene & Interaction Framework"
+    variables:
+      - n
+      - n_c
+      - cap_c
+      - MAX_EVENTS_PER_ACTION
+      - others
+    output_range: "bool with reason EMPTY|TOO_MANY|CLASS_FULL|DUPLICATE|MALFORMED"
+    expression: "1 <= n <= MAX_EVENTS_PER_ACTION and n_kb >= 1 and n_c <= cap_c and events disjoint from others and well_formed"
+    notes: "Formulas §2. Whole-group reset to defaults on load failure."
+    added: 2026-11-03
+    revised: ""
+  - name: flash_rate_ok
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+    variables:
+      - flashes
+      - window_s
+      - FLASH_MAX_PER_S
+    output_range: "bool"
+    expression: "flashes / window_s <= FLASH_MAX_PER_S over every sliding 1 s window"
+    notes: "Formulas §3. Declared here, enforced by Overlay when flicker = limited (WCAG 2.3.1)."
+    added: 2026-11-03
+    revised: ""
+  - name: ui_scale_px
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - base_px
+      - ui_scale
+      - UI_MIN_PX
+    output_range: "[UI_MIN_PX, 72] at 720"
+    expression: "max(UI_MIN_PX, round(base_px x ui_scale / 100))"
+    notes: "Formulas §4. Paper UI scales its sheets; hit rects never scale (GDD 3)."
+    added: 2026-11-03
+    revised: ""
+  - name: effective_locale
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    variables:
+      - persisted
+      - os_locale
+      - shipped
+      - DEFAULT_LOCALE
+    output_range: "a shipped locale"
+    expression: "persisted if in shipped; else lang(os_locale) if persisted is null and in shipped; else DEFAULT_LOCALE"
+    notes: "Formulas §5. OS value read at first run only."
     added: 2026-11-03
     revised: ""
 
@@ -1071,6 +1156,7 @@ constants:
     status: active
     source: design/gdd/dossier-state-model.md
     referenced_by:
+      - design/gdd/settings-store.md
       - design/gdd/dossier-state-model.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Save/Load"
@@ -1516,10 +1602,10 @@ constants:
     status: active
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
+      - design/gdd/settings-store.md
       - design/gdd/scene-interaction-framework.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Settings Store"
     value: 48
     unit: px at 1080 (32 at 720)
     added: 2026-11-03
@@ -1606,5 +1692,87 @@ constants:
     value: 150
     unit: draws per frame steady state (art bible §8.7 T3; pointer)
     notes: "Owned by design/art/art-bible.md §8.7 T3; absolute 500."
+    added: 2026-11-03
+    revised: ""
+  - name: WRITE_DEBOUNCE_MS
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 500
+    unit: ms between the last changing set and the file write
+    added: 2026-11-03
+    revised: ""
+  - name: MAX_EVENTS_PER_ACTION
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Scene & Interaction Framework"
+    value: 3
+    unit: events per binding name
+    added: 2026-11-03
+    revised: ""
+  - name: KB_SLOTS
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: 2
+    unit: keyboard events per binding name (MOUSE_SLOTS 1, PAD_SLOTS 1)
+    added: 2026-11-03
+    revised: ""
+  - name: FLASH_MAX_PER_S
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Overlay & Surveillance Rendering"
+      - "Accessibility requirements"
+    value: 3
+    unit: flashes per second ceiling (WCAG 2.3.1; may only be lowered)
+    added: 2026-11-03
+    revised: ""
+  - name: UI_MIN_PX
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Accessibility requirements"
+    value: 15
+    unit: px smallest rendered text at 720 (art bible §7.2)
+    added: 2026-11-03
+    revised: ""
+  - name: DEFAULT_LOCALE
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+    value: en
+    unit: locale (must be shipped)
+    added: 2026-11-03
+    revised: ""
+  - name: SETTINGS_SCHEMA_VERSION
+    status: active
+    source: design/gdd/settings-store.md
+    referenced_by:
+      - design/gdd/settings-store.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Paper UI"
+      - "Save/Load"
+    value: 1
+    unit: catalogue version (monotonic)
+    notes: "Separate from GDD 1 SCHEMA_VERSION and GDD 2 content_schema_version."
     added: 2026-11-03
     revised: ""
