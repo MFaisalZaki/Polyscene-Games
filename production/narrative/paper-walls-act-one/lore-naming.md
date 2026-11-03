@@ -13,7 +13,7 @@ Invented, West-Central-European in feel, Latin alphabet, **no diacritics** (the 
 
 - Vowels `a e i o u`; length is doubled (`Haalm`) only in old Crown-era spellings, which the 1951 reform abolished — an old person's signature keeps it.
 - Onsets may cluster: `vr-`, `hl-`, `br-`, `str-`, `zd-`. `j` is a y-sound, `c` is "ts", `ch` as in *loch*. No `w`, `q`, `x`.
-- Male given names end in a consonant or `-o`; female in `-a` or `-e`.
+- Male given names end in a consonant or `-o`; female in `-a` or `-e`. The one exception to the `-a` = female rule: male diminutives in `-a` (Ondra).
 - Surname endings: `-ek` (small, rural), `-ar` (trade), `-ny` (place or quality), `-os` (old Crown gentry), `-ak`, `-il`.
 - **Surnames do not change for gender.** The 1951 *Surname Equality Decree* abolished the feminine `-ova` as feudal. Anyone over sixty still says "Halmova"; hearing it dates the speaker. [D]
 - Address: **Spolny** (invariable, "comrade", `Sp.` on forms) in public; **pan / pani** in private. Using the wrong one is a tell.
@@ -32,8 +32,8 @@ Two candidates each; first is recommended. Connotation is in-world: what a Zelma
 | Rybar | **Captain Imrich Zavorny** — "the bolt"; what people say when a door shuts | **Major Stefan Hradny** — "of the castle"; old gentry sound, which he cultivates |
 | Kastan | **Bohus Kastan** — "chestnut", like the courtyard tree; keep as the surname, and note his codename is *not* a tree — "LIPA" would be too neat, so the registrar gave him **"RIBA"** (fish) [D] | **Ferdo Pilny** — "diligent"; the word on every caretaker's reference |
 | Berta | **Berta Jirsak** — common, clerkly; her mother was also a clerk | **Hanka Mlecny** — "milky"; a dairy family from the estate |
-| Marta Dusek | **Marta Dusek** — "little breath"; cruel for an asthmatic, which is why to keep it | **Agata Vrchny** — "of the heights"; she came down from a hill village in 1952 |
-| Pavel Dusek | **Pavel Dusek** — same, and the surname is on the parcel | **Emil Vrchny** — pairs with Agata |
+| Marta Sokol | **Marta Sokol** — "falcon"; name fixed by the game concept (the *Dusek*, "little breath", candidate is struck) | **Agata Vrchny** — "of the heights"; she came down from a hill village in 1952 |
+| Marta's son (Sokol) | **Sokol** — same, and the surname is on the parcel; given name unnamed | **Emil Vrchny** — pairs with Agata |
 
 ## Institutions and places
 
@@ -56,4 +56,4 @@ Two candidates each; first is recommended. Connotation is in-world: what a Zelma
 ## Flags
 
 - **Writer**: pronunciation guide and the *Spolny* / *pan* register are the two things dialogue needs most; the decree gives an age tell for free.
-- **Narrative-director**: Candidate 1 throughout is the recommended set; renaming in other documents is their call.
+- **Narrative-director**: No renames adopted for act one; the Candidate columns are etymology only (ND ruling 2026-11-03).

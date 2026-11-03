@@ -43,7 +43,7 @@ Meat on Thursdays; oranges in December; toilet paper when the lorry comes; the 6
 
 ## What the radio says [K]
 
-**Radio Zelmava, Programme One**: 5:00 anthem and Plan bulletin, harvest figures, "the situation in neighbouring states", music at 21:00, the time signal on the hour. Its vocabulary tracks the weeks: "individual elements" (W40), "provocateurs" (W42), then "dialogue" or "order", depending on dossier state (narrative-director's call). After dark half the city tunes to the Vienna transmitter.
+**Radio Zelmava, Programme One**: 5:00 anthem and Plan bulletin, harvest figures, "the situation in neighbouring states", music at 21:00, the time signal on the hour. Its vocabulary is keyed to the regime's phase, not the calendar week: "individual elements" while the regime is confident, "provocateurs" once it is paranoid (Plan Week 42 is only the default if nothing moves), then "dialogue" or "order", depending on dossier state (narrative-director's call). After dark half the city tunes to the Vienna transmitter.
 
 ## What a phone tap sounds like [D]
 

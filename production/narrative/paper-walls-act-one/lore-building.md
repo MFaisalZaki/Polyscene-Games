@@ -36,14 +36,15 @@ The inhaler is the dossier use: it is smuggled medicine, it implicates the atten
 
 ## The building at 21:10 [K]
 
-The music programme has been on ten minutes. Through walls: three tube radios slightly out of tune with each other; the Novaks' argument about the depot; Ilona's pen on the kitchen table at 12; Marta's cough in short sets from 14; Sedlak's radio loudest because of the ear. The stair light clicks off; someone presses it again; it clicks off. On the gallery, washing taken in. At 21:30 Kastan's gate round: keys, the gate bar, his step on each landing, a pause outside 13. The courtyard sodium lamp (state light) comes on at dusk; the gallery bulbs (private light) go off one by one.
+The music programme has been on ten minutes. Through walls: three tube radios slightly out of tune with each other; the Novaks' argument about the depot; Ilona's pen on the kitchen table at 5; Marta's cough in short sets from 3; Sedlak's radio loudest because of the ear. The stair light clicks off; someone presses it again; it clicks off. On the gallery, washing taken in. At 21:30 Kastan's gate round: keys, the gate bar, his step on each landing, a pause outside 4. The courtyard sodium lamp (state light) comes on at dusk; the gallery bulbs (private light) go off one by one.
 
 ## The building at 3 a.m. [K]
 
-Nothing from the street until the first tram at 4:30. The gutter drips into the courtyard drain. Cast-iron stoves tick as they cool. Marta's breathing, audible on the gallery. Occasionally the telephone in 15 rings once and stops. [D] A car with its lights off has parked at the tram loop twice this week. [H] It is the recorder room's van, testing the line to 12.
+Nothing from the street until the first tram at 4:30. The gutter drips into the courtyard drain. Cast-iron stoves tick as they cool. Marta's breathing, audible on the gallery. Occasionally the telephone in 6 rings once and stops. [D] A car with its lights off has parked at the tram loop twice this week. [H] It is the recorder room's van, testing the line to 5.
 
 ## Flags
 
-- **Narrative-director**: Eva Novak as courier and Sedlak as the Leaf's typecase mender are new provisional supporting roles; strike or keep.
+- **Narrative-director**: Sedlak as the Leaf's typecase mender is a new provisional supporting role; strike or keep.
+- **Eva Novak**: tenant only, struck as courier (ND ruling 2026-11-03).
 - **Game-designer**: stair light, gate time and gallery sightlines imply detection rules; mechanics are theirs.
 - **Writer**: customs — tenants address each other as *pan/pani* indoors and *Spolny* on forms; the caretaker is thanked with cigarettes, never money.

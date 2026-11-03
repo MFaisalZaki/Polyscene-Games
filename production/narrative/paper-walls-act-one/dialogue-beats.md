@@ -10,6 +10,8 @@
 > the Halm household file opened this autumn. "Comrade" is the state's address; "pan/pani" is the
 > building's. Every line is a localisation string; no line exceeds 120 characters.
 > **Narrator key**: `### <class>` opens a beat; the `> paper:` line closes it and is the state's wording.
+> `> paper:` is the state's wording, or the nearest paper the state will read — the beam tally (read at the raid),
+> the building book (copied to the handler's form).
 > **Epilogue stamp**: given on the first line of each card so the page can end on the crossing.
 
 ---
@@ -53,13 +55,13 @@ of a clean page in his tidy, left-leaning hand, and holds the pen out.
 
 The string tie comes undone in two pulls. Form K-1, then forty leaves numbered in the corner by
 a hand that changed twice in nine years. Vera reads as the office reads: cover, index, last leaf
-first. Leaf 40 is a border report, typed through a tired ribbon. A parcel in the staff
-compartment of the Tuesday train, opened, contents noted. The contents are an inhaler, blue
-plastic, foreign. The addressee is a widow on Vrba Street, number 9, flat 3. Vera knows the
+first. Leaf 40 is a source report, two lines and a foot. A parcel carried up the stair on a
+Tuesday by a man in a railway coat. Contents stated as medicine, foreign. At the foot, a source
+and a receipt number. The stair is Vrba Street, number 9; the flat is 3, a widow's. Vera knows the
 stair. She knows the cough through the wall. She closes the folder on her thumb to keep the
 place, and the tab stripe is red.
 
-> paper: IV/4471/R.31 leaf 40. Border report: parcel, staff compt., inhaler (1), foreign. Addressee SOKOL M., Vrba 9/3.
+> paper: IV/4471/R.31 leaf 40. Source report, fond S: parcel up stair to Vrba 9/3, Tues., rail staff. Stated: medicine, foreign.
 
 ### file_report
 
@@ -194,12 +196,12 @@ cabinet gets a thirteenth stamp.
 The older signatories want names printed; the wall-writers want none. Jan sets the name
 himself, so that nobody else has set it. Third floor, front, caretaker since 1984, a telephone
 in one year instead of eight, a source with a receipt. Beneath it, as proof, the line from a
-border report typed through a tired ribbon, in the state's own wording, with the serial left
-on. Four hundred copies. One sheet is read by eight. One of the eight will be the corridor, and
+source report, with the receipt number left on, in the state's own wording, serial and all.
+Four hundred copies. One sheet is read by eight. One of the eight will be the corridor, and
 the corridor will know which office the serial came from. Jan prints it anyway. The press does
 not care whose name it is.
 
-> paper: Lis, W40, col. 2: "The caretaker at Vrba 9 is a paid source. Quoted from the state's own file, IV/4471/R.31."
+> paper: Ops. IV: Lis W40 col. 2 recovered. Quotes IV/4471/R.31 leaf 40 verbatim. Source office: Records IV. Trace by desk.
 
 ### ask_carbon
 
