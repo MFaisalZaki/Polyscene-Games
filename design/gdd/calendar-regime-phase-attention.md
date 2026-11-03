@@ -186,11 +186,16 @@ where `tier = red_band(x)` (GDD 1 §3, uncapped: what the state's eye weighs on 
 
 ## Game Feel
 
-[To be designed]
+Optional for a Core system; two feel properties follow from it and are stated so Overlay and Paper UI inherit them as targets.
+
+- **Nothing here moves while the player reads.** Every value the Calendar emits changes at a scene boundary and nowhere else; the date turns, the stamp fills and the red reaches further only across the paper wipe. A player who sits with a sheet for ten minutes sees exactly what they saw when it opened. The one continuous motion on screen, the interrogation timer, is not this system's.
+- **Time is felt as a gap, not a rate.** A day transition is a tear-off of `days_elapsed` leaves at the §7.4 paper tempo (180 ms a sheet, rigid, no bend), brisk and clerical, never a clock face or a fade; the player reads how much time passed by how many leaves fell. A chapter opens on its date cold, with no tear-off, so a rewind is never shown as time running backwards.
 
 ## UI Requirements
 
-[To be designed]
+This system has no screen and must not have one. It owns no HUD element: the date stamp (top-left, art bible §7.1) and the surveillance stamp on every open sheet (§7.5) are Paper UI's and Overlay's, drawn from the snapshot's `date`, `ink_reach` and `stamp_tier`; the Calendar-transition screen is Scene Flow's state and Paper UI's sheet, fed by `transition_between` and GDD 1's change records. The only numerals this system puts within reach of the screen are the date's (`{date}`, `{plan_week}` through GDD 2's strings); no tier, phase name, attention value or count is ever rendered as text or a meter, and the four phases have no on-screen label. Debug builds only: an inspector that prints the current snapshot, the timetable row for the current scene and the store's fields, reachable through the debug menu and absent from release (the same rule as GDD 2's and GDD 6's debug surfaces). The writers' tools are the simulator's phase-reachability and longest-unannounced-run reports under `tools/sim/`.
+
+> **📌 UX Flag — Calendar, Regime Phase & Attention**: no player-facing UI of its own. The date stamp, the surveillance stamp and the tear-off transition are Paper UI's and Overlay's; the `/ux-design` work belongs to those systems, and `design/accessibility-requirements.md` must state that no attention or phase signal is carried by red alone (every tier has a shape backup: hatching, fill extent, ink spread; art bible §4.5).
 
 ## Cross-References
 
