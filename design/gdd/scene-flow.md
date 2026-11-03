@@ -6,7 +6,8 @@
 > **Author**: Mustafa Faisal (user) + systems-designer, gameplay-programmer, engine-programmer, creative-director (agents)
 > **Last Updated**: 2026-11-03
 > **Last Verified**: 2026-11-03
-> **Implements Pillar**: 4 Consequences cross lives · 1 Every fact is a weapon · 5 Pressure comes from attention, not reflexes
+> **Implements Pillar**: 5 Pressure comes from attention, not reflexes · 2 The state is a character · 4 Consequences cross lives (secondary: 1 held facts act at once while the file waits; 3 the reveal shows which files changed, never a verdict)
+> **Gates**: CD-GDD-ALIGN 2026-11-03 CONCERNS (14), all applied (Pillar 2 named in the header; duplicate quick reference removed; anchor waits for the player to close the reveal and shows only the protagonist's view; Pillar 4 restated as first-seen here and overprinted there; reveal before insert, GDD 6 VA §3 amended; day transition wipes into the plate; the reveal lands by sheet, not wipe; EC 24 full-frame; a dialogue's reply is structure, not a gate; leaving undecided is legal and "not filed" is authored; empty reveal defined on visible records with the string from content; mid-scene quit confirmed with an honest quit prompt; act close made consistent: no chapter card, SF-E9 exempts it, cold calendar screen holds both beats; cross-chapter provenance for the overprint defined). `/design-review` pending.
 
 ## Summary
 
