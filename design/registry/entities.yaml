@@ -691,8 +691,7 @@ formulas:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     variables:
       - cam_x
       - view_w
@@ -712,8 +711,8 @@ formulas:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
       - design/gdd/overlay-surveillance-rendering.md
+      - design/gdd/character-presentation.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
       - "Paper UI"
     variables:
       - w_t
@@ -747,8 +746,7 @@ formulas:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     variables:
       - path
       - WALK_SPEED_PX_S
@@ -1310,7 +1308,6 @@ formulas:
       - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Character Presentation"
     variables:
       - anchor.subject
       - protagonist_id
@@ -1327,7 +1324,6 @@ formulas:
       - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Character Presentation"
     variables:
       - slot
       - space
@@ -1346,7 +1342,6 @@ formulas:
       - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Character Presentation"
     variables:
       - red_px
       - HUD_RED_RESERVE_PX
@@ -1364,7 +1359,6 @@ formulas:
       - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Character Presentation"
     variables:
       - flicker
       - can_count_flashes
@@ -1382,7 +1376,6 @@ formulas:
       - design/gdd/overlay-surveillance-rendering.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
-      - "Character Presentation"
     variables:
       - snapshot
       - sidecar.overlay
@@ -1390,6 +1383,59 @@ formulas:
     output_range: "plain data, sorted keys, no floats; byte-equal across hosts"
     expression: "plan = {lit layers, lit red anchors with variant (red or hatch) including the key light at tier 3, ghost list, flicker allowance, red_estimate_ppm} computed at scene entry from the snapshot stored at reveal (or view_now()), the sidecar's overlay block and the settings values; no tint layer; immutable while the scene is active"
     notes: "Formulas §3. Recomputed only at scene entry; the ghost is a separate op."
+    added: 2026-11-03
+    revised: ""
+  - name: cast_plan
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Dialogue & Interrogation"
+      - "Paper UI"
+    variables:
+      - cast[]
+      - figures block
+      - presentation.mode
+    output_range: "plain data, sorted keys, no floats; byte-equal across hosts"
+    expression: "plan = {scene_id, entries[{cast_id, hotspot_id, pose, present, order, crop, x, y, twins}], threshold_figure | null, preload_portraits[]} computed once at enter_scene from Scene Flow's resolved cast[] and the sidecar's figures block; PLAN_LOCKED afterwards"
+    notes: "Formulas §1. Presence and pose are content resolved by Scene Flow's reader; this system never evaluates a condition."
+    added: 2026-11-03
+    revised: ""
+  - name: draw_order
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Dialogue & Interrogation"
+      - "Paper UI"
+    variables:
+      - baseline_y
+      - id
+    output_range: "a total order over figures and hotspots"
+    expression: "order = sort by (baseline_y asc, id asc), applied as sibling order under standing; the engine's y-sort is needed only under walking"
+    notes: "Formulas §2."
+    added: 2026-11-03
+    revised: ""
+  - name: resolve_portrait
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
+      - "Dialogue & Interrogation"
+      - "Paper UI"
+    variables:
+      - cast_id
+      - word
+      - context
+      - scene_kind
+      - threshold_kind
+      - has_fact
+    output_range: "PortraitSpec {portrait, state, light, overprint, acc_ids}"
+    expression: "state = the last portrait word in the run, neutral at run start, never a function of any dossier value; light from (scene_kind, context, threshold_kind): none in conversation, overhead for interrogation and the telephone, torch at a door/gate/post, sodium at a window; overprint = has_fact(informer_fact(cast_id))"
+    notes: "Formulas §3. The writer chooses the face; the engine never infers; Paper UI draws."
     added: 2026-11-03
     revised: ""
 constants:
@@ -2032,8 +2078,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     value: 240
     unit: ms (two corner lifts)
     added: 2026-11-03
@@ -2044,8 +2089,8 @@ constants:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
       - design/gdd/overlay-surveillance-rendering.md
+      - design/gdd/character-presentation.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
       - "Paper UI"
     value: 224
     unit: MB per scene (warning line; ceiling is art bible T1 256)
@@ -2057,8 +2102,8 @@ constants:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
       - design/gdd/overlay-surveillance-rendering.md
+      - design/gdd/character-presentation.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
       - "Paper UI"
     value: 181
     unit: MB (art bible T1 worksheet lines not owned by the framework)
@@ -2070,6 +2115,7 @@ constants:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
       - design/gdd/scene-flow.md
+      - design/gdd/character-presentation.md
     value: 500
     unit: ms cold load to scene_ready (TD to confirm)
     added: 2026-11-03
@@ -2125,8 +2171,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     value: 8
     unit: px (walking outcome)
     added: 2026-11-03
@@ -2136,8 +2181,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     value: 360
     unit: plate px per second (walking outcome)
     added: 2026-11-03
@@ -2147,8 +2191,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     value: 4.5
     unit: s longest path across walkable (proof criterion)
     added: 2026-11-03
@@ -2158,8 +2201,7 @@ constants:
     source: design/gdd/scene-interaction-framework.md
     referenced_by:
       - design/gdd/scene-interaction-framework.md
-    planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
+      - design/gdd/character-presentation.md
     value: 1.5
     unit: s median hotspot-to-hotspot path (proof criterion)
     added: 2026-11-03
@@ -2170,8 +2212,8 @@ constants:
     referenced_by:
       - design/gdd/scene-interaction-framework.md
       - design/gdd/overlay-surveillance-rendering.md
+      - design/gdd/character-presentation.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
-      - "Character Presentation"
       - "Paper UI"
     value: 256
     unit: MB per scene (art bible §8.7 T1; registered here as a pointer)
@@ -2184,6 +2226,7 @@ constants:
     referenced_by:
       - design/gdd/investigation-fact-system.md
       - design/gdd/scene-interaction-framework.md
+      - design/gdd/character-presentation.md
     planned_consumers:   # GDDs not yet written; move to referenced_by when they cite this
       - "Paper UI"
     value: 120
@@ -2647,6 +2690,7 @@ constants:
     source: design/gdd/overlay-surveillance-rendering.md
     referenced_by:
       - design/gdd/overlay-surveillance-rendering.md
+      - design/gdd/character-presentation.md
     value: 3
     unit: "px offset of the carbon ghost at 1080 (2 at 720)"
     added: 2026-11-03
@@ -2784,5 +2828,95 @@ constants:
       - design/gdd/overlay-surveillance-rendering.md
     value: 1
     unit: "percentage points of frame by which Gate B's capture may differ from the headless estimate"
+    added: 2026-11-03
+    revised: ""
+  - name: FIG_CROP_MAX_PX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 512
+    unit: "max side of a standing-figure crop in px (art bible T8)"
+    added: 2026-11-03
+    revised: ""
+  - name: FIG_HEIGHT_PCT_MIN
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 15
+    unit: "standing figure height as percent of plate height, minimum (art bible §5.5)"
+    added: 2026-11-03
+    revised: ""
+  - name: FIG_HEIGHT_PCT_MAX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 20
+    unit: "standing figure height as percent of plate height, maximum"
+    added: 2026-11-03
+    revised: ""
+  - name: KEYLINE_PX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 2
+    unit: "painted figure keyline at 1080"
+    added: 2026-11-03
+    revised: ""
+  - name: KEYLINE_FOCUS_PX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 3
+    unit: "painted figure focus keyline at 1080 (the _focus twin)"
+    added: 2026-11-03
+    revised: ""
+  - name: PORTRAITS_RESIDENT_MAX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 24
+    unit: "portraits resident per scene (art bible T1, ≈128 MB mipmapped)"
+    added: 2026-11-03
+    revised: ""
+  - name: PORTRAIT_SPEAKERS_MAX
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 6
+    unit: "distinct portrait speakers per scene (24 / 4 states)"
+    added: 2026-11-03
+    revised: ""
+  - name: WALK_FRAMES
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 8
+    unit: "walk cycle cells per facing (walking outcome only; art bible T8)"
+    added: 2026-11-03
+    revised: ""
+  - name: WALK_FPS
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 12
+    unit: "sprite playback ceiling (walking outcome only; art bible T8)"
+    added: 2026-11-03
+    revised: ""
+  - name: CP_PLAN_BUDGET_MS
+    status: active
+    source: design/gdd/character-presentation.md
+    referenced_by:
+      - design/gdd/character-presentation.md
+    value: 0.5
+    unit: "ms per CastPlan, advisory, reference machine only"
     added: 2026-11-03
     revised: ""
