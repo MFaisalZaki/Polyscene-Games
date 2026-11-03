@@ -160,11 +160,286 @@ Keys sorted at serialisation, no floats, computed at `scene_preloaded` (so `load
 
 ## Formulas
 
-[To be designed]
+*Proposed by the systems designer. Everything below is a pure function over plain data: `cast[]` from Scene Flow's `enter_scene` (Core Rule 3), the sidecar's `figures` block and hotspot records (GDD 3 Rule 1 as amended), `cast_presentation.json`, the two vocabularies, and the dialogue's items; nothing reads a dossier field, a tier, a snapshot or a clock. Every constant appears by its registry name with the MVP value quoted in the table; art-bible numbers are cited by section and never retuned here. Indices: `p` a `persons[]` entry, `h` a hotspot id, `i` the index of a spoken item in a dialogue run, `t` the insert's threshold hotspot. Square brackets `[P]` are the Iverson bracket (1 if `P`, else 0). Bytes are integers; the megabyte figures in prose are `bytes / 10⁶` rounded to one place, so 16 MiB reads as 16.8 MB. Two reconciliations with the art director are applied here as in Core Rules: the telephone transcript keeps the caller's portrait, lit `overhead`; a portrait word holds until the next word within one dialogue run, and every run opens `neutral`.*
+
+### 1. Presence and pose resolution, and the plan as a function
+
+Presence and pose are defined as, for each `p ∈ scene.persons[]`, evaluated by Scene Flow's `ConditionReader` at `enter_scene` and never again (Core Rule 3):
+
+`present(p) = [ p.present_when = null ] ∨ evaluate(p.present_when, reader)`
+
+`pose(p) = p.poses[ k ].pose` where `k = min{ j : p.poses[j].when = null ∨ evaluate(p.poses[j].when, reader) }` — first true wins; CP-E3 guarantees the last entry has no `when`, so `k` always exists.
+
+`cast = [ {cast_id: p.cast_id, hotspot: p.hotspot, present: present(p), pose: pose(p)} for p in persons ]` is the list the sink call carries; GDD 8 Rule 6 reads `hidden(h) = [ kind(h) = person ] · [ ¬cast[h].present ]` from it.
+
+The plan is defined as `CastPlan = plan(cast, figures, hotspots, scene_kind, speakers, cast_presentation, mode)` with:
+
+- `plan.figures = draw_order( [ figure(c) for c in cast if c.present ∧ c.pose ≠ on_threshold ] )` (§2), where `figure(c) = { cast_id, hotspot, pose, baseline_y: hotspots[c.hotspot].baseline_y, layer: crop(c).layer, focus_layer: crop(c).focus_layer }` and `crop(c) = figures.entries[c.hotspot].poses[c.pose]` under `mode = standing`, or the NPC sheet cell set under `mode = walking` (§8)
+- `plan.absent = [ c.cast_id for c in cast if ¬c.present ]`
+- `plan.threshold_figure`, `plan.threshold_kind` per §5
+- `plan.portraits = [ portrait_set(s) for s in speakers ]` with `portrait_set(s) = { cast_id: s, states: cast_presentation[s].portraits, informer_fact: cast_presentation[s].informer_fact }`
+- `plan.bytes_est`, `plan.draws_est` per §6; `plan.findings` the DebugSink codes raised while planning
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `persons[]` | list of `{cast_id, hotspot, present_when?, poses[]}` | 0–`FIG_MAX` entries | data file (GDD 2 scene row) | The writer's cast of the room |
+| `present_when`, `poses[].when` | condition | GDD 2 Rule 6 grammar; no `has_fact` leaf (CP-E7) | data file | Evaluated once at entry by Scene Flow |
+| `reader` | `ConditionReader` | — | injected into Scene Flow (GDD 8 Rule 5) | Pre-boundary dossier plus sheet; this system never holds it |
+| `cast[]` | list of `{cast_id, hotspot, present, pose}` | `|persons|` entries | calculated (Scene Flow), carried in `enter_scene` | The one input this system plans from |
+| `figures.entries[h].poses[pose]` | `{layer {png, x, y}, focus_layer {png, x, y}}` | crops ≤ `FIG_CROP_MAX_PX`² | data file (sidecar `figures` block) | The painter's crops, cross-checked by X03 |
+| `hotspots[h].baseline_y` | int | 0–1079 | data file (GDD 3 Rule 1) | The y-sort key |
+| `scene_kind` | enum | `authored, insert` | `enter_scene` | Selects §5 |
+| `speakers[]` | list of cast ids | 0–`PORTRAIT_SPEAKERS_MAX` (CP-E10) | content store (distinct `speaker` over the scene's dialogues' `line`/`ask` items) | The resident portrait set |
+| `mode` | enum | `standing, walking` | `assets/data/scene_framework.json` (GDD 3 Rule 10) | Selects crop versus sheet |
+| `CastPlan` | plain data | sorted keys, no floats | calculated | Immutable for the scene's life |
+
+**Output Range:** `present` and `pose` are total (every entry gets one value); `|plan.figures| + [threshold_figure ≠ null] ≤ FIG_MAX` by CP-E5 and CP-E12; `plan` is byte-equal across hosts because every field is an id, an int or a sorted list of them. A `cast[]` whose `pose` has no crop in `figures` cannot arise from a validated build (X03) and at runtime produces an absent figure with a `CROP_MISSING` finding (Edge Case 2).
+
+**Example:** Vera's office, `persons = [berta {present_when: is_false berta.hospitalised; poses: [{stands, when: is_true berta.implicated}, {sits}]}, kastan {present_when: is_true kastan.in_building; poses: [{stands}]}]`; at entry `berta.hospitalised = false`, `berta.implicated = unknown`, `kastan.in_building = false` → `cast = [{berta, berta_desk, true, sits}, {kastan, kastan_door, false, stands}]`; Scene Flow sets `kastan_door` `hidden`; `plan.figures = [berta sits @ baseline 640]`, `plan.absent = [kastan]`, `plan.portraits` = Berta, Kastan (he speaks in a dialogue reachable in this room even when absent today; residency follows the content, not today's presence), Vera (she speaks `line`s) → 12 portraits. *Rejected:* `pose` as the **last** true entry (the writer's natural reading of a list is top-down, and GDD 2's answers already use first-true with a trailing fallback); re-resolving at `scene_ready` with a fresh reader (nothing can have changed between `enter_scene` and `scene_ready`, GDD 8 Rule 5, and two evaluations are two chances to disagree).
+
+### 2. Draw order
+
+Draw order is defined as the total order on present figures and hotspot layers under GDD 3's y-sort root:
+
+`draw_order(items) = sort(items, key = (baseline_y asc, id asc))`, `order(a) < order(b) ⇔ baseline_y_a < baseline_y_b ∨ (baseline_y_a = baseline_y_b ∧ id_a < id_b)`
+
+Under `mode = standing` it is computed once in `plan()` and applied as sibling order (or `z_index`, whichever the T4 spike proves; GDD 3 Rule 15) at `apply`. Under `mode = walking` the avatar's key is its feet `y` each frame and the engine's `y_sort_enabled` performs the same comparison (NOT SOURCEABLE; spike); the static items keep the computed order.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `items` | list of `{id, baseline_y}` | ≤ 8 hotspot layers + ≤ `FIG_MAX` figures | sidecar + plan | Everything y-sorted on the plate |
+| `baseline_y` | int | 0–1079 (plate space) | data file (GDD 3 Rule 1) | The foot line of a figure or the ground line of an object |
+| `id` | string | `^[a-z0-9_]+$` | data file | Tie-break, so the order is a function of the sidecar alone |
+| `order` | permutation | — | calculated | Sibling order at `apply` |
+
+**Output Range:** a total order over the items; no two items share a position; deterministic across hosts and machines (no float, no insertion order). Items with equal `baseline_y` are legal (two figures at one desk) and resolve by id; the painter who wants one in front moves a baseline by 1 px.
+
+**Example:** `[desk_folder 612, berta_desk 640, window 300, berta (figure) 640]` → `[window, desk_folder, berta, berta_desk]` (`berta` < `berta_desk` by id; the figure draws under the person hotspot's hit region, which draws nothing, so the tie is harmless). *Rejected:* the engine y-sort under standing (a per-frame sort of static objects to reproduce a list); `lift_anchor.y` as the key (GDD 3 uses it for the focus ring, where reading order matters; depth needs the foot line).
+
+### 3. `resolve_portrait`: state, light and overprint
+
+The portrait state for spoken item `i` of a dialogue run is defined as, over the items actually shown in order (`line` and `ask`; `stage` and `end` are skipped):
+
+`state_i = word_i if word_i ≠ null else state_{i−1}`, with `state_0 = neutral` (every run opens `neutral`; a word holds until the next word within the run; a new run — a re-entered dialogue — opens `neutral` again)
+
+`light = overhead if context ∈ {interrogation, telephone}; torch if scene_kind = insert ∧ threshold_kind = door; sodium if scene_kind = insert ∧ threshold_kind = window; none otherwise`
+
+`overprint_i = [ informer_fact(speaker_i) ≠ null ] · has_fact(informer_fact(speaker_i))`, evaluated as item `i` is shown
+
+`PortraitSpec_i = { cast_id: speaker_i, state: state_i, asset_id: cast_presentation[speaker_i].portraits[state_i], light, overprint: overprint_i, acc_state: acc.portrait.<state_i>, acc_overprint: acc.portrait.overprint if overprint_i else null }`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `word_i` | enum or null | `neutral, guarded, evasive, exposed` (`portrait_vocab.json`; V31) | data file (dialogue item) | The writer's one word |
+| `state_i` | enum | the same four | calculated | What the sheet shows for item `i` |
+| `context` | enum | `desk, cellar, gate, telephone, landing, interrogation, search` (GDD 2 Rule 5d) | data file (dialogue) | Fixed for the run |
+| `scene_kind`, `threshold_kind` | enum | `authored, insert`; `door, window, phone, null` | plan (§5) | Fixed for the scene |
+| `light` | enum | `none, overhead, torch, sodium` | calculated | The lighting layer id Paper UI applies (art bible §5.4) |
+| `informer_fact(c)` | fact id or null | registry ids | data file (`cast_presentation.json`) | Which held fact exposes `c` |
+| `has_fact` | callable `fact_id → bool` | — | injected (GDD 5 `FactSystem.has`) | The player's held set; not a dossier read |
+| `overprint_i` | bool | — | calculated | Paper UI draws the carbon duplicate and the "cc" |
+| `PortraitSpec_i` | plain data | — | calculated | One per spoken item |
+
+**Output Range:** `state_i` is always one of four; it is a function of the words on the shown items alone and of nothing the dossier holds; `overprint_i` is monotone within a run (`has_fact` never turns false, GDD 5 Rule 10) and may turn true between two items. `asset_id` is null only for a speaker absent from `cast_presentation.json` (Edge Case 5) or a state with no asset (Edge Case 8); `light` is never null.
+
+**Example:** `query_ledger` (Rybar, `context: telephone`, `scene_kind: insert`, `threshold_kind: phone`): item 1 `rybar: Intake, Spolny…` no word → `neutral`; `ask blame_clerk/whole/decline` no word → `neutral`; the `whole` reply carries `portrait: guarded` → `guarded`; a following line with no word → `guarded` (holds); `light = overhead` (the bulb); `informer_fact(rybar) = null` → `overprint false`; spec `{rybar, guarded, por_rybar_guarded, overhead, false, acc.portrait.guarded, null}`. Kastan in his building (`authored`, `context: landing`): his line `yields: [riba_is_kastan]` is shown with `overprint false`; the next item evaluates `has_fact(riba_is_kastan) = true` → `overprint true`; the tell appears one item after the fact was heard. *Rejected:* per-item reset to `neutral` (the systems designer's first draft; the art director ruled a word holds within the run so a three-line guarded passage is typed once); inheritance across runs (a re-entered dialogue would remember a face the fiction has reset); `light` from Overlay's `lit` set (the layer is a sheet-space asset keyed on where the conversation is, not on the room's plan; GDD 9 Rule 12's boundary).
+
+### 4. The focus swap
+
+The figure variant shown for a person hotspot `h` is defined as:
+
+`variant(h) = focus_layer if focused_id = h ∧ block_count = 0 ∧ kind(h) = person; layer otherwise`
+
+It is re-evaluated on GDD 3's `focus_changed(id, prev, source)` and on every `push_input_block`/`pop_input_block` (GDD 3 Rule 13), and at no other moment; it is the only change a figure undergoes between `scene_ready` and `scene_exited`. Both variants have equal bounds (CF-E1), so the swap translates nothing.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `focused_id` | hotspot id or none | — | GDD 3 `FocusController` via `focus_changed` | The one focus |
+| `block_count` | int | ≥ 0 | GDD 3 Rule 8 | A sheet, a wipe, a walk |
+| `kind(h)` | enum | GDD 3's five | sidecar | Only persons swap |
+| `KEYLINE_PX`, `KEYLINE_FOCUS_PX` | int | 2, 3 (art bible §5.5, §8.8; painted, not drawn) | constant (A) | The two painted line widths |
+| `variant` | enum | `layer, focus_layer` | calculated | The crop the host shows |
+
+**Output Range:** exactly one figure at a time can show `focus_layer` (one focus, GDD 3 Rule 4), and none while any block is held. Under `reveal` nothing changes (people do not lift and are never undiscovered).
+
+**Example:** pointer enters Berta's hit region → `focus_changed(berta_desk, none, POINTER)` → Berta's 3 px crop; the player activates, Dialogue's transcript pushes a block → `block_count 1` → 2 px (one focus on screen, the sheet's); the transcript pops → `block_count 0`, restored focus `berta_desk` → 3 px; Tab to the folder → 2 px. *Rejected:* a drawn outline (4.7 `CanvasItem` lines draw unfeathered, rendering.md line 11; a shader is NOT SOURCEABLE); keeping 3 px under a sheet (two focuses on screen, GDD 3 Rule 13's rejection).
+
+### 5. The insert's figure placement
+
+The threshold figure is defined as, for `scene_kind = insert` with threshold hotspot `t` (the one GDD 9 O12's `threshold_<t>` layer names):
+
+`threshold_kind = kind(t) ∈ {door, window, phone}` (a `door` hotspot on a window frame is authored as `kind: door` with the window's `name_key`; GDD 3's kind set has no `window`, so `threshold_kind = window` is read from the lighting layer's recipe id, `threshold_window_*`, Open Questions for GDD 3)
+
+`threshold_figure = null if threshold_kind = phone ∨ persons = []; else { cast_id: p.cast_id, hotspot: t, pose: on_threshold, layer: figures.entries[t].poses.on_threshold.layer }` where `p` is the single `persons[]` entry (CP-E12)
+
+`standing_point = figures.entries[t].standing_point`, an integer point in plate space with `standing_point.y = layer.y + layer.h` (the foot line is the crop's bottom edge) and `layer.x ≤ standing_point.x ≤ layer.x + layer.w`; Overlay's `threshold_<t>` lighting entry records the same point as `shadow_from`, and CF-E5 asserts `standing_point = shadow_from` so the painted hard shadow falls from where the figure stands.
+
+For a telephone the first cut's "one difference" is the receiver off its cradle, painted into the insert sidecar's telephone hotspot `layer` by the art export; this system places nothing and asserts nothing about it beyond CP-E13.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `t` | hotspot id | one per insert (O12) | sidecar `overlay.lighting` | The threshold the state enters through |
+| `kind(t)` | enum | `door, phone` (`window` via the lighting recipe) | sidecar | Selects the figure rule and §3's `light` |
+| `persons[]` (insert) | list | 0–1 entries (CP-E12) | data file | The arriving person, or nobody |
+| `figures.entries[t].poses.on_threshold` | crop | ≤ `FIG_CROP_MAX_PX`² | sidecar | One crop, no focus twin (not a hotspot) |
+| `standing_point` | `{x, y}` int | inside the crop; `y` = crop bottom | sidecar | Where the feet meet the floor |
+| `shadow_from` | `{x, y}` int | equals `standing_point` (CF-E5) | sidecar `overlay.lighting[threshold_<t>]` (GDD 9 amendment) | Where the threshold light's shadow was painted from |
+| `threshold_figure` | plain data or null | — | calculated | Placed by `apply` on frame one |
+
+**Output Range:** at most one figure per insert; null for every telephone insert and for an insert whose `persons[]` is empty (the state arrives as paper under the door, a legal authoring); the figure is on frame one of `scene_ready` and Overlay's second cut `THRESHOLD_CUT_MS` later changes nothing of it.
+
+**Example:** `query_ledger`: `t = telephone`, `kind phone`, `persons = []` → `threshold_figure = null`, `threshold_kind = phone`; frame one shows the receiver-off `layer`, the bulb follows at 500 ms, the transcript opens with Rybar's portrait lit `overhead`. A Vertical Slice door insert: `t = door`, `persons = [{captain, door, on_threshold}]`, crop `{png, x: 1480, y: 300, w: 160, h: 420}`, `standing_point {1560, 720}`, Overlay's `shadow_from {1560, 720}` → CF-E5 holds; `threshold_figure = {captain, door, on_threshold, layer}`. *Rejected:* the receiver lift as GDD 3's focus lift (the transcript's block drops it, Rule 13); the figure's foot line taken from the door hotspot's `baseline_y` (a door's ground line and a person's standing point in the doorway differ by the jamb's depth in iso; the painter records where the feet are).
+
+### 6. Byte and draw sheets
+
+The resident bytes this system reports into GDD 3's W13 sheet (owner `character`) are defined as:
+
+`bytes(w, h) = w × h × 4 × 4/3` (RGBA8, mipmapped; GDD 3 Formulas §7's `bytes(t)`)
+
+`bytes_fig = Σ_{f ∈ plan.figures} ( bytes(f.layer) + bytes(f.focus_layer) ) + [threshold_figure ≠ null] · bytes(threshold_figure.layer)`
+
+`bytes_por = |plan.portraits| × 4 × bytes(PORTRAIT_EXPORT_W, PORTRAIT_EXPORT_H)`
+
+`bytes_est = bytes_fig + bytes_por`; the plan asserts `|plan.portraits| × 4 ≤ PORTRAITS_RESIDENT_MAX`
+
+`draws_est = |plan.figures| + [threshold_figure ≠ null]`; the plan asserts `draws_est ≤ FIG_MAX`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `w, h` | int | ≤ `FIG_CROP_MAX_PX` (512) per figure crop; portraits `PORTRAIT_EXPORT_W × H` | sidecar; constant (A, T2/T8) | Texture dimensions |
+| `FIG_CROP_MAX_PX` | int | 512 | constant (A, T2/T8) | Crop ceiling per side |
+| `FIG_MAX` | int | 6 | constant (A, T3; GDD 3 Formulas §8's `FIG_MAX`) | Figure draw ceiling |
+| `PORTRAIT_EXPORT_W × H` | int | 896 × 1120 (a fact: the export including 20% bleed; displayed 747 × 933) | constant (A, T2, §8.8) | One portrait texture |
+| `PORTRAITS_RESIDENT_MAX` | int | 24 | constant (A, §8.8) | Per-scene portrait ceiling |
+| `PORTRAIT_SPEAKERS_MAX` | int | 6 = `PORTRAITS_RESIDENT_MAX / 4` | derived (CP-E10) | Distinct speakers per scene |
+| `bytes_fig`, `bytes_por`, `bytes_est` | int | see Output Range | calculated | Reported, never a verdict |
+| `draws_est` | int | 0–6 | calculated | Feeds GDD 3 §8's `FIG_MAX` term |
+
+**Output Range:** one crop ≤ 512 × 512 × 4 × 4/3 = 1,398,102 B ≈ 1.40 MB; a present figure (two variants) ≤ 2,796,203 B ≈ 2.80 MB; `bytes_fig ≤ 6 × 2,796,203 = 16,777,216 B` = exactly 16 MiB ≈ 16.8 MB, which is the T1 worksheet's "one protagonist sprite sheet 16 MB" line read under standing (an insert's figure is one crop, 1.40 MB, and it is the scene's only figure). One portrait = 896 × 1120 × 4 × 4/3 = 5,352,107 B ≈ 5.35 MB; `bytes_por ≤ 24 × 5,352,107 = 128,450,560 B` ≈ 128.5 MB (T1's "24 portraits at 5.35 MB = 128 MB"). `bytes_est ≤ 145,227,776 B` ≈ 145.2 MB; both lines are already inside GDD 3's `OTHERS_RESERVE_MB` 181 (sheet 16 + portraits 128 + UI 16 + documents 21), so the build-time estimate is unchanged and the runtime report replaces the two lines with measured values. `draws_est ≤ FIG_MAX` by CP-E5 + CP-E12; the focus swap and the overprint add no draw (the overprint is on Paper UI's sheet, inside `UI_MAX` 60).
+
+**Example:** Vera's office: one figure (Berta, crops 240 × 480 and twin) → `bytes_fig = 2 × 240 × 480 × 4 × 4/3 = 1,228,800 B`; three speakers (Berta, Kastan, Vera) → `bytes_por = 12 × 5,352,107 = 64,225,280 B`; `bytes_est = 65,454,080 B` ≈ 65.5 MB reported as owner `character`; `draws_est = 1`. GDD 3's example scene (`bytes_fw` 16.8 MB) plus Overlay's and this report stays far under `SCENE_BUDGET_WARN` 224. *Rejected:* a local ceiling in this GDD (GDD 3 Formulas §7's rejection: the ceiling is per scene, not per owner); streaming portraits on dialogue open (§8.8 decided per-scene loading; a 5 MB load under the first line of an interrogation); un-mipmapped figure crops to save a third (§8.4 and §8.8: mipmaps on for plates and layers to avoid shimmer at 720).
+
+### 7. Validator predicates
+
+The content is valid for this system iff `valid = ∧ CP-E_k` over the following booleans, each checked by GDD 2's validator (errors fail the build naming the scene and the entry; warnings print; the release branch treats W as E); the sidecar is valid iff `∧ CF-E_k`, checked by `CastDataValidator` under GDD 3's `validate_scenes.gd` at build and, structurally, at load (a false predicate at load hides the figure and logs; Edge Cases 2, 11, 20):
+
+- `CP-E1 persons_are_hotspots = (kind(scene) = authored ⇒ { p.hotspot : p ∈ persons } = { h : kind(h) = person } ∧ hotspots are distinct) ∧ (kind(scene) = insert ⇒ ∀ p : threshold(p.hotspot) = true)`
+- `CP-E2 pose_in_vocab = ∀ p, ∀ q ∈ p.poses : q.pose ∈ pose_vocab`
+- `CP-E3 default_pose = ∀ p : |p.poses| ≥ 1 ∧ p.poses[last].when = null`
+- `CP-E4 no_protagonist = ∀ p : p.cast_id ≠ chapter.protagonist`
+- `CP-E5 fig_cap = |persons| ≤ FIG_MAX`
+- `CP-E6 cast_known = ∀ p : p.cast_id ∈ cast_table`
+- `CP-E7 no_fact_leaf = ∀ p : has_fact ∉ leaves(p.present_when) ∧ ∀ q ∈ p.poses : has_fact ∉ leaves(q.when)`
+- `CP-W8 no_scalar_pose = ∀ p, ∀ q ∈ p.poses : {at_least, at_most} ∩ leaves(q.when) = ∅` (warning: "a posture keyed on a scalar is a meter in a body")
+- `CP-W9 no_word_on_stage = ∀ dialogue, ∀ item of kind stage : item.portrait = null` (warning; the compiler drops the word)
+- `CP-E10 speaker_cap = ∀ scene : |distinct speakers over its dialogues' line/ask items| ≤ PORTRAIT_SPEAKERS_MAX`
+- `CP-E11 informer_fact_known = ∀ c ∈ cast_presentation : c.informer_fact = null ∨ c.informer_fact ∈ fact_registry`
+- `CP-E12 insert_shape = kind(scene) = insert ⇒ ( |persons| ≤ 1 ∧ ∀ p : p.pose = on_threshold ∧ p.present_when = null ∧ p.hotspot = t ) ∧ ( kind(scene) = authored ⇒ ∀ p, ∀ q ∈ p.poses : q.pose ≠ on_threshold )`
+- `CP-E13 phone_has_nobody = kind(scene) = insert ∧ kind(t) = phone ⇒ persons = []`
+- `CF-E1 crops_well_formed = ∀ e ∈ figures.entries, ∀ pose : layer and focus_layer exist ∧ w, h ≤ FIG_CROP_MAX_PX ∧ w, h even ∧ x, y, w, h ∈ ℤ ∧ bounds(layer) = bounds(focus_layer)` (an `on_threshold` crop has no `focus_layer`)
+- `CF-E2 in_band = ∀ crop : bounds(crop) ⊆ figure_band`
+- `CF-E3 red_free = ∀ crop : red_px(crop) = 0` (T7 Gate A over figure crops and portraits)
+- `CF-W4 height_band = ∀ crop : FIG_HEIGHT_PCT_MIN × 1080 ≤ h ≤ FIG_HEIGHT_PCT_MAX × 1080` (162–216 px; warning)
+- `CF-E5 shadow_agrees = kind(scene) = insert ∧ persons ≠ [] ⇒ figures.entries[t].standing_point = overlay.lighting[threshold_<t>].shadow_from ∧ standing_point.y = layer.y + layer.h`
+- `X03 crops_exist` (tools/ only) `= ∀ p, ∀ q ∈ p.poses : figures.entries[p.hotspot].poses[q.pose] exists ∧ figures.entries[p.hotspot].cast_id = p.cast_id` (error) `∧ ∀ e, ∀ pose ∈ e.poses : ∃ p, q naming it` (warning: an unused crop)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `persons`, `poses`, `present_when` | content | — | data file (GDD 2 scene row) | The writer's side |
+| `figures.entries`, `standing_point` | sidecar | — | data file (GDD 3 Rule 1 as amended) | The painter's side |
+| `pose_vocab`, `portrait_vocab` | closed sets | 5 words; 4 words | data file (`assets/data/characters/`) | This system's vocabularies |
+| `leaves(cond)` | set of leaf names | GDD 2 Rule 6 grammar | calculated (GDD 2's `Condition.fields_in` sibling) | Which leaf kinds a condition uses |
+| `t`, `kind(t)` | hotspot id, enum | — | sidecar (O12) | The insert's threshold |
+| `fact_registry`, `cast_table` | sets of ids | — | GDD 5; GDD 2 | Cross-reference targets |
+| `FIG_MAX`, `PORTRAIT_SPEAKERS_MAX`, `FIG_CROP_MAX_PX`, `FIG_HEIGHT_PCT_MIN/MAX` | int | 6; 6; 512; 15/20 | constant | The caps |
+| `valid` | bool | — | calculated | The build gate |
+
+**Output Range:** a single boolean per file, with every failing predicate reported (not only the first) as `(scene, entry or hotspot, predicate)`; warnings never fail a developer build. V31 (the portrait word in the vocabulary) is GDD 2's own predicate and is not restated.
+
+**Example:** Vera's office passes CP-E1…E13 and CF-E1…E5; a draft that gives Kastan `poses: [{stands, when: at_least [kastan.attention, ATTN_LOOK]}, {sits}]` passes with CP-W8 printed; a draft with `present_when: {has_fact: riba_is_kastan}` fails CP-E7; the `query_ledger` insert with `persons: [{rybar, telephone, on_threshold}]` fails CP-E13 ("a telephone's caller is a voice"); a sidecar whose Berta crop is 230 × 480 fails CF-E1 (odd width); one whose crop reaches 10 px into the wall above the band fails CF-E2. *Rejected:* CP-W8 as an error (the state posting a watcher is the same leaf kind and is legitimate in `present_when`; the warning marks the posture case and the writer decides); repairing CP-E3 by appending a default pose (the loader never invents a crop).
+
+### 8. Walking outcome (CONDITIONAL, by pointer to GDD 3 Formulas §9) and the frame index
+
+`t_walk`, the hop and crossing criteria and `slide` are GDD 3 Formulas §9's (registry `walk_time`) and are not restated; `STRIDE_PX` is this system's sheet-sidecar datum that formula reads. What this core computes is which cell the sheet shows:
+
+`frame(τ) = ⌊ τ × WALK_FPS / 1000 ⌋ mod WALK_FRAMES` for `τ` the milliseconds since the walk began (injected tick, never a wall clock)
+
+`facing(seg) = E if |Δx| ≥ |Δy| ∧ Δx > 0; W if |Δx| ≥ |Δy| ∧ Δx < 0; S if Δy > 0; N otherwise`, over the final path segment (GDD 3 Rule 10)
+
+`cell(anim, facing, frame) = row(anim, facing') × COLS + frame` with `facing' = E if facing = W else facing`, `flip_h = [facing = W]` (three directions authored, W mirrored; T8, §5.1)
+
+`idle_frame(τ) = ⌊ τ × IDLE_FPS / 1000 ⌋ mod IDLE_FRAMES` for a standing avatar and for NPC idle sheets (walking outcome only)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `WALK_FRAMES` | int | 8 | constant (A, T8) | Cells per walk cycle |
+| `WALK_FPS` | int | ≤ 12; 12 | constant (A, T8) | Playback rate; the T8 ceiling |
+| `IDLE_FRAMES`, `IDLE_FPS` | int | 4; ≤ 12 | constant (A, T8) | Idle cycle |
+| `STRIDE_PX` | int | 150–260 | data file (sheet sidecar) | Ground covered per cycle, read by GDD 3 §9's `slide` |
+| `WALK_SPEED_PX_S`, `HOP_S`, `PLATE_CROSS_S`, `ARRIVAL_TOLERANCE_PX` | — | GDD 3's | constant (G3, registry) | The proof criteria; never redefined here |
+| `τ` | int ms | ≥ 0 | injected tick (`advance(ms)`) | Deterministic in headless tests |
+| `COLS` | int | 8 (a 2048² sheet of 256² cells) | constant (A, T8) | Cells per sheet row |
+| `frame`, `cell`, `flip_h` | int, int, bool | 0–7; 0–63; — | calculated | What the host shows |
+
+**Output Range:** `frame ∈ [0, WALK_FRAMES)`, `cell ∈ [0, 64)` (T8's ≤ 50 used cells; the remaining 14 are empty and never addressed, asserted at load against the sheet sidecar's cell manifest); `flip_h` only for W. With `WALK_SPEED_PX_S` 360, `WALK_FRAMES` 8, `WALK_FPS` 12 and `STRIDE_PX` 230, GDD 3's `slide` = 360 × 8 / 12 / 230 = 1.04 (pass, 0.8–1.25).
+
+**Example:** a 500 px hop E→ at 360 px/s lasts 1,389 ms: frames `0,1,…,7,0,…` change every 83 ms, 16.7 cycles… 1,389 / 83.3 = 16.7 frames = 2.08 cycles, 2.08 × 230 = 479 px of authored stride for 500 px travelled (`slide` 1.04); on arrival `facing = E`, `anim = idle`, `frame` from `idle_frame`. *Rejected:* a distance-driven frame index `⌊ s / STRIDE_PX × WALK_FRAMES ⌋ mod WALK_FRAMES` (it makes `slide` exactly 1 by construction, but at 360 px/s and 230 px stride plays 12.5 fps, over T8's ≤ 12 cap; the time-driven index keeps the cap and lets the proof measure the slide, as GDD 3 §9 asks); a four-direction authored set (§5.1's bilateral symmetry exists so W can be mirrored).
 
 ## Edge Cases
 
-[To be designed]
+*Each case states what happens, who logs it and what the player sees. "Logged" means through the injected `DebugSink` (a recording twin in tests, an assert in debug builds, a logger in release); "build fails" means GDD 2's validator or GDD 3's `validate_scenes.gd` refuses the file. This system never repairs data, never invents a crop or a portrait, never substitutes an asset for one the validator rejected, and never changes anything in a room while the player is in it: every degradation is an absence, logged, so a missing thing is less on screen, never a wrong thing.*
+
+1. **If a `persons[]` entry names a hotspot that is not `kind: person` in an authored scene (a door, a paper, a typo):** build fails CP-E1 naming the scene, the entry and the hotspot's actual kind. At runtime (a sidecar edited after the build) the plan omits the figure, records `PERSON_HOTSPOT_KIND(scene, cast_id, kind)` in `findings`, and Scene Flow's `hidden` derivation ignores the entry because `kind(h) ≠ person`, so the hotspot keeps its own availability and its own layer; the player sees the room without that character and the hotspot behaving as whatever it is. *Rationale:* a figure drawn over a folder's hit region would be a body on paper; GDD 3 E06's clear-band rule exists so that never happens, and this system must not be the one to break it.
+
+2. **If a chosen pose has no crop in the sidecar's `figures` block (the writer added `stands`, the painter shipped only `sits`):** build fails X03 in `tools/` naming `(scene, cast_id, pose)`. At runtime the figure is absent (nothing drawn, no substitution of another pose), its hotspot keeps the availability Scene Flow derived (`unfiled`: the conversation still works, reached by its hit region and the slip), logged `CROP_MISSING(scene, cast_id, pose)`, debug asserts; the player sees a hit region with no figure and may still talk to the empty desk. *Rationale:* substituting `sits` for `stands` shows the writer's state in the wrong body; GDD 9 Rule 14's "release degrades by hiding, never more" applied to people.
+
+3. **If `present_when` or a pose `when` contains a `has_fact` leaf:** build fails CP-E7 ("a person who appears because two cards clicked is a late-appearing affordance"; GDD 5 Rule 4). Nothing reaches runtime; were a compiled file to carry it, Scene Flow's reader evaluates it as GDD 2's evaluator would and the figure would appear or not, which is why the gate is the build and not the loader. *Rationale:* GDD 5 Edge Case 23 forbids the same for exits: knowledge may change what a person says, never whether they exist.
+
+4. **If two pose entries are both true at entry (`stands` under `is_true berta.implicated`, `reads` under `is_true office.ledger_open`, both holding):** the first in list order wins (Formulas §1, first true), no log; the writer orders the list by precedence. The lint cannot know the dossier, so there is no warning; GDD 2's V06b satisfiability check may report an entry that can never be reached under any state (a later entry shadowed by an earlier one that is always true), which is the one case worth printing. *Rationale:* the same rule GDD 2 gives answers and GDD 8 gives actions ("in authored order; take the first"); one rule for every ordered list of gated things.
+
+5. **If a cast id in `persons[]` or among a scene's speakers is absent from `cast_presentation.json`:** build fails CP-E6 for the cast table (unknown id) or, for an id in the cast table but not in `cast_presentation.json`, build fails `PRESENTATION_MISSING(cast_id)` (a cast entry with no portraits is a speaker with no face). At runtime `resolve_portrait` returns `asset_id: null`, `state` as computed, `overprint false`; Paper UI draws the empty stapled frame **(PROV)**; logged `PORTRAIT_SET_MISSING(cast_id)` once per scene. *Rationale:* a blank frame is honest; a borrowed face is a lie about who is speaking.
+
+6. **If a dialogue item carries a portrait word outside the vocabulary (`reads`, `angry`, `Guarded`):** build fails V31 (GDD 2 Rule 15) naming the item and the four legal words, with "`reads` is a pose word (`persons[].poses[]`), not a portrait word" when the word is in `pose_vocab.json`. At runtime an unknown word is treated as no word (the previous state holds; `neutral` if first), logged `PORTRAIT_WORD_UNKNOWN(dialogue, item, word)`. *Rationale:* case-sensitivity and the two vocabularies are the two mistakes a writer will make in week one; the message names the fix.
+
+7. **If a portrait word sits on a `stage` item:** CP-W9 warns at build and the compiler drops the word from the compiled output; at runtime a `stage` item never carries a word, so the portrait is the last spoken item's and nothing is logged. *Rationale:* a stage direction has no speaker, so there is no face for the word to belong to; silently honouring it would change the previous speaker's face on a line they did not say.
+
+8. **If a speaker's portrait set lacks the requested state's asset (`por_kastan_exposed` not exported; the other three present):** build fails CF-E3's sibling `PORTRAIT_STATE_MISSING(cast_id, state)` in the asset gate. At runtime `resolve_portrait` returns `asset_id: null` for that item (no fallback to `neutral`: a calm face on an exposed line inverts the writer's meaning), Paper UI shows the empty frame for that item only, logged once per `(cast_id, state)` per scene. *Rationale:* the four states are the whole expressive vocabulary; the wrong one is worse than none.
+
+9. **If `has_fact(informer_fact)` becomes true during a conversation (the speaker's own line `yields` the fact, or a line of a third party does):** the item on which the fact is held still shows `overprint false` (the hold happens as the line is shown, GDD 5 Rule 2; the spec for that item was resolved before it); every later spoken item in the run shows `overprint true`; the change is a cut on the sheet between items, drawn by Paper UI; nothing is logged. Within a run the flag never goes back to false. *Rationale:* "once the player holds the fact" (art bible §5.2) is a moment the player caused; seeing the carbon arrive on the next line is the fiction working, not a glitch to smooth over.
+
+10. **If `cast_presentation.json` gives a protagonist an `informer_fact` (Vera exposed as a source in a later act):** legal; `resolve_portrait` behaves as for anyone; the overprint appears on the protagonist's own portrait wherever Paper UI pins it, including the transcript when the protagonist speaks a `line`. CP-E11 checks the fact exists; no rule forbids it ("no one is clean", Pillar 3). *Rationale:* the player's own face looks filed (§3.2); a tell that spared the player would be the one exception the art bible refuses.
+
+11. **If a figure crop's bounds leave `figure_band`, or a crop or portrait carries a red-tolerance pixel:** build fails CF-E2 (`FIGURE_OUT_OF_BAND(scene, cast_id, pose, overhang_px)`) or CF-E3 (`FIGURE_RED(scene, png, red_px)`), the latter from T7's Gate A script in `tools/asset-pipeline/`. At load, the structural re-check hides the figure (CF-E2) and logs; CF-E3 is CI-only (the runtime cannot count pixels without the capture spike), so a red crop that bypassed CI is caught by Gate B's composite check on the person rect, GDD 9 Rule 6. *Rationale:* darkness and keylines stay behind people, never under them (§6.6), and red never on skin or clothing (§4.2): both are authoring facts the build can prove.
+
+12. **If a seated pose stands at a desk inside the lamp pool and the plate is sourceless (GDD 9 VA §4), so the figure reads unlit at night while the pool around it is lit:** nothing in this system changes: the crop is painted sourceless like the plate; there is no `_lit` twin and this GDD defines none. The remedy is GDD 3's and the technical artist's open question (GDD 9 VA §4: "a lit variant at equal bounds, or pools authored to keep hotspots in their outer step"), extended to figures by this case; if a `_lit` twin is adopted it is one more pose crop selected by Overlay's `lit` set at plan time, never a tint (GDD 9 Rule 14). Logged nothing; the art director's sign-off catches it. *Rationale:* a person half in a lamp is the one place the sourceless-plate rule bites a body; the answer must be the same for a folder and a face.
+
+13. **If a person is focused when a block is pushed (the player activates them and the transcript opens; or opens the dossier while hovering them):** the 3 px variant drops to 2 px on the push (Formulas §4: `block_count = 0` is a term), the figure beneath the sheet shows its ordinary keyline; on pop GDD 3 restores the saved focus and `focus_changed` re-swaps to 3 px if it is still that person (`hidden` cannot befall a person in-scene). The pointer latch holds until the pointer moves. *Rationale:* GDD 3 Rule 13, "one focus on screen, the sheet's"; a figure wearing the focus mark under a sheet would be two focuses.
+
+14. **If an authored scene's `kind: person` hotspot is also `threshold: true`:** build fails GDD 3 E11 (`threshold: true` on a kind other than `door`/`phone` is a warning there; this GDD asks it be an error for `person`, amendment) and CP-E1 ("a person is not a threshold: the state enters through doors, people are spoken to"). At runtime the hotspot is treated as a person: a figure is drawn if present, and Overlay's O12 would not have named it. *Rationale:* GDD 8 Rule 11 sets the insert's entry focus on the threshold; a person-threshold would make a conversation the thing the state arrives through.
+
+15. **If an insert at a telephone has `persons[]` non-empty (`rybar` placed `on_threshold` at the telephone):** build fails CP-E13 ("a telephone's caller is a voice; the receiver off its cradle is the first cut's one difference"). At runtime (a hand-edited file) the plan sets `threshold_figure = null` regardless of `persons[]`, records `PHONE_FIGURE_DROPPED(scene, cast_id)`, debug asserts; the player sees the receiver off, the bulb, the transcript with Rybar's portrait lit `overhead`. *Rationale:* nobody can stand on a telephone's line: the caller is elsewhere and the player's own figure is never shown (§5.5).
+
+16. **If an insert at a door has a person but the sidecar's `figures` entry lacks `standing_point`, or it disagrees with Overlay's `shadow_from`:** build fails CF-E5 (`STANDING_POINT_MISSING` or `SHADOW_MISMATCH(standing_point, shadow_from)`). At load the figure is still placed (the crop's offset is the placement; `standing_point` is an authoring cross-check, not a runtime input), logged once; the player might see a hard shadow falling from a point a few pixels from the feet. *Rationale:* the figure and its shadow are two exports from one paint file; the predicate exists so they cannot drift apart silently, and hiding the figure over a shadow offset would be a worse frame than the mismatch.
+
+17. **If more than `FIG_MAX` persons are present at entry (seven `persons[]` entries all with `present_when` true):** build fails CP-E5 on the count of entries regardless of conditions (`|persons| ≤ 6`), so the runtime case needs a hand-edited file; there the plan keeps the first `FIG_MAX` in `persons[]` order, drops the rest with `FIG_CAP(scene, dropped[])`, debug asserts; the dropped persons' hotspots are not hidden (Scene Flow derived them present), so the player sees a hit region with no figure, as in case 2. *Rationale:* GDD 3 E02's shape ("a deterministic drop keeps the ring valid"); the cap is T3's draw line and a seventh figure is a draw the budget does not have.
+
+18. **If a scene's distinct speakers would need more than `PORTRAITS_RESIDENT_MAX` portraits (seven speakers, 28 portraits):** build fails CP-E10 naming the seventh speaker; the writer splits the scene or moves a speaker to paper. At runtime the plan keeps the first `PORTRAIT_SPEAKERS_MAX` speakers in content order, drops the rest with `PORTRAIT_CAP(scene, dropped[])`, and a dropped speaker's items resolve with `asset_id: null` (case 5's empty frame); `bytes_est` reports what was actually loaded. *Rationale:* 128 MB is the T1 worksheet's portrait line and the two-scene residency has no slack for a 29th; the cap is a content fact the lint can count.
+
+19. **If `presentation.mode` is missing from `assets/data/scene_framework.json`, or is `walking` while no sprite sheet exists for the chapter's protagonist:** a missing flag reads `standing` and logs `MODE_DEFAULTED` once per run (GDD 3's "standing until then"); `walking` with no sheet logs `SHEET_MISSING(protagonist)` and the plan falls back to `standing` **for that chapter**, so the room renders as per-scene layers with no avatar and GDD 3's standing paragraph governs activation; debug asserts. The flag is never flipped by this system and never read mid-scene (it is a plan input). *Rationale:* the proof decides once and the creative director sets the flag; a build must still run before the sheets exist, and standing is the outcome that needs no asset the MVP lacks.
+
+20. **If the host fails to load a crop or a portrait at `scene_preloaded` (missing PNG, import failure, a 2× paint shipped at 2×):** `load(plan)` returns `{ok: false, errors: [asset ids]}`; the figure or portrait is absent (never a placeholder, never another pose or state, never a magenta square), `scene_preloaded`'s dependents continue, the scene still reaches `scene_ready`; logged `ASSET_LOAD_FAILED(scene, asset_id)` per asset; `bytes_est` is recomputed from what loaded for the report. The player sees an empty desk or an empty portrait frame. A 2× paint at 2× is also GDD 3 E08's build failure and W13's byte spike. *Rationale:* GDD 9 Rule 14's rule for anchors ("release degrades by hiding the anchor and logging, so a missing stamp is less red, never more"), applied to people and faces.
+
+21. **If `plan()` is requested while the scene is `preloading`, `ready`, `active` or `suspended` (a second `scene_preloaded` for the same id; a caller trying to re-plan on a settings change or a `changed` signal):** refused, `PLAN_LOCKED(scene_id)` logged, debug asserts; the existing plan stands; the host receives no call; the player sees nothing. The only in-scene host call is `set_focus_keyline` (Formulas §4). *Rationale:* GDD 9 Edge Case 22's shape: immutability is what makes "never mid-scene" one assert instead of a promise from every consumer.
+
+22. **If `persons[]` names the chapter's protagonist under `presentation.mode = standing` (the writer wants Vera visible at her own desk):** build fails CP-E4 ("the player's own figure is never shown under standing", §5.5). At runtime the plan drops the entry with `PROTAGONIST_IN_PERSONS(scene)`, debug asserts, and Scene Flow's `hidden` derivation is unaffected because the entry's hotspot, if it exists, is a person hotspot for nobody and the lint would already have refused the sidecar. Under `walking` the same entry is also an error: the protagonist is the avatar, never a `persons[]` entry. *Rationale:* under standing the camera is the protagonist's eyes and the transcript is the one place their face appears; a figure of oneself at one's own desk is a third person in a first-person room.
 
 ## Dependencies
 
@@ -186,7 +461,24 @@ Keys sorted at serialisation, no floats, computed at `scene_preloaded` (so `load
 
 ## Tuning Knobs
 
-[To be designed]
+All in `assets/data/characters/presentation.json` (D) unless marked A (art bible §8.7, by pointer; a change is an art-bible amendment, not a tuning), G3/G5 (GDD 3 / GDD 5, by pointer) or B (CI config). The MVP value is the default; nothing here is a float except the two CI budgets, and the loader rejects a non-integral pixel count. Most of this system's numbers are pointers because the art bible already owns them; the knobs this GDD truly owns are the two caps derived from them and the plan budget.
+
+| Knob | Default | Safe range | Too low | Too high | Interacts with |
+|---|---|---|---|---|---|
+| `FIG_MAX` (A, T3; G3 `FIG_MAX`) | 6 | by pointer; 3–8 if T3 is ever amended | A scene with a queue of named witnesses fails CP-E5 and the writer cuts people to paper | Draws over T3's 150 target; `bytes_fig` passes 16 MiB and the T1 sheet line no longer covers it | GDD 3 Formulas §8's `FIG_MAX` term; CP-E5, CP-E12; T1's worksheet line; `bytes_fig` (§6) |
+| `FIG_CROP_MAX_PX` (A, T2/T8) | 512 | by pointer; 384–512 | A standing figure at 20% of 1080 (216 px) with a desk or a carried file will not fit its crop and the export clips a sleeve | 1024: one crop is 5.6 MB and six figures with twins are 67 MB, three times the sheet line | CF-E1; `bytes_fig`; GDD 3 E08's 512² layer rule (one ceiling for every crop on a plate) |
+| `FIG_HEIGHT_PCT_MIN` / `FIG_HEIGHT_PCT_MAX` (A, §5.5) | 15 / 20 | by pointer; 12–25 as a pair with MIN < MAX | Under 15%: eyes become one mark and the ink accent no longer reads at 720 (§5.5's LOD) | Over 20%: a figure reads as a hero object and §3.4's contrast position inverts; the crop approaches `FIG_CROP_MAX_PX` | CF-W4 (162–216 px at 1080); `FIG_CROP_MAX_PX`; the §6.6 figure band's wall height |
+| `KEYLINE_PX` (A, §5.5, §8.8) | 2 | 2 only while the 720 stretch is ⅔ (1.33 px at 720 is the accepted floor) | 1 px: not crisp at both resolutions (§8.8's decided conflict) | 3 px: equals the focus width and the focus read vanishes | `KEYLINE_FOCUS_PX`; GDD 3's hotspot keyline (the same two numbers); T6 pixel alignment |
+| `KEYLINE_FOCUS_PX` (A, GDD 3 VA §2) | 3 | `KEYLINE_PX` + 1 only | Equals `KEYLINE_PX`: focus on a person is invisible | 4 px: a painted border, not a printed line; §6.4's "never a glow" by another route | `KEYLINE_PX`; Formulas §4; CF-E1 equal bounds (a wider line must still fit the twin's bounds) |
+| `PORTRAITS_RESIDENT_MAX` (A, §8.8) | 24 | by pointer; 16–24 | 16: four speakers per scene; an interrogation with the captain, a clerk, the protagonist and a witness is at the cap | 32: 171 MB of portraits and the worst-case scene passes `SCENE_BUDGET_MAX` 256 | `PORTRAIT_SPEAKERS_MAX` (derived); `bytes_por` (§6); GDD 3's `OTHERS_RESERVE_MB` 181 carries exactly this line |
+| `PORTRAIT_SPEAKERS_MAX` (D, derived = `PORTRAITS_RESIDENT_MAX / 4`) | 6 | 4–6; always the integer quotient | Fewer speakers than the scene's dialogues name: CP-E10 fails honest scenes | Never above the quotient: a seventh speaker's four portraits breach `PORTRAITS_RESIDENT_MAX` | CP-E10; `PORTRAITS_RESIDENT_MAX`; Edge Case 18 |
+| `PORTRAIT_EXPORT_PX` (A, T2; a fact, not a knob) | 896 × 1120 (the export including 20% bleed; displayed 747 × 933) | by pointer | 640 × 800 (§8.8's rejected alternative): the crop-tightening layer runs out of bleed | Larger: `bytes_por` grows as the square and the 24-cap must fall | `bytes_por`; the §2.1 crop tightening (Paper UI, from Dialogue's fraction) which the 20% bleed exists for |
+| `OVERPRINT_OFFSET_PX` (G5, by pointer to GDD 5 VA §4 "identical offset vector"; GDD 9 `GHOST_OFFSET_PX` 3 at 1080, 2 at 720) | 3 | by pointer | 1–2 at 1080 blurs under the ⅔ stretch (GDD 9 Rule 8's rejection) | 4+: the duplicate reads as a second person, not a carbon | GDD 5's "one mark family" test (the plate ghost and the sheet "cc" side by side); drawn by Paper UI, sheet carbon `#2E3559` |
+| `WALK_FRAMES` (A, T8; walking only) | 8 | by pointer; 6–8 | A 6-frame cycle at 12 fps is two cycles a second and reads as a scurry | 12 frames: 36 cells for walking alone and the 50-cell sheet is over | Formulas §8 `frame`; GDD 3 §9's `slide` (`WALK_FRAMES / WALK_FPS` is the cycle time); the sheet's ≤ 50 cells |
+| `WALK_FPS` (A, T8; walking only) | 12 | ≤ 12; 8–12 | 8 fps: a 230 px stride at 360 px/s needs 1.57 cycles/s, so `slide` = 360 × 8 / 8 / 230 = 1.57, a skate | Above 12: T8's ceiling; smooth motion is the look of the anti-references, not of printed figures | Formulas §8; GDD 3 §9's `slide` with `WALK_SPEED_PX_S` 360, `HOP_S` 1.5, `PLATE_CROSS_S` 4.5 (G3, by pointer); `STRIDE_PX` (sheet sidecar, 150–260) |
+| `CP_PLAN_BUDGET_MS` (B) | 0.5 | 0.25–2 | Fails on a cold CI cache | A slow plan hides inside the reveal's reading time (advisory; Acceptance Criteria) | Per-scene work is `|persons| + |speakers| × 4 + |hotspots|` list operations; reported per run, blocking on the named reference machine only; measured beside GDD 3's validator and GDD 9's plan budgets |
+
+Interaction clusters: (a) `FIG_MAX`, `FIG_CROP_MAX_PX` and the two keyline twins set `bytes_fig`'s ceiling, and it equals T1's "one protagonist sprite sheet 16 MB" line only at (6, 512, two variants) — change any one and re-check GDD 3 Formulas §7's `OTHERS_RESERVE_MB` worksheet with the technical artist, since the standing and walking outcomes must keep spending the same line; (b) `PORTRAITS_RESIDENT_MAX`, `PORTRAIT_SPEAKERS_MAX` and `PORTRAIT_EXPORT_PX` are one fact stated three ways (24 × 5.35 MB = 128 MB) — change the export size and the two caps follow, never the reverse, and the four-state count (art bible §5.4) is the divisor nobody tunes; (c) `KEYLINE_PX` and `KEYLINE_FOCUS_PX` are GDD 3's hotspot numbers wearing this GDD's names — they are painted into every crop, so a change is a re-export of every figure and hotspot layer in the game, not a tuning pass; (d) `WALK_FRAMES`, `WALK_FPS` and the sheet's `STRIDE_PX` decide `slide` together with GDD 3's `WALK_SPEED_PX_S` — change one and re-run the proof's slide measurement (0.8–1.25), because `HOP_S` is a hard proof gate and a speed that passes the hop while skating fails the look; (e) `FIG_HEIGHT_PCT_*` and `FIG_CROP_MAX_PX` are structural: a change re-exports every plate's figure band and re-cuts every crop, which is the art director's and the technical artist's, not a balance pass.
 
 ## Visual/Audio Requirements
 
@@ -257,4 +549,5 @@ This system has no screen and draws nothing on a sheet. The transcript sheet, th
 | Under walking: the avatar's `standing_point` in an insert (sidecar content, facing the threshold); `motion: reduced` as "cut to approach"; the sprite node (`AnimatedSprite2D` NOT SOURCEABLE; `AnimationPlayer` sourced) with the frame index computed in the core | technical-director, accessibility-specialist | Only if the proof selects walking | Open |
 | Engine spikes, NOT SOURCEABLE: `y_sort_enabled` semantics (the core computes draw order under standing; the engine's sort is needed only under walking), `Sprite2D.frame/flip_h`, texture import options; whether loading ≤ 24 portraits at `scene_preloaded` fits GDD 3's `LOAD_BUDGET_MS` | technical-director, technical-artist | ADR-5 / ADR-6 | Open |
 | Registry: this system is listed as a planned consumer of Overlay's `reach_for`, `lit`, `overlay_plan`, `red_estimate_ppm`, `flicker_allowance`; it consumes none (Paper UI does) | registry (applied with this GDD) | — | Applied: rows moved |
+| GDD 3 has no `window` hotspot kind, so an insert at a window (`threshold_kind = window`, sodium light) needs either a new `kind` or a read off Overlay's lighting recipe id; GDD 3 E11 should make `threshold: true` on a `kind: person` hotspot an error; GDD 9's `overlay.lighting[threshold_<t>]` gains `shadow_from` so the painted shadow and the figure's `standing_point` agree (CF-E5) | Scene & Interaction Framework owner; Overlay owner | Vertical Slice (the first door or window insert) | Open; requested |
 | `design/accessibility-requirements.md` must carry this system's two guarantees (UI Requirements) | `/ux-design accessibility` | Before this GDD's criteria are checked | Open |
